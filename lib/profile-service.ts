@@ -1,0 +1,260 @@
+import { UserProfile } from "@/types/profile"
+
+export interface CreateProfileParams {
+  id: string
+  username: string
+  email?: string
+  walletAddress?: string
+}
+
+/**
+ * Profile Service - Handles user profile creation and management
+ */
+export class ProfileService {
+  private static readonly STORAGE_KEY = "fortuna_square_profiles"
+
+  /**
+   * Get all profiles from localStorage
+   */
+  static getProfiles(): UserProfile[] {
+    try {
+      const stored = localStorage.getItem(this.STORAGE_KEY)
+      if (!stored) return []
+
+      const profiles = JSON.parse(stored)
+      // Convert date strings back to Date objects
+      return profiles.map((profile: any) => ({
+        ...profile,
+        createdAt: new Date(profile.createdAt),
+        updatedAt: new Date(profile.updatedAt)
+      }))
+    } catch (error) {
+      console.error("Error reading profiles:", error)
+      return []
+    }
+  }
+
+  /**
+   * Save profiles to localStorage
+   */
+  static saveProfiles(profiles: UserProfile[]): void {
+    try {
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(profiles))
+    } catch (error) {
+      console.error("Error saving profiles:", error)
+    }
+  }
+
+  /**
+   * Get a profile by ID
+   */
+  static getProfile(id: string): UserProfile | null {
+    const profiles = this.getProfiles()
+    return profiles.find(p => p.id === id) || null
+  }
+
+  /**
+   * Get a profile by wallet address
+   */
+  static getProfileByWallet(walletAddress: string): UserProfile | null {
+    const profiles = this.getProfiles()
+    return profiles.find(p => p.walletAddress === walletAddress) || null
+  }
+
+  /**
+   * Get a profile by email
+   */
+  static getProfileByEmail(email: string): UserProfile | null {
+    const profiles = this.getProfiles()
+    return profiles.find(p => p.email === email) || null
+  }
+
+  /**
+   * Get a profile by username
+   */
+  static getProfileByUsername(username: string): UserProfile | null {
+    const profiles = this.getProfiles()
+    return profiles.find(p => p.username === username) || null
+  }
+
+  /**
+   * Check if username is available
+   */
+  static isUsernameAvailable(username: string, excludeId?: string): boolean {
+    const profiles = this.getProfiles()
+    return !profiles.some(p => p.username.toLowerCase() === username.toLowerCase() && p.id !== excludeId)
+  }
+
+  /**
+   * Generate a unique username from wallet address
+   */
+  static generateUsernameFromWallet(walletAddress: string): string {
+    const baseUsername = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+
+    // Check if base username is available
+    if (this.isUsernameAvailable(baseUsername)) {
+      return baseUsername
+    }
+
+    // If not available, append a number
+    let counter = 1
+    let username = `${baseUsername}_${counter}`
+    while (!this.isUsernameAvailable(username)) {
+      counter++
+      username = `${baseUsername}_${counter}`
+    }
+
+    return username
+  }
+
+  /**
+   * Generate a unique username from email
+   */
+  static generateUsernameFromEmail(email: string): string {
+    const baseUsername = email.split('@')[0]
+
+    // Check if base username is available
+    if (this.isUsernameAvailable(baseUsername)) {
+      return baseUsername
+    }
+
+    // If not available, append a number
+    let counter = 1
+    let username = `${baseUsername}${counter}`
+    while (!this.isUsernameAvailable(username)) {
+      counter++
+      username = `${baseUsername}${counter}`
+    }
+
+    return username
+  }
+
+  /**
+   * Create a new user profile
+   */
+  static async createProfile(params: CreateProfileParams): Promise<UserProfile> {
+    const { id, username, email, walletAddress } = params
+
+    // Check if profile already exists
+    const existingProfile = this.getProfile(id)
+    if (existingProfile) {
+      return existingProfile
+    }
+
+    // Check if wallet already has a profile
+    if (walletAddress) {
+      const walletProfile = this.getProfileByWallet(walletAddress)
+      if (walletProfile) {
+        return walletProfile
+      }
+    }
+
+    // Check if email already has a profile
+    if (email) {
+      const emailProfile = this.getProfileByEmail(email)
+      if (emailProfile) {
+        return emailProfile
+      }
+    }
+
+    const now = new Date()
+    const profile: UserProfile = {
+      id,
+      username,
+      email,
+      walletAddress,
+      createdAt: now,
+      updatedAt: now,
+      verified: walletAddress ? true : false, // Auto-verify wallet users
+      followersCount: 0,
+      followingCount: 0,
+      isPublic: true,
+      showWalletAddress: true,
+      showEmail: false,
+      bio: walletAddress
+        ? `Welcome to Fortuna Square! Connected with ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+        : "New collector on Fortuna Square - ready to explore the cyberpunk NFT marketplace!",
+    }
+
+    // Save the new profile
+    const profiles = this.getProfiles()
+    profiles.push(profile)
+    this.saveProfiles(profiles)
+
+    console.log("✅ Created new profile:", profile.username)
+    return profile
+  }
+
+  /**
+   * Update an existing profile
+   */
+  static async updateProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
+    const profiles = this.getProfiles()
+    const profileIndex = profiles.findIndex(p => p.id === id)
+
+    if (profileIndex === -1) {
+      return null
+    }
+
+    const updatedProfile = {
+      ...profiles[profileIndex],
+      ...updates,
+      updatedAt: new Date()
+    }
+
+    profiles[profileIndex] = updatedProfile
+    this.saveProfiles(profiles)
+
+    return updatedProfile
+  }
+
+  /**
+   * Link a wallet address to an existing profile
+   */
+  static async linkWalletToProfile(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+    const profile = this.getProfile(profileId)
+    if (!profile) {
+      return null
+    }
+
+    // Check if wallet is already linked to another profile
+    const existingWalletProfile = this.getProfileByWallet(walletAddress)
+    if (existingWalletProfile && existingWalletProfile.id !== profileId) {
+      throw new Error("Wallet is already linked to another profile")
+    }
+
+    return this.updateProfile(profileId, {
+      walletAddress,
+      verified: true // Auto-verify when wallet is linked
+    })
+  }
+
+  /**
+   * Create profile from wallet connection
+   */
+  static async createProfileFromWallet(walletAddress: string): Promise<UserProfile> {
+    const username = this.generateUsernameFromWallet(walletAddress)
+
+    return this.createProfile({
+      id: walletAddress, // Use wallet address as ID for wallet-only users
+      username,
+      walletAddress
+    })
+  }
+
+  /**
+   * Create profile from email signup
+   */
+  static async createProfileFromEmail(userId: string, username: string, email: string): Promise<UserProfile> {
+    // Use provided username, but ensure it's available
+    const finalUsername = this.isUsernameAvailable(username)
+      ? username
+      : this.generateUsernameFromEmail(email)
+
+    return this.createProfile({
+      id: userId,
+      username: finalUsername,
+      email
+    })
+  }
+}
