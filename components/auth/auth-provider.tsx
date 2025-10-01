@@ -149,7 +149,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Only auto-create profile for embedded wallets (in-app wallet)
           // External wallets (MetaMask, etc.) require manual linking
           const walletId = (account as any).wallet?.id
-          const isEmbeddedWallet = walletId === "inApp" || walletId === "embedded"
+          console.log("🔍 Detected wallet ID:", walletId)
+
+          // ThirdWeb uses "inApp" as the wallet ID for embedded wallets
+          const isEmbeddedWallet = walletId === "inApp"
 
           if (isEmbeddedWallet) {
             console.log("✅ Embedded wallet detected, creating profile automatically")
