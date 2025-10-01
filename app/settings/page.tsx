@@ -16,7 +16,6 @@ import { Camera, Save, User, Shield, Eye } from "lucide-react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
 import { WalletManagement } from "@/components/wallet/wallet-management"
-import { EmailWalletAuth } from "@/components/settings/email-wallet-auth"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -300,9 +299,6 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Email Wallet Authentication */}
-          <EmailWalletAuth />
 
           {/* Wallet Management */}
           <WalletManagement />
