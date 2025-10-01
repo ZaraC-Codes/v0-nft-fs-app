@@ -64,6 +64,11 @@ export function Header() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-48 bg-card/90 backdrop-blur-xl border-border/50" align="start">
                 <DropdownMenuItem asChild>
+                  <Link href="/mint" className="cursor-pointer">
+                    Mint NFTs
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/collections" className="cursor-pointer">
                     Collections
                   </Link>
@@ -195,6 +200,9 @@ export function Header() {
                 <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">
                   Demos
                 </div>
+                <Link href="/mint" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
+                  Mint NFTs
+                </Link>
                 <Link href="/collections" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
                   Collections
                 </Link>

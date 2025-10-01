@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,9 +9,9 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { client, getChainMetadata } from "@/lib/thirdweb"
-import { prepareListForSale } from "@/lib/marketplace"
-import { Tag, DollarSign, Info, ShoppingCart } from "lucide-react"
+import { client, getChainMetadata, apeChainCurtis } from "@/lib/thirdweb"
+import { prepareListForSale, isNFTApproved, prepareApproveNFT } from "@/lib/marketplace"
+import { Tag, DollarSign, Info, ShoppingCart, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { PortfolioNFT } from "@/types/profile"
 import { useToast } from "@/components/ui/use-toast"
@@ -27,6 +27,37 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
   const { toast } = useToast()
 
   const [price, setPrice] = useState("")
+  const [isApproved, setIsApproved] = useState<boolean | null>(null)
+  const [isCheckingApproval, setIsCheckingApproval] = useState(false)
+
+  // Check approval status when modal opens
+  useEffect(() => {
+    if (isOpen && account) {
+      checkApproval()
+    }
+  }, [isOpen, account])
+
+  const checkApproval = async () => {
+    if (!account) return
+
+    setIsCheckingApproval(true)
+    try {
+      const approved = await isNFTApproved({
+        client,
+        chain: apeChainCurtis,
+        contractAddress: nft.contractAddress,
+        ownerAddress: account.address,
+        // Let the function auto-detect token type
+      })
+      console.log("🔍 Approval status:", approved)
+      setIsApproved(approved)
+    } catch (error) {
+      console.error("❌ Error checking approval:", error)
+      setIsApproved(false)
+    } finally {
+      setIsCheckingApproval(false)
+    }
+  }
 
   const handleListForSale = () => {
     if (!price || parseFloat(price) <= 0) {
@@ -182,22 +213,71 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
             Cancel
           </Button>
 
-          {account && (
+          {account && isCheckingApproval && (
+            <Button disabled className="flex-1">
+              Checking Approval...
+            </Button>
+          )}
+
+          {account && !isCheckingApproval && isApproved === false && (
+            <TransactionButton
+              transaction={async () => {
+                console.log("🔍 Preparing approval transaction...")
+                return await prepareApproveNFT({
+                  client,
+                  chain: apeChainCurtis,
+                  contractAddress: nft.contractAddress,
+                  // Let the function auto-detect token type
+                })
+              }}
+              onTransactionConfirmed={() => {
+                console.log("✅ Approval confirmed!")
+                toast({
+                  title: "Approved!",
+                  description: "You can now list your NFT for sale",
+                })
+                setIsApproved(true)
+              }}
+              onError={(error) => {
+                console.error("❌ Approval error:", error)
+                toast({
+                  title: "Approval Failed",
+                  description: error.message,
+                  variant: "destructive"
+                })
+              }}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
+            >
+              Approve NFT
+            </TransactionButton>
+          )}
+
+          {account && !isCheckingApproval && isApproved === true && (
             <TransactionButton
               transaction={() => {
+                console.log("🔍 Transaction function called")
+                console.log("🔍 Price:", price)
+                console.log("🔍 NFT:", nft)
+
                 if (!handleListForSale()) {
+                  console.error("❌ Validation failed")
                   throw new Error("Invalid listing parameters")
                 }
-                return prepareListForSale({
+
+                console.log("✅ Validation passed, preparing transaction...")
+                const tx = prepareListForSale({
                   client,
-                  chain: { id: nft.chainId } as any,
+                  chain: apeChainCurtis,
                   contractAddress: nft.contractAddress,
                   tokenId: nft.tokenId,
                   price,
                   isBundle: nft.isBundle || false
                 })
+                console.log("✅ Transaction prepared:", tx)
+                return tx
               }}
               onTransactionConfirmed={() => {
+                console.log("✅ Transaction confirmed!")
                 toast({
                   title: "Listed Successfully!",
                   description: `Your ${nft.isBundle ? "bundle" : "NFT"} is now listed for ${price} APE`,
@@ -205,6 +285,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 onClose()
               }}
               onError={(error) => {
+                console.error("❌ Transaction error:", error)
                 toast({
                   title: "Listing Failed",
                   description: error.message,

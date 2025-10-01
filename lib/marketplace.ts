@@ -1,4 +1,6 @@
 import { getContract, prepareContractCall, readContract } from "thirdweb";
+import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
+import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
 import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
@@ -135,6 +137,122 @@ export function cancelListing(listingId: bigint) {
   });
 }
 
+// Detect if an NFT contract is ERC1155 or ERC721
+export async function detectNFTTokenType({
+  client,
+  chain,
+  contractAddress
+}: {
+  client: any
+  chain: any
+  contractAddress: string
+}): Promise<'erc721' | 'erc1155'> {
+  const nftContract = getContract({
+    client,
+    chain,
+    address: contractAddress,
+  });
+
+  try {
+    // Try to call supportsInterface for ERC1155 (0xd9b67a26)
+    const supportsERC1155 = await readContract({
+      contract: nftContract,
+      method: "function supportsInterface(bytes4 interfaceId) view returns (bool)",
+      params: ["0xd9b67a26"],
+    });
+
+    if (supportsERC1155) {
+      return 'erc1155';
+    }
+  } catch (error) {
+    // If supportsInterface fails, it's likely ERC721
+    console.log("Not ERC1155, assuming ERC721");
+  }
+
+  return 'erc721';
+}
+
+// Check if NFT is approved for marketplace
+export async function isNFTApproved({
+  client,
+  chain,
+  contractAddress,
+  ownerAddress,
+  tokenType
+}: {
+  client: any
+  chain: any
+  contractAddress: string
+  ownerAddress: string
+  tokenType?: 'erc721' | 'erc1155'
+}) {
+  // Auto-detect token type if not provided
+  if (!tokenType) {
+    tokenType = await detectNFTTokenType({ client, chain, contractAddress });
+    console.log("🔍 Detected token type:", tokenType);
+  }
+
+  const nftContract = getContract({
+    client,
+    chain,
+    address: contractAddress,
+  });
+
+  if (tokenType === 'erc1155') {
+    return await isApprovedForAllERC1155({
+      contract: nftContract,
+      owner: ownerAddress,
+      operator: MARKETPLACE_CONTRACT_ADDRESS!,
+    });
+  } else {
+    return await isApprovedForAllERC721({
+      contract: nftContract,
+      owner: ownerAddress,
+      operator: MARKETPLACE_CONTRACT_ADDRESS!,
+    });
+  }
+}
+
+// Prepare approval transaction for NFT
+export async function prepareApproveNFT({
+  client,
+  chain,
+  contractAddress,
+  tokenType
+}: {
+  client: any
+  chain: any
+  contractAddress: string
+  tokenType?: 'erc721' | 'erc1155'
+}) {
+  // Auto-detect token type if not provided
+  if (!tokenType) {
+    tokenType = await detectNFTTokenType({ client, chain, contractAddress });
+    console.log("🔍 Detected token type for approval:", tokenType);
+  }
+
+  const nftContract = getContract({
+    client,
+    chain,
+    address: contractAddress,
+  });
+
+  if (tokenType === 'erc1155') {
+    return setApprovalForAllERC1155({
+      contract: nftContract,
+      operator: MARKETPLACE_CONTRACT_ADDRESS!,
+      approved: true,
+    });
+  } else {
+    // For ERC721, we need to use setApprovalForAll too
+    return prepareContractCall({
+      contract: nftContract,
+      method: "function setApprovalForAll(address operator, bool approved)",
+      params: [MARKETPLACE_CONTRACT_ADDRESS!, true],
+    });
+  }
+}
+
 // Helper function to prepare a list for sale transaction
 export function prepareListForSale({
   client,
@@ -158,7 +276,7 @@ export function prepareListForSale({
   // Native currency address (APE on ApeChain)
   const nativeCurrency = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
 
-  return createDirectListing({
+  const listingParams = {
     assetContract: contractAddress,
     tokenId: BigInt(tokenId),
     quantity: BigInt(1),
@@ -167,7 +285,22 @@ export function prepareListForSale({
     startTimestamp: currentTimestamp,
     endTimestamp: endTimestamp,
     reserved: false
+  }
+
+  console.log("📝 Preparing listing with params:", {
+    assetContract: contractAddress,
+    tokenId: tokenId,
+    quantity: "1",
+    currency: nativeCurrency,
+    pricePerToken: priceInWei.toString(),
+    startTimestamp: currentTimestamp.toString(),
+    endTimestamp: endTimestamp.toString(),
+    reserved: false
   })
+
+  console.log("📝 BigInt params:", listingParams)
+
+  return createDirectListing(listingParams)
 }
 
 // Helper function to prepare a buy NFT transaction

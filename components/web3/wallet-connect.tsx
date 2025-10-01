@@ -2,16 +2,26 @@
 
 import { ConnectButton } from "thirdweb/react";
 import { client, apeChainCurtis } from "@/lib/thirdweb";
-import { createWallet } from "thirdweb/wallets";
+import { createWallet, inAppWallet } from "thirdweb/wallets";
 import { useActiveAccount } from "thirdweb/react";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, ChevronDown } from "lucide-react";
 
 const wallets = [
+  inAppWallet({
+    auth: {
+      options: ["google", "apple", "x", "email", "passkey"],
+    },
+    smartAccount: {
+      chain: apeChainCurtis,
+      sponsorGas: false,
+    },
+  }),
   createWallet("io.metamask"),
+  createWallet("xyz.glyph"),
+  createWallet("io.rabby"),
   createWallet("com.coinbase.wallet"),
-  createWallet("me.rainbow"),
-  createWallet("io.zerion.wallet"),
+  createWallet("walletConnect"),
 ];
 
 export function WalletConnect() {
@@ -24,6 +34,10 @@ export function WalletConnect() {
         client={client}
         chain={apeChainCurtis}
         wallets={wallets}
+        accountAbstraction={{
+          chain: apeChainCurtis,
+          sponsorGas: false,
+        }}
         connectButton={{ label: "Connect Wallet" }}
         detailsButton={{
           style: {
@@ -83,6 +97,10 @@ export function WalletConnect() {
       client={client}
       chain={apeChainCurtis}
       wallets={wallets}
+      accountAbstraction={{
+        chain: apeChainCurtis,
+        sponsorGas: false,
+      }}
       connectButton={{
         label: "Connect Wallet",
         style: {

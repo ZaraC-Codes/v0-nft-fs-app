@@ -56,7 +56,8 @@ export const CHAIN_METADATA = {
 export const MARKETPLACE_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS || "";
 
 if (!MARKETPLACE_CONTRACT_ADDRESS) {
-  console.warn("Missing NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS environment variable");
+  console.error("❌ CRITICAL: Missing NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS environment variable");
+  console.error("Marketplace features will not work without this address configured in .env.local");
 }
 
 // APE token contract address on ApeChain Curtis testnet
