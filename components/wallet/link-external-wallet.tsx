@@ -17,35 +17,61 @@ export function LinkExternalWallet() {
   const [isLinking, setIsLinking] = useState(false)
 
   const handleLinkWallet = async () => {
-    if (!account?.address || !userProfile) {
-      toast.error("Please connect your wallet extension (MetaMask, Glyph, etc.) to your browser first, then click this button.")
+    // Check if browser has wallet extensions available
+    if (typeof window === 'undefined' || !window.ethereum) {
+      toast.error("No wallet detected. Please install MetaMask, Glyph, or another wallet extension first.")
       return
     }
 
-    // Check if this is the embedded wallet (primary wallet)
-    const isPrimaryWallet = account.address.toLowerCase() === userProfile.walletAddress?.toLowerCase()
-    if (isPrimaryWallet) {
-      toast.error("Your primary embedded wallet is already linked to your account")
+    if (!userProfile) {
+      toast.error("Profile not loaded. Please refresh and try again.")
       return
     }
-
-    // Check if wallet is already linked
-    const linkedWallets = ProfileService.getAllWallets(userProfile)
-    const isAlreadyLinked = linkedWallets.some(w => w.toLowerCase() === account.address.toLowerCase())
-
-    if (isAlreadyLinked) {
-      toast.error("This wallet is already linked to your account")
-      return
-    }
-
-    setIsLinking(true)
 
     try {
-      // Request signature to verify wallet ownership
-      const message = `Link wallet ${account.address} to Fortuna Square account ${userProfile.username}\n\nTimestamp: ${Date.now()}`
+      // Request accounts from browser wallet extension
+      const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
 
-      // Sign the message
-      const signature = await account.signMessage({ message })
+      if (!accounts || accounts.length === 0) {
+        toast.error("No wallet account found. Please unlock your wallet and try again.")
+        return
+      }
+
+      const walletAddress = accounts[0]
+
+      // Check if this is the embedded wallet (primary wallet)
+      const isPrimaryWallet = walletAddress.toLowerCase() === userProfile.walletAddress?.toLowerCase()
+      if (isPrimaryWallet) {
+        toast.error("This is your primary embedded wallet, already linked to your account")
+        return
+      }
+
+      // Check if wallet is already linked
+      const linkedWallets = ProfileService.getAllWallets(userProfile)
+      const isAlreadyLinked = linkedWallets.some(w => w.toLowerCase() === walletAddress.toLowerCase())
+
+      if (isAlreadyLinked) {
+        toast.error("This wallet is already linked to your account")
+        return
+      }
+
+      setIsLinking(true)
+
+      // Create a temporary account object for signing
+      // We need to use the ThirdWeb SDK to sign the message
+      if (!account) {
+        toast.error("Please wait for your embedded wallet to load, then try again.")
+        setIsLinking(false)
+        return
+      }
+
+      // Request signature from the browser wallet
+      const message = `Link wallet ${walletAddress} to Fortuna Square account ${userProfile.username}\n\nTimestamp: ${Date.now()}`
+
+      const signature = await (window as any).ethereum.request({
+        method: 'personal_sign',
+        params: [message, walletAddress],
+      })
 
       if (!signature) {
         throw new Error("Signature verification failed")
@@ -54,19 +80,19 @@ export function LinkExternalWallet() {
       console.log("✅ Wallet signature verified:", signature.slice(0, 20) + "...")
 
       // Link wallet to profile
-      await ProfileService.linkAdditionalWallet(userProfile.id, account.address)
+      await ProfileService.linkAdditionalWallet(userProfile.id, walletAddress)
 
       // Refresh profile data
       await refreshProfile()
 
-      toast.success(`Wallet ${account.address.slice(0, 6)}...${account.address.slice(-4)} linked successfully!`)
+      toast.success(`Wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} linked successfully!`)
 
     } catch (error: any) {
       console.error("Failed to link wallet:", error)
-      if (error.message?.includes("User rejected")) {
+      if (error.code === 4001 || error.message?.includes("User rejected")) {
         toast.error("Signature rejected. Wallet not linked.")
       } else {
-        toast.error("Failed to link wallet. Please try again.")
+        toast.error(error.message || "Failed to link wallet. Please try again.")
       }
     } finally {
       setIsLinking(false)
@@ -75,10 +101,6 @@ export function LinkExternalWallet() {
 
   const linkedWallets = userProfile ? ProfileService.getAllWallets(userProfile) : []
   const primaryWallet = userProfile?.walletAddress
-
-  // Check if currently connected wallet is the embedded wallet or an external one
-  const isPrimaryWalletConnected = account?.address?.toLowerCase() === primaryWallet?.toLowerCase()
-  const isExternalWalletConnected = account && !isPrimaryWalletConnected
 
   return (
     <Card className="bg-card/50 border-border/50">
@@ -131,24 +153,12 @@ export function LinkExternalWallet() {
           <div className="flex items-start gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
             <AlertCircle className="h-4 w-4 text-primary mt-0.5 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium mb-1">How to link an external wallet:</p>
-              <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Open your wallet extension (MetaMask, Glyph, Coinbase, etc.)</li>
-                <li>Connect it to this site if not already connected</li>
-                <li>Click "Link Wallet" below</li>
-                <li>Sign the message to verify ownership</li>
-              </ol>
-            </div>
-          </div>
-
-          {isExternalWalletConnected && (
-            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center gap-2 mb-3">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
-              <p className="text-sm font-medium">
-                Detected wallet: {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
+              <p className="font-medium mb-1">Link an external wallet</p>
+              <p className="text-muted-foreground">
+                Click "Link Wallet" below. Your browser wallet (MetaMask, Glyph, etc.) will prompt you to sign a message to verify ownership.
               </p>
             </div>
-          )}
+          </div>
 
           <Button
             onClick={handleLinkWallet}
