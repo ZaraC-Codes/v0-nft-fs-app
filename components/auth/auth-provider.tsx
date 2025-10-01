@@ -146,33 +146,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             return
           }
 
-          // Create new wallet-based user and profile
-          console.log("✅ No existing profile found, creating new wallet-based profile")
-          ProfileService.createProfileFromWallet(account.address).then(profile => {
-            const walletUser: User = {
-              id: account.address,
-              username: profile.username,
-              email: "",
-              avatar: profile.avatar,
-              walletAddress: account.address,
-              isVerified: true,
-            }
-            setUser(walletUser)
-            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-            console.log("✅ Created new wallet user with avatar:", profile.avatar)
-          }).catch(error => {
-            console.error("Failed to create wallet profile:", error)
-            // Fallback to basic user creation
-            const walletUser: User = {
-              id: account.address,
-              username: `${account.address.slice(0, 6)}...${account.address.slice(-4)}`,
-              email: "",
-              walletAddress: account.address,
-              isVerified: true,
-            }
-            setUser(walletUser)
-            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-          })
+          // Only auto-create profile for embedded wallets (in-app wallet)
+          // External wallets (MetaMask, etc.) require manual linking
+          const walletId = (account as any).wallet?.id
+          const isEmbeddedWallet = walletId === "inApp" || walletId === "embedded"
+
+          if (isEmbeddedWallet) {
+            console.log("✅ Embedded wallet detected, creating profile automatically")
+            ProfileService.createProfileFromWallet(account.address).then(profile => {
+              const walletUser: User = {
+                id: profile.id,
+                username: profile.username,
+                email: "",
+                avatar: profile.avatar,
+                walletAddress: account.address,
+                isVerified: true,
+              }
+              setUser(walletUser)
+              localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+              console.log("✅ Created embedded wallet user:", profile.username)
+            }).catch(error => {
+              console.error("Failed to create wallet profile:", error)
+            })
+          } else {
+            console.log("⚠️ External wallet detected. Please signup with email/social first, then link your external wallet in Settings.")
+          }
         }
       }
     } else if (!account && user?.walletAddress) {

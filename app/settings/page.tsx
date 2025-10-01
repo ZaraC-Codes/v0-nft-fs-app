@@ -15,7 +15,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { Camera, Save, User, Shield, Eye } from "lucide-react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
-import { WalletManagement } from "@/components/wallet/wallet-management"
+import { LinkExternalWallet } from "@/components/wallet/link-external-wallet"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -300,8 +300,8 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
 
-          {/* Wallet Management */}
-          <WalletManagement />
+          {/* Link External Wallets */}
+          <LinkExternalWallet />
 
           {/* Save Button */}
           <div className="flex justify-end">
