@@ -279,6 +279,72 @@ useEffect(() => {
 - Alternative ports available if conflicts occur
 - Multiple server instances can cause hanging issues
 
+### Multi-Wallet System (Critical Implementation)
+**Status**: ✅ Fully functional
+
+**Overview**:
+Users can create an account with an embedded wallet (email/social auth) and link external wallets (MetaMask, etc.) to their profile. They can switch between wallets for transactions while maintaining a single account identity.
+
+**Architecture**:
+- **Primary Wallet**: Embedded wallet created on signup (stored as `type: 'embedded'` in profile)
+- **Linked Wallets**: External wallets (MetaMask, etc.) linked via Settings (stored as `type: 'metamask'`)
+- **Wallet Metadata**: All wallets stored in `userProfile.wallets` array with address, type, and addedAt timestamp
+- **Active Wallet**: ThirdWeb SDK manages which wallet is active for transactions
+
+**Key Components**:
+- `components/wallet/wallet-switcher.tsx` - Wallet switching context and UI
+- `components/wallet/link-external-wallet.tsx` - Links external wallets to profile
+- `components/header.tsx` - Header dropdown shows all wallets with labels and active indicator
+- `lib/profile-service.ts` - `linkAdditionalWallet()` method for storing wallet metadata
+
+**How It Works**:
+1. User creates account with embedded wallet (email/social login)
+2. User links external wallet (MetaMask) via Settings → "Link Wallet" button
+3. External wallet signs a message to verify ownership
+4. Wallet metadata stored in profile with `type: 'metamask'`
+5. User switches wallets via header dropdown (gear icon)
+6. ThirdWeb's `useConnect()` and `useSetActiveWallet()` handle wallet switching
+7. ThirdWeb persists active wallet selection across page reloads
+8. All transactions use the currently active wallet
+
+**CRITICAL: Always Use ThirdWeb's Wallet Management**:
+- ✅ Use `useConnect()` to connect wallets
+- ✅ Use `useSetActiveWallet()` to switch active wallet
+- ✅ Use `useActiveAccount()` to get current wallet
+- ✅ Use `useDisconnect()` to disconnect wallets
+- ❌ NEVER use manual `window.ethereum` connections
+- ❌ NEVER use page reloads to switch wallets
+- ❌ NEVER bypass ThirdWeb's wallet system
+
+**Implementation Pattern**:
+```typescript
+// Switching to MetaMask (correct approach)
+const { connect } = useConnect()
+const setActiveWallet = useSetActiveWallet()
+
+const metaMaskWallet = createWallet("io.metamask")
+await connect(async () => {
+  const acc = await metaMaskWallet.connect({ client })
+  setActiveWallet(metaMaskWallet)  // Critical - persists selection
+  return acc
+})
+```
+
+**Files**:
+- `components/wallet/wallet-switcher.tsx` - Main wallet switching logic
+- `components/wallet/link-external-wallet.tsx` - External wallet linking
+- `components/header.tsx` - Wallet dropdown UI
+- `lib/profile-service.ts` - Profile methods: `linkAdditionalWallet()`, `getAllWallets()`
+- `types/profile.ts` - `WalletMetadata` interface
+
+**Testing**:
+1. Create account with embedded wallet
+2. Link MetaMask via Settings
+3. Switch to MetaMask via header dropdown
+4. Verify transactions use MetaMask (e.g., mint NFT)
+5. Refresh page - should stay connected to MetaMask
+6. Switch back to embedded wallet - verify it works
+
 ### Watchlist Buttons (Recent Fix)
 **Issue**: Watchlist eye icons on NFT cards were not clickable due to CSS stacking context and pointer-events issues.
 
