@@ -1,20 +1,27 @@
 'use client'
 
-import { useState } from 'react'
-import { useActiveAccount } from 'thirdweb/react'
+import { useState, useEffect } from 'react'
+import { useActiveAccount, useConnect } from 'thirdweb/react'
 import { TransactionButton } from 'thirdweb/react'
-import { prepareContractCall } from 'thirdweb'
+import { prepareContractCall, sendTransaction } from 'thirdweb'
 import { getContract } from 'thirdweb'
 import { client, apeChainCurtis } from '@/lib/thirdweb'
+import { createWallet } from 'thirdweb/wallets'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
 import { Header } from '@/components/header'
+import { useWalletSwitcher } from '@/components/wallet/wallet-switcher'
+import { useProfile } from '@/components/profile/profile-provider'
 
 export default function MintPage() {
   const account = useActiveAccount()
   const { toast } = useToast()
+  const { selectedWalletAddress } = useWalletSwitcher()
+  const { userProfile } = useProfile()
+  const { connect, isConnecting } = useConnect()
+  const [metaMaskAccount, setMetaMaskAccount] = useState<any>(null)
   const [erc721TokenId, setErc721TokenId] = useState('')
   const [erc1155TokenId, setErc1155TokenId] = useState('')
   const [erc1155Amount, setErc1155Amount] = useState('1')
@@ -22,6 +29,24 @@ export default function MintPage() {
   // ThirdWeb deployed NFT contracts on ApeChain Curtis
   const ERC721_CONTRACT = '0x85b5C89aB85bc318aAD14f4c5dea50C07ce93512'
   const ERC1155_CONTRACT = '0xd2dcb01A92897f66a46e2C46fEC6D2BE0Fd2Fa19'
+
+  // Check if using external wallet
+  const isUsingExternalWallet = selectedWalletAddress && selectedWalletAddress !== userProfile?.walletAddress
+
+  // Connect to MetaMask when external wallet is selected
+  useEffect(() => {
+    if (isUsingExternalWallet && !metaMaskAccount) {
+      const wallet = createWallet("io.metamask")
+      connect(async () => {
+        const acc = await wallet.connect({ client })
+        setMetaMaskAccount(acc)
+        return acc
+      })
+    }
+  }, [isUsingExternalWallet, metaMaskAccount, connect])
+
+  // Use the appropriate account for transactions
+  const activeAccount = isUsingExternalWallet && metaMaskAccount ? metaMaskAccount : account
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-900 via-purple-900 to-gray-900">
@@ -75,7 +100,7 @@ export default function MintPage() {
                         return prepareContractCall({
                           contract,
                           method: 'function mintTo(address to, string uri) returns (uint256)',
-                          params: [account.address, `ipfs://test-${Date.now()}`],
+                          params: [activeAccount.address, `ipfs://test-${Date.now()}`],
                         })
                       }}
                       onTransactionConfirmed={() => {
@@ -143,7 +168,7 @@ export default function MintPage() {
                         return prepareContractCall({
                           contract,
                           method: 'function mintTo(address to, uint256 tokenId, string uri, uint256 amount) returns (uint256)',
-                          params: [account.address, BigInt(erc1155TokenId || '0'), `ipfs://test-1155-${Date.now()}`, BigInt(erc1155Amount || '1')],
+                          params: [activeAccount.address, BigInt(erc1155TokenId || '0'), `ipfs://test-1155-${Date.now()}`, BigInt(erc1155Amount || '1')],
                         })
                       }}
                       onTransactionConfirmed={() => {

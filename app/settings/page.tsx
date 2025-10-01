@@ -16,6 +16,7 @@ import { Camera, Save, User, Shield, Eye } from "lucide-react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
 import { LinkExternalWallet } from "@/components/wallet/link-external-wallet"
+import { WalletSwitcher } from "@/components/wallet/wallet-switcher"
 
 export default function SettingsPage() {
   const { user } = useAuth()
@@ -299,6 +300,9 @@ export default function SettingsPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Wallet Switcher */}
+          <WalletSwitcher />
 
           {/* Link External Wallets */}
           <LinkExternalWallet />

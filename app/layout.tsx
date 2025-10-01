@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { AuthProvider } from "@/components/auth/auth-provider"
 import { ProfileProvider } from "@/components/profile/profile-provider"
+import { WalletSwitcherProvider } from "@/components/wallet/wallet-switcher"
 import { ThirdwebProvider } from "thirdweb/react"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingPage } from "@/components/loading-page"
@@ -39,8 +40,10 @@ export default function RootLayout({
           <ThirdwebProvider>
             <AuthProvider>
               <ProfileProvider>
-                {children}
-                <Toaster />
+                <WalletSwitcherProvider>
+                  {children}
+                  <Toaster />
+                </WalletSwitcherProvider>
               </ProfileProvider>
             </AuthProvider>
           </ThirdwebProvider>
