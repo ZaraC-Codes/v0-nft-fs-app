@@ -752,7 +752,51 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Don't auto-initialize profile - let the profile page set it
+  // Auto-initialize profile from current logged-in user
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (typeof window === 'undefined') return
+
+      // Get current logged-in user from AuthProvider
+      const savedUser = localStorage.getItem("fortuna_square_user")
+      if (!savedUser) {
+        setUserProfile(null)
+        return
+      }
+
+      try {
+        const user = JSON.parse(savedUser)
+        const { ProfileService } = await import("@/lib/profile-service")
+
+        // Load profile by user ID
+        const profile = ProfileService.getProfile(user.id)
+
+        if (profile) {
+          setUserProfile(profile)
+          console.log("✅ Auto-loaded userProfile for:", profile.username)
+        } else {
+          console.warn("⚠️ User logged in but no profile found:", user.id)
+        }
+      } catch (error) {
+        console.error("Failed to load user profile:", error)
+      }
+    }
+
+    loadUserProfile()
+
+    // Listen for user changes from AuthProvider
+    const handleUserUpdated = () => {
+      loadUserProfile()
+    }
+
+    window.addEventListener("userUpdated", handleUserUpdated)
+    window.addEventListener("storage", handleUserUpdated)
+
+    return () => {
+      window.removeEventListener("userUpdated", handleUserUpdated)
+      window.removeEventListener("storage", handleUserUpdated)
+    }
+  }, [])
 
   return (
     <ProfileContext.Provider value={{
