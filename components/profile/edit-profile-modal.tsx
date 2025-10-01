@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator"
 import { Camera, Save, User, Shield } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { useProfile } from "./profile-provider"
+import { EmailWalletAuth } from "@/components/settings/email-wallet-auth"
+import { WalletManagement } from "@/components/wallet/wallet-management"
 
 interface EditProfileModalProps {
   open: boolean
@@ -305,6 +307,14 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
             </div>
           </div>
         </div>
+
+        {/* Email Wallet Authentication */}
+        <Separator className="my-6" />
+        <EmailWalletAuth />
+
+        {/* Wallet Management */}
+        <Separator className="my-6" />
+        <WalletManagement />
 
         {/* Footer with Save Button */}
         <div className="flex justify-end gap-2 pt-4 border-t">

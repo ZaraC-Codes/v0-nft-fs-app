@@ -39,8 +39,14 @@ export function Header() {
     }
   }
 
+  // Get linked wallets safely - fallback to empty array if profile not loaded yet
   const linkedWallets = userProfile ? ProfileService.getAllWallets(userProfile) : []
   const activeWallet = userProfile?.activeWallet || userProfile?.walletAddress
+
+  // Debug logging
+  if (typeof window !== 'undefined') {
+    console.log('Header - userProfile:', !!userProfile, 'linkedWallets:', linkedWallets.length)
+  }
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
