@@ -50,40 +50,66 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
 
   const switchWallet = async (address: string) => {
     const wallet = availableWallets.find((w) => w.address === address)
-    if (!wallet) return
+    if (!wallet) {
+      console.error("❌ Wallet not found in availableWallets:", address)
+      return
+    }
 
     // If already connected to this wallet, do nothing
     if (account?.address?.toLowerCase() === address.toLowerCase()) {
+      console.log("ℹ️ Already connected to:", address)
       toast.info(`Already connected to ${wallet.name}`)
       return
     }
 
+    console.log("🔄 Starting wallet switch to:", wallet.name, address)
     setIsSwitching(true)
 
     try {
       // Disconnect current wallet
+      console.log("📴 Disconnecting current wallet...")
       if (account && (account as any).wallet) {
         await disconnect((account as any).wallet)
+        console.log("✅ Disconnected successfully")
         // Wait for disconnect to complete
         await new Promise(resolve => setTimeout(resolve, 500))
       }
 
       // Connect to selected wallet
+      console.log("🔌 Connecting to new wallet...")
       if (wallet.isPrimary) {
         // Connect to embedded wallet
+        console.log("📱 Connecting to embedded wallet...")
         const embeddedWallet = createWallet("inApp")
-        await connect(async () => await embeddedWallet.connect({ client }))
+        const result = await connect(async () => {
+          const acc = await embeddedWallet.connect({ client })
+          console.log("✅ Embedded wallet connected:", acc.address)
+          return acc
+        })
+        console.log("✅ Connect result:", result)
         toast.success("Switched to Embedded Wallet")
       } else {
         // Connect to external wallet (MetaMask)
+        console.log("🦊 Connecting to MetaMask...")
         const metaMaskWallet = createWallet("io.metamask")
-        await connect(async () => await metaMaskWallet.connect({ client }))
+        const result = await connect(async () => {
+          const acc = await metaMaskWallet.connect({ client })
+          console.log("✅ MetaMask connected:", acc.address)
+          return acc
+        })
+        console.log("✅ Connect result:", result)
         toast.success("Switched to MetaMask")
       }
 
       setSelectedWalletAddress(address)
+      console.log("✅ Wallet switch completed successfully")
     } catch (error: any) {
-      console.error("Failed to switch wallet:", error)
+      console.error("❌ Failed to switch wallet:", error)
+      console.error("❌ Error details:", {
+        message: error.message,
+        code: error.code,
+        stack: error.stack
+      })
       toast.error(`Failed to switch wallet: ${error.message}`)
     } finally {
       setIsSwitching(false)
