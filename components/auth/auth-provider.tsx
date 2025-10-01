@@ -1,9 +1,7 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { useActiveAccount, useConnect, useDisconnect } from "thirdweb/react"
-import { createWallet } from "thirdweb/wallets"
-import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { useActiveAccount, useDisconnect } from "thirdweb/react"
 import { ProfileService } from "@/lib/profile-service"
 
 interface User {
@@ -33,7 +31,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const account = useActiveAccount()
-  const { connect } = useConnect()
   const { disconnect } = useDisconnect()
 
   useEffect(() => {
@@ -271,16 +268,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const connectWallet = async () => {
-    setIsLoading(true)
-    try {
-      const wallet = createWallet("io.metamask")
-      await connect({ wallet, client, chain: apeChainCurtis })
-    } catch (error) {
-      console.error("Wallet connection failed:", error)
-      throw new Error("Wallet connection failed")
-    } finally {
-      setIsLoading(false)
-    }
+    // Wallet connection now handled by WalletConnect component and wallet switcher
+    console.log("connectWallet called - use WalletConnect component or wallet switcher instead")
   }
 
   const disconnectWallet = async () => {

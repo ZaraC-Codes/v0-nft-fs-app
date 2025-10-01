@@ -19,7 +19,6 @@ const WalletSwitcherContext = createContext<WalletSwitcherContextType | undefine
 export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
   const account = useActiveAccount()
   const { disconnect } = useDisconnect()
-  const { connect } = useConnect()
   const { userProfile } = useProfile()
   const [selectedWalletAddress, setSelectedWalletAddress] = useState<string | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
