@@ -79,6 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Sync with thirdweb account and create profiles automatically
   useEffect(() => {
+    // CRITICAL: Wait for localStorage to load before auto-creating profiles
+    if (isLoading) {
+      console.log("⏳ Waiting for auth to load before syncing wallet...")
+      return
+    }
+
     if (account?.address) {
       if (user) {
         // User is logged in - check if this wallet is already linked
@@ -115,7 +121,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
           console.log("✅ Logged in existing wallet user:", existingProfile.username)
         } else {
+          // SAFEGUARD: Double-check no profile exists before creating
+          // Check both primary wallet and linked wallets
+          const allProfiles = ProfileService.getAllProfiles()
+          const profileWithWallet = allProfiles.find(p => {
+            const wallets = ProfileService.getAllWallets(p)
+            return wallets.some(w => w.toLowerCase() === account.address.toLowerCase())
+          })
+
+          if (profileWithWallet) {
+            // Found existing profile with this wallet - log them in instead
+            console.log("⚠️ SAFEGUARD: Found existing profile with this wallet, logging in instead of creating duplicate")
+            const walletUser: User = {
+              id: profileWithWallet.id,
+              username: profileWithWallet.username,
+              email: profileWithWallet.email || "",
+              avatar: profileWithWallet.avatar,
+              walletAddress: profileWithWallet.walletAddress,
+              isVerified: true,
+            }
+            setUser(walletUser)
+            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+            console.log("✅ Logged in existing user (safeguard):", profileWithWallet.username)
+            return
+          }
+
           // Create new wallet-based user and profile
+          console.log("✅ No existing profile found, creating new wallet-based profile")
           ProfileService.createProfileFromWallet(account.address).then(profile => {
             const walletUser: User = {
               id: account.address,
@@ -154,7 +186,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.log("✅ Wallet disconnected but user has email login")
       }
     }
-  }, [account, user])
+  }, [account, user, isLoading])
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)

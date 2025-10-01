@@ -376,4 +376,11 @@ export class ProfileService {
   static getAllWallets(profile: UserProfile): string[] {
     return profile.linkedWallets || (profile.walletAddress ? [profile.walletAddress] : [])
   }
+
+  /**
+   * Get all profiles (alias for getProfiles)
+   */
+  static getAllProfiles(): UserProfile[] {
+    return this.getProfiles()
+  }
 }
