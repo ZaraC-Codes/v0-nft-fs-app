@@ -13,16 +13,34 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, User, Wallet, Menu, X, Bell, LogOut, Settings, UserCircle, ChevronDown } from "lucide-react"
+import { Search, User, Wallet, Menu, X, Bell, LogOut, Settings, UserCircle, ChevronDown, Check } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useActiveAccount } from "thirdweb/react"
 import { WalletConnect } from "@/components/web3/wallet-connect"
-import { WalletSwitcher } from "@/components/wallet/wallet-switcher"
+import { useProfile } from "@/components/profile/profile-provider"
+import { ProfileService } from "@/lib/profile-service"
+import { toast } from "sonner"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, logout } = useAuth()
   const account = useActiveAccount()
+  const { userProfile, refreshProfile } = useProfile()
+
+  const handleSwitchWallet = async (walletAddress: string) => {
+    if (!userProfile) return
+    try {
+      await ProfileService.setActiveWallet(userProfile.id, walletAddress)
+      await refreshProfile()
+      toast.success(`Switched to ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`)
+    } catch (error) {
+      console.error("Failed to switch wallet:", error)
+      toast.error("Failed to switch wallet")
+    }
+  }
+
+  const linkedWallets = userProfile ? ProfileService.getAllWallets(userProfile) : []
+  const activeWallet = userProfile?.activeWallet || userProfile?.walletAddress
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -104,12 +122,14 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
+            {/* Wallet Connection - Always available */}
+            <div className="hidden sm:flex">
+              <WalletConnect />
+            </div>
+
             {/* User Actions - Only show when user is logged in */}
             {user && (
               <div className="flex items-center space-x-2">
-                {/* Wallet Switcher */}
-                <WalletSwitcher />
-
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-4 w-4" />
@@ -117,11 +137,6 @@ export function Header() {
                 </Button>
               </div>
             )}
-
-            {/* Wallet Connection - Always available */}
-            <div className="hidden sm:flex">
-              <WalletConnect />
-            </div>
 
             {/* User Menu - Only show when user is logged in */}
             {user ? (
@@ -146,7 +161,7 @@ export function Header() {
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-56 bg-card/90 backdrop-blur-xl border-border/50" align="end">
+                <DropdownMenuContent className="w-64 bg-card/90 backdrop-blur-xl border-border/50" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       <p className="font-medium">
@@ -156,6 +171,44 @@ export function Header() {
                     </div>
                   </div>
                   <DropdownMenuSeparator />
+
+                  {/* Wallet Switcher Section */}
+                  {linkedWallets.length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5">
+                        <p className="text-xs font-semibold text-muted-foreground uppercase">Your Wallets</p>
+                      </div>
+                      {linkedWallets.map((wallet) => {
+                        const isActive = activeWallet?.toLowerCase() === wallet.toLowerCase()
+                        const isPrimary = userProfile?.walletAddress?.toLowerCase() === wallet.toLowerCase()
+
+                        return (
+                          <DropdownMenuItem
+                            key={wallet}
+                            onClick={() => handleSwitchWallet(wallet)}
+                            className="cursor-pointer"
+                          >
+                            <Wallet className="mr-2 h-4 w-4" />
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="font-mono text-xs">
+                                {wallet.slice(0, 6)}...{wallet.slice(-4)}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                {isPrimary && (
+                                  <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                                    Primary
+                                  </Badge>
+                                )}
+                                {isActive && <Check className="h-3 w-3 text-primary" />}
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        )
+                      })}
+                      <DropdownMenuSeparator />
+                    </>
+                  )}
+
                   <DropdownMenuItem asChild>
                     <Link href={`/profile/${user?.username || 'me'}`}>
                       <UserCircle className="mr-2 h-4 w-4" />
