@@ -3,41 +3,29 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ConnectButton, useActiveAccount, useDisconnect } from "thirdweb/react"
-import { createWallet } from "thirdweb/wallets"
-import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { useActiveAccount } from "thirdweb/react"
 import { ProfileService } from "@/lib/profile-service"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
 import { toast } from "sonner"
-import { Wallet, Link as LinkIcon, CheckCircle2, AlertCircle } from "lucide-react"
+import { Wallet, Link as LinkIcon, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react"
 
 export function LinkExternalWallet() {
   const { userProfile, refreshProfile } = useProfile()
   const { user } = useAuth()
   const account = useActiveAccount()
-  const { disconnect } = useDisconnect()
   const [isLinking, setIsLinking] = useState(false)
-
-  // External wallet options
-  const externalWallets = [
-    createWallet("io.metamask"),
-    createWallet("io.rabby"),
-    createWallet("com.coinbase.wallet"),
-    createWallet("io.useglyph"),
-    createWallet("walletConnect"),
-  ]
 
   const handleLinkWallet = async () => {
     if (!account?.address || !userProfile) {
-      toast.error("Please connect an external wallet first")
+      toast.error("Please connect your wallet extension (MetaMask, Glyph, etc.) to your browser first, then click this button.")
       return
     }
 
     // Check if this is the embedded wallet (primary wallet)
     const isPrimaryWallet = account.address.toLowerCase() === userProfile.walletAddress?.toLowerCase()
     if (isPrimaryWallet) {
-      toast.error("This is your primary embedded wallet, cannot link to itself")
+      toast.error("Your primary embedded wallet is already linked to your account")
       return
     }
 
@@ -72,9 +60,6 @@ export function LinkExternalWallet() {
       await refreshProfile()
 
       toast.success(`Wallet ${account.address.slice(0, 6)}...${account.address.slice(-4)} linked successfully!`)
-
-      // Disconnect the external wallet after linking
-      await disconnect()
 
     } catch (error: any) {
       console.error("Failed to link wallet:", error)
@@ -148,57 +133,31 @@ export function LinkExternalWallet() {
             <div className="text-sm">
               <p className="font-medium mb-1">How to link an external wallet:</p>
               <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                <li>Click "Connect External Wallet" below</li>
-                <li>Choose your wallet (MetaMask, Coinbase, etc.)</li>
+                <li>Open your wallet extension (MetaMask, Glyph, Coinbase, etc.)</li>
+                <li>Connect it to this site if not already connected</li>
+                <li>Click "Link Wallet" below</li>
                 <li>Sign the message to verify ownership</li>
-                <li>Your wallet will be linked to this account</li>
               </ol>
             </div>
           </div>
 
-          {/* Show Connect button only if embedded wallet is connected or no wallet */}
-          {isPrimaryWalletConnected || !account ? (
-            <ConnectButton
-              client={client}
-              wallets={externalWallets}
-              theme="dark"
-              connectButton={{
-                label: "Connect External Wallet",
-                className: "w-full !bg-gradient-to-r !from-primary !to-secondary hover:!from-primary/80 hover:!to-secondary/80",
-              }}
-              connectModal={{
-                size: "compact",
-                title: "Connect External Wallet",
-                titleIcon: "",
-                showThirdwebBranding: false,
-              }}
-            />
-          ) : isExternalWalletConnected ? (
-            <div className="space-y-3">
-              <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-green-500" />
-                <p className="text-sm font-medium">
-                  External wallet connected: {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
-                </p>
-              </div>
-
-              <Button
-                onClick={handleLinkWallet}
-                disabled={isLinking}
-                className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
-              >
-                {isLinking ? "Linking..." : "Sign & Link This Wallet"}
-              </Button>
-
-              <Button
-                onClick={() => disconnect()}
-                variant="outline"
-                className="w-full"
-              >
-                Cancel
-              </Button>
+          {isExternalWalletConnected && (
+            <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center gap-2 mb-3">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <p className="text-sm font-medium">
+                Detected wallet: {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
+              </p>
             </div>
-          ) : null}
+          )}
+
+          <Button
+            onClick={handleLinkWallet}
+            disabled={isLinking}
+            className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
+          >
+            <ExternalLink className="mr-2 h-4 w-4" />
+            {isLinking ? "Linking..." : "Link Wallet"}
+          </Button>
         </div>
       </CardContent>
     </Card>
