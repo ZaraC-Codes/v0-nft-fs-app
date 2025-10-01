@@ -17,15 +17,6 @@ export function LinkExternalWallet() {
   const handleLinkWallet = async () => {
     console.log("🔗 Link Wallet clicked")
 
-    // Check if browser has wallet extensions available
-    if (typeof window === 'undefined' || !(window as any).ethereum) {
-      console.error("❌ No window.ethereum found")
-      toast.error("No wallet detected. Please install MetaMask, Glyph, or another wallet extension first.")
-      return
-    }
-
-    console.log("✅ window.ethereum detected")
-
     if (!userProfile) {
       console.error("❌ No userProfile")
       toast.error("Profile not loaded. Please refresh and try again.")
@@ -34,13 +25,37 @@ export function LinkExternalWallet() {
 
     console.log("✅ userProfile loaded:", userProfile.username)
 
+    // Check if browser has wallet extensions available
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      console.error("❌ No window.ethereum found")
+      toast.error("No wallet detected. Please install MetaMask, Glyph, or another Ethereum wallet extension first.")
+      return
+    }
+
+    console.log("✅ window.ethereum detected")
+
+    // Log available wallet providers for debugging
+    const ethereum = (window as any).ethereum
+    console.log("📊 Wallet info:", {
+      isMetaMask: ethereum.isMetaMask,
+      isCoinbaseWallet: ethereum.isCoinbaseWallet,
+      isRabby: ethereum.isRabby,
+      providers: ethereum.providers ? `${ethereum.providers.length} providers` : 'no providers array'
+    })
+
     setIsLinking(true)
 
     try {
       console.log("📞 Requesting accounts from wallet...")
 
       // Request accounts from browser wallet extension
-      const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
+      // This will prompt the user to connect their wallet if not already connected
+      const accounts = await (window as any).ethereum.request({
+        method: 'eth_requestAccounts'
+      }).catch((err: any) => {
+        console.error("❌ eth_requestAccounts error:", err)
+        throw err
+      })
 
       console.log("✅ Accounts received:", accounts)
 
