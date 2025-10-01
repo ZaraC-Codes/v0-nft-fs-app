@@ -39,35 +39,69 @@ export function LinkExternalWallet() {
     // Check for specific wallet extensions we support
     const win = window as any
 
-    // Check for Glyph
-    if (win.glyph?.ethereum) {
-      ethereum = win.glyph.ethereum
-      walletName = "Glyph"
-      console.log("✅ Found Glyph wallet")
+    // If window.ethereum has providers array, search through them
+    if (win.ethereum?.providers && Array.isArray(win.ethereum.providers)) {
+      console.log(`📊 Found ${win.ethereum.providers.length} wallet providers, searching for supported wallets...`)
+
+      // Check for Glyph
+      const glyphProvider = win.ethereum.providers.find((p: any) => p.isGlyph)
+      if (glyphProvider) {
+        ethereum = glyphProvider
+        walletName = "Glyph"
+        console.log("✅ Found Glyph wallet in providers")
+      }
+      // Check for MetaMask
+      else if (win.ethereum.providers.find((p: any) => p.isMetaMask)) {
+        ethereum = win.ethereum.providers.find((p: any) => p.isMetaMask)
+        walletName = "MetaMask"
+        console.log("✅ Found MetaMask wallet in providers")
+      }
+      // Check for Rabby
+      else if (win.ethereum.providers.find((p: any) => p.isRabby)) {
+        ethereum = win.ethereum.providers.find((p: any) => p.isRabby)
+        walletName = "Rabby"
+        console.log("✅ Found Rabby wallet in providers")
+      }
+      // Check for Coinbase
+      else if (win.ethereum.providers.find((p: any) => p.isCoinbaseWallet)) {
+        ethereum = win.ethereum.providers.find((p: any) => p.isCoinbaseWallet)
+        walletName = "Coinbase Wallet"
+        console.log("✅ Found Coinbase Wallet in providers")
+      }
     }
-    // Check for MetaMask
-    else if (win.ethereum?.isMetaMask) {
-      ethereum = win.ethereum
-      walletName = "MetaMask"
-      console.log("✅ Found MetaMask wallet")
-    }
-    // Check for Rabby
-    else if (win.ethereum?.isRabby) {
-      ethereum = win.ethereum
-      walletName = "Rabby"
-      console.log("✅ Found Rabby wallet")
-    }
-    // Check for Coinbase Wallet
-    else if (win.ethereum?.isCoinbaseWallet) {
-      ethereum = win.ethereum
-      walletName = "Coinbase Wallet"
-      console.log("✅ Found Coinbase Wallet")
-    }
-    // Fallback to window.ethereum if it exists
-    else if (win.ethereum) {
-      ethereum = win.ethereum
-      walletName = "Unknown Ethereum Wallet"
-      console.log("⚠️ Found unknown Ethereum wallet")
+
+    // If not found in providers array, check directly
+    if (!ethereum) {
+      // Check for Glyph
+      if (win.glyph?.ethereum) {
+        ethereum = win.glyph.ethereum
+        walletName = "Glyph"
+        console.log("✅ Found Glyph wallet")
+      }
+      // Check for MetaMask
+      else if (win.ethereum?.isMetaMask) {
+        ethereum = win.ethereum
+        walletName = "MetaMask"
+        console.log("✅ Found MetaMask wallet")
+      }
+      // Check for Rabby
+      else if (win.ethereum?.isRabby) {
+        ethereum = win.ethereum
+        walletName = "Rabby"
+        console.log("✅ Found Rabby wallet")
+      }
+      // Check for Coinbase Wallet
+      else if (win.ethereum?.isCoinbaseWallet) {
+        ethereum = win.ethereum
+        walletName = "Coinbase Wallet"
+        console.log("✅ Found Coinbase Wallet")
+      }
+      // Fallback to window.ethereum if it exists
+      else if (win.ethereum) {
+        ethereum = win.ethereum
+        walletName = "Unknown Ethereum Wallet"
+        console.log("⚠️ Found unknown Ethereum wallet")
+      }
     }
 
     if (!ethereum) {
