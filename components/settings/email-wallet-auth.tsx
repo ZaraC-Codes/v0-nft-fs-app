@@ -1,21 +1,13 @@
 "use client"
 
-import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Mail, Wallet, CheckCircle2, AlertCircle } from "lucide-react"
-import { toast } from "sonner"
-import { useConnect } from "thirdweb/react"
-import { inAppWallet } from "thirdweb/wallets"
-import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { Mail, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { ProfileService } from "@/lib/profile-service"
 
 export function EmailWalletAuth() {
-  const { userProfile, refreshProfile } = useProfile()
-  const { connect } = useConnect()
-  const [isAuthenticating, setIsAuthenticating] = useState(false)
+  const { userProfile } = useProfile()
 
   if (!userProfile) return null
 
@@ -49,49 +41,6 @@ export function EmailWalletAuth() {
     )
   }
 
-  const handleEmailAuth = async () => {
-    setIsAuthenticating(true)
-    try {
-      const wallet = inAppWallet({
-        auth: {
-          options: ["email"],
-        },
-        smartAccount: {
-          chain: apeChainCurtis,
-          sponsorGas: false,
-        },
-      })
-
-      toast.info("Opening email authentication...")
-
-      // Connect with email
-      const account = await connect(async () => {
-        await wallet.connect({
-          client: client,
-          chain: apeChainCurtis,
-          strategy: "email",
-          email: userProfile.email!,
-        })
-        return wallet
-      })
-
-      if (account) {
-        // Wallet created and connected!
-        // The auth-provider will automatically link it to the profile
-        toast.success("Email wallet created and linked!")
-        await refreshProfile()
-      }
-    } catch (error: any) {
-      console.error("Email authentication failed:", error)
-      if (error.message?.includes("User closed")) {
-        toast.error("Authentication cancelled")
-      } else {
-        toast.error("Failed to authenticate email")
-      }
-    } finally {
-      setIsAuthenticating(false)
-    }
-  }
 
   return (
     <Card className="border-primary/50">
@@ -126,23 +75,17 @@ export function EmailWalletAuth() {
           <Badge variant="secondary">Ready</Badge>
         </div>
 
-        <Button
-          onClick={handleEmailAuth}
-          disabled={isAuthenticating}
-          className="w-full bg-gradient-to-r from-primary to-purple-500 hover:from-primary/80 hover:to-purple-500/80"
-        >
-          {isAuthenticating ? (
-            <>
-              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-              Authenticating...
-            </>
-          ) : (
-            <>
-              <Wallet className="h-4 w-4 mr-2" />
-              Click here to authenticate with your email
-            </>
-          )}
-        </Button>
+        <div className="flex flex-col gap-3 p-4 rounded-lg bg-primary/10 border border-primary/30">
+          <div className="flex items-start gap-3">
+            <ExternalLink className="h-5 w-5 text-primary mt-0.5" />
+            <div className="flex-1">
+              <p className="font-medium mb-1">Use Wallet Connect Button</p>
+              <p className="text-sm text-muted-foreground">
+                Click the <strong>"Connect Wallet"</strong> button in the header, then select <strong>"Email"</strong> to create your embedded wallet with {userProfile.email}
+              </p>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   )

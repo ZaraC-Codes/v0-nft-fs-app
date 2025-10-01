@@ -167,7 +167,7 @@ export function Header() {
                       <Settings className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                <DropdownMenuContent className="w-64 bg-card/90 backdrop-blur-xl border-border/50" align="end">
+                <DropdownMenuContent className="w-64 bg-card/90 backdrop-blur-xl border-border/50 z-[100]" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
                       <p className="font-medium">
