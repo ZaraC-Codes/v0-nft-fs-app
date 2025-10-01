@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(claude mcp:*)",
+      "Bash(pnpm add:*)",
+      "Bash(pnpm list:*)",
+      "Bash(cat:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm run:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(node:*)",
+      "Bash(taskkill:*)",
+      "Bash(if exist .next rmdir /s /q .next)",
+      "Bash(npx next dev:*)",
+      "Bash(npx next build:*)",
+      "Bash(npx tsc:*)",
+      "Bash(cmd.exe /c \"taskkill /F /IM node.exe 2>nul & rmdir /s /q .next 2>nul & pnpm run dev\")",
+      "Bash(cmd /c \"taskkill /F /IM node.exe && rmdir /s /q .next && pnpm run dev\")",
+      "Bash(curl:*)",
+      "Bash(cmd /c:*)",
+      "Bash(pnpm dev:*)",
+      "Bash(cmd.exe /c \"if exist .next rmdir /s /q .next\")",
+      "Bash(pnpm:*)",
+      "Bash(powershell:*)",
+      "Bash(npx hardhat run:*)",
+      "Bash(npm pkg set:*)",
+      "Bash(npx hardhat:*)",
+      "Bash(npx thirdweb:*)",
+      "Bash(copy hardhat.config.ts hardhat.config.cjs)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
