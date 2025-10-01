@@ -22,7 +22,6 @@ const embeddedWallet = inAppWallet({
 const wallets = [
   embeddedWallet,
   createWallet("io.metamask"),
-  createWallet("xyz.glyph"),
   createWallet("io.rabby"),
   createWallet("com.coinbase.wallet"),
   createWallet("walletConnect"),
