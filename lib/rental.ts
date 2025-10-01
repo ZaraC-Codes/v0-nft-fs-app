@@ -223,8 +223,12 @@ export interface RentNFTParams {
 export function getRentalManagerContract(client: ThirdwebClient, chain: Chain) {
   const addresses = RENTAL_CONTRACT_ADDRESSES[chain.id as keyof typeof RENTAL_CONTRACT_ADDRESSES];
 
+  console.log("🔍 Rental Manager address for chain", chain.id, ":", addresses?.rentalManager);
+
   if (!addresses || addresses.rentalManager === "0x...") {
-    throw new Error(`Rental Manager not deployed on chain ${chain.id}`);
+    const error = `❌ Rental Manager not deployed on chain ${chain.id}. Please deploy the contract first.`;
+    console.error(error);
+    throw new Error(error);
   }
 
   return getContract({

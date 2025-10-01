@@ -132,8 +132,12 @@ export interface ExecuteSwapParams {
 export function getSwapContract(client: ThirdwebClient, chain: Chain) {
   const contractAddress = SWAP_CONTRACT_ADDRESSES[chain.id as keyof typeof SWAP_CONTRACT_ADDRESSES];
 
+  console.log("🔍 Swap contract address for chain", chain.id, ":", contractAddress);
+
   if (!contractAddress || contractAddress === "0x...") {
-    throw new Error(`Swap contract not deployed on chain ${chain.id}`);
+    const error = `❌ Swap contract not deployed on chain ${chain.id}. Please deploy the contract first.`;
+    console.error(error);
+    throw new Error(error);
   }
 
   return getContract({

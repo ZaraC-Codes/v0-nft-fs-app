@@ -4,8 +4,12 @@ import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
 // Get the marketplace contract instance
 export function getMarketplaceContract() {
+  console.log("🔍 Marketplace address:", MARKETPLACE_CONTRACT_ADDRESS);
+
   if (!MARKETPLACE_CONTRACT_ADDRESS) {
-    throw new Error("Marketplace contract address not configured");
+    const error = "❌ Marketplace contract address not configured. Please set NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS in environment variables.";
+    console.error(error);
+    throw new Error(error);
   }
 
   return getContract({
