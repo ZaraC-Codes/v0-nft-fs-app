@@ -91,6 +91,10 @@ export function LinkExternalWallet() {
   const linkedWallets = userProfile ? ProfileService.getAllWallets(userProfile) : []
   const primaryWallet = userProfile?.walletAddress
 
+  // Check if currently connected wallet is the embedded wallet or an external one
+  const isPrimaryWalletConnected = account?.address?.toLowerCase() === primaryWallet?.toLowerCase()
+  const isExternalWalletConnected = account && !isPrimaryWalletConnected
+
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader>
@@ -152,7 +156,8 @@ export function LinkExternalWallet() {
             </div>
           </div>
 
-          {!account ? (
+          {/* Show Connect button only if embedded wallet is connected or no wallet */}
+          {isPrimaryWalletConnected || !account ? (
             <ConnectButton
               client={client}
               wallets={externalWallets}
@@ -168,12 +173,12 @@ export function LinkExternalWallet() {
                 showThirdwebBranding: false,
               }}
             />
-          ) : (
+          ) : isExternalWalletConnected ? (
             <div className="space-y-3">
               <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/30 flex items-center gap-2">
                 <CheckCircle2 className="h-4 w-4 text-green-500" />
                 <p className="text-sm font-medium">
-                  External wallet connected: {account.address.slice(0, 6)}...{account.address.slice(-4)}
+                  External wallet connected: {account?.address.slice(0, 6)}...{account?.address.slice(-4)}
                 </p>
               </div>
 
@@ -193,7 +198,7 @@ export function LinkExternalWallet() {
                 Cancel
               </Button>
             </div>
-          )}
+          ) : null}
         </div>
       </CardContent>
     </Card>
