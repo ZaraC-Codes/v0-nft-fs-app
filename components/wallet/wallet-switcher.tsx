@@ -71,13 +71,32 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
         toast.info("Reloading to switch to Embedded Wallet...")
         setTimeout(() => window.location.reload(), 500)
       } else {
-        // Switching to MetaMask - use window.ethereum directly
+        // Switching to MetaMask - find MetaMask provider specifically
         console.log("🦊 Switching to MetaMask...")
 
-        if (typeof window === 'undefined' || !(window as any).ethereum) {
+        if (typeof window === 'undefined') {
+          toast.error("Window not available")
+          return
+        }
+
+        // Find MetaMask provider (handles multiple wallet extensions)
+        let ethereum = null
+        const win = window as any
+
+        // Check if there are multiple providers
+        if (win.ethereum?.providers && Array.isArray(win.ethereum.providers)) {
+          console.log("🔍 Found multiple wallet providers, searching for MetaMask...")
+          ethereum = win.ethereum.providers.find((p: any) => p.isMetaMask)
+        } else if (win.ethereum?.isMetaMask) {
+          ethereum = win.ethereum
+        }
+
+        if (!ethereum) {
           toast.error("MetaMask not detected. Please install MetaMask extension.")
           return
         }
+
+        console.log("✅ Found MetaMask provider")
 
         // Disconnect current wallet
         if (account && (account as any).wallet) {
@@ -87,7 +106,6 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
         }
 
         // Request MetaMask connection
-        const ethereum = (window as any).ethereum
         console.log("🔌 Requesting MetaMask connection...")
 
         try {
