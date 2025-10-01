@@ -35,13 +35,32 @@ export function LinkExternalWallet() {
     console.log("✅ window.ethereum detected")
 
     // Log available wallet providers for debugging
-    const ethereum = (window as any).ethereum
+    let ethereum = (window as any).ethereum
+
     console.log("📊 Wallet info:", {
       isMetaMask: ethereum.isMetaMask,
       isCoinbaseWallet: ethereum.isCoinbaseWallet,
       isRabby: ethereum.isRabby,
-      providers: ethereum.providers ? `${ethereum.providers.length} providers` : 'no providers array'
+      hasProviders: !!ethereum.providers
     })
+
+    // If multiple providers exist, try to find an Ethereum wallet
+    if (ethereum.providers && Array.isArray(ethereum.providers)) {
+      console.log(`📊 Found ${ethereum.providers.length} wallet providers`)
+
+      // Look for known Ethereum wallets (not Cardano like Eternl)
+      const ethProvider = ethereum.providers.find((p: any) =>
+        p.isMetaMask || p.isRabby || p.isCoinbaseWallet || p.isGlyph
+      )
+
+      if (ethProvider) {
+        console.log("✅ Selected Ethereum provider")
+        ethereum = ethProvider
+      } else {
+        console.log("⚠️ No known Ethereum provider found, using first provider")
+        ethereum = ethereum.providers[0]
+      }
+    }
 
     setIsLinking(true)
 
@@ -50,7 +69,7 @@ export function LinkExternalWallet() {
 
       // Request accounts from browser wallet extension
       // This will prompt the user to connect their wallet if not already connected
-      const accounts = await (window as any).ethereum.request({
+      const accounts = await ethereum.request({
         method: 'eth_requestAccounts'
       }).catch((err: any) => {
         console.error("❌ eth_requestAccounts error:", err)
@@ -85,7 +104,7 @@ export function LinkExternalWallet() {
       // Request signature from the browser wallet
       const message = `Link wallet ${walletAddress} to Fortuna Square account ${userProfile.username}\n\nTimestamp: ${Date.now()}`
 
-      const signature = await (window as any).ethereum.request({
+      const signature = await ethereum.request({
         method: 'personal_sign',
         params: [message, walletAddress],
       })
