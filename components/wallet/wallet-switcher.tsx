@@ -1,25 +1,31 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-import { useActiveAccount } from "thirdweb/react"
+import { useActiveAccount, useDisconnect, useConnect } from "thirdweb/react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Wallet, Check } from "lucide-react"
+import { Wallet, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
+import { createWallet, injectedProvider } from "thirdweb/wallets"
+import { client } from "@/lib/thirdweb"
 
 interface WalletSwitcherContextType {
   selectedWalletAddress: string | null
-  setSelectedWallet: (address: string) => void
+  switchWallet: (address: string) => Promise<void>
   availableWallets: Array<{ address: string; name: string; isPrimary: boolean }>
+  isSwitching: boolean
 }
 
 const WalletSwitcherContext = createContext<WalletSwitcherContextType | undefined>(undefined)
 
 export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
   const account = useActiveAccount()
+  const { disconnect } = useDisconnect()
+  const { connect } = useConnect()
   const { userProfile } = useProfile()
   const [selectedWalletAddress, setSelectedWalletAddress] = useState<string | null>(null)
+  const [isSwitching, setIsSwitching] = useState(false)
 
   // Get all available wallets from profile
   const availableWallets = userProfile
@@ -37,18 +43,52 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
       ]
     : []
 
-  // Initialize selected wallet to embedded wallet (primary)
+  // Initialize selected wallet to currently active account
   useEffect(() => {
     if (account?.address && !selectedWalletAddress) {
       setSelectedWalletAddress(account.address)
     }
   }, [account?.address, selectedWalletAddress])
 
-  const setSelectedWallet = (address: string) => {
-    setSelectedWalletAddress(address)
+  const switchWallet = async (address: string) => {
     const wallet = availableWallets.find((w) => w.address === address)
-    if (wallet) {
-      toast.success(`Switched to ${wallet.name}`)
+    if (!wallet) return
+
+    // If already connected to this wallet, do nothing
+    if (account?.address?.toLowerCase() === address.toLowerCase()) {
+      toast.info(`Already connected to ${wallet.name}`)
+      return
+    }
+
+    setIsSwitching(true)
+
+    try {
+      // Disconnect current wallet
+      if (account) {
+        disconnect(account)
+        // Wait for disconnect to complete
+        await new Promise(resolve => setTimeout(resolve, 500))
+      }
+
+      // Connect to selected wallet
+      if (wallet.isPrimary) {
+        // Connect to embedded wallet
+        const embeddedWallet = createWallet("inApp")
+        await connect(async () => await embeddedWallet.connect({ client }))
+        toast.success("Switched to Embedded Wallet")
+      } else {
+        // Connect to external wallet (MetaMask)
+        const metaMaskWallet = createWallet("io.metamask")
+        await connect(async () => await metaMaskWallet.connect({ client }))
+        toast.success("Switched to MetaMask")
+      }
+
+      setSelectedWalletAddress(address)
+    } catch (error: any) {
+      console.error("Failed to switch wallet:", error)
+      toast.error(`Failed to switch wallet: ${error.message}`)
+    } finally {
+      setIsSwitching(false)
     }
   }
 
@@ -56,8 +96,9 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
     <WalletSwitcherContext.Provider
       value={{
         selectedWalletAddress,
-        setSelectedWallet,
+        switchWallet,
         availableWallets,
+        isSwitching,
       }}
     >
       {children}
@@ -74,7 +115,8 @@ export function useWalletSwitcher() {
 }
 
 export function WalletSwitcher() {
-  const { selectedWalletAddress, setSelectedWallet, availableWallets } = useWalletSwitcher()
+  const { selectedWalletAddress, switchWallet, availableWallets, isSwitching } = useWalletSwitcher()
+  const account = useActiveAccount()
 
   if (availableWallets.length <= 1) {
     return null // Don't show switcher if only one wallet
@@ -89,16 +131,24 @@ export function WalletSwitcher() {
             <h3 className="text-sm font-semibold">Active Wallet for Transactions</h3>
           </div>
 
+          {isSwitching && (
+            <div className="flex items-center justify-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/30">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <p className="text-sm text-primary">Switching wallets...</p>
+            </div>
+          )}
+
           <div className="space-y-2">
             {availableWallets.map((wallet) => {
-              const isSelected = wallet.address === selectedWalletAddress
+              const isConnected = account?.address?.toLowerCase() === wallet.address.toLowerCase()
               return (
                 <Button
                   key={wallet.address}
-                  onClick={() => setSelectedWallet(wallet.address)}
-                  variant={isSelected ? "default" : "outline"}
+                  onClick={() => switchWallet(wallet.address)}
+                  disabled={isSwitching}
+                  variant={isConnected ? "default" : "outline"}
                   className={`w-full justify-between ${
-                    isSelected
+                    isConnected
                       ? "bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
                       : ""
                   }`}
@@ -112,14 +162,16 @@ export function WalletSwitcher() {
                       </p>
                     </div>
                   </div>
-                  {isSelected && <Check className="h-4 w-4" />}
+                  {isConnected && <Check className="h-4 w-4" />}
                 </Button>
               )
             })}
           </div>
 
           <p className="text-xs text-muted-foreground text-center mt-3">
-            Transactions will be signed with the selected wallet
+            {isSwitching
+              ? "Please approve the connection in your wallet..."
+              : "Click to switch which wallet signs transactions"}
           </p>
         </div>
       </CardContent>
