@@ -87,7 +87,7 @@ export function Header() {
                   <ChevronDown className="h-3 w-3" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-48 bg-card/90 backdrop-blur-xl border-border/50" align="start">
+              <DropdownMenuContent className="w-48 bg-card/90 backdrop-blur-xl border-border/50 z-50" align="start">
                 <DropdownMenuItem asChild>
                   <Link href="/mint" className="cursor-pointer">
                     Mint NFTs
