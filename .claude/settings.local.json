@@ -30,7 +30,10 @@
       "Bash(copy hardhat.config.ts hardhat.config.cjs)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(dev-clean.bat)",
+      "Bash(move hardhat.config.ts hardhat.config.cjs)",
+      "Read(//c/Users/zarac/**)"
     ],
     "deny": [],
     "ask": []

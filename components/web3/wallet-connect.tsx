@@ -7,16 +7,20 @@ import { useActiveAccount } from "thirdweb/react";
 import { Badge } from "@/components/ui/badge";
 import { Wallet, ChevronDown } from "lucide-react";
 
+// Embedded wallet with Smart Account for users without external wallets
+const embeddedWallet = inAppWallet({
+  auth: {
+    options: ["google", "apple", "x", "email", "passkey"],
+  },
+  smartAccount: {
+    chain: apeChainCurtis,
+    sponsorGas: false,
+  },
+});
+
+// External wallets (no Smart Account - users keep their own addresses)
 const wallets = [
-  inAppWallet({
-    auth: {
-      options: ["google", "apple", "x", "email", "passkey"],
-    },
-    smartAccount: {
-      chain: apeChainCurtis,
-      sponsorGas: false,
-    },
-  }),
+  embeddedWallet,
   createWallet("io.metamask"),
   createWallet("xyz.glyph"),
   createWallet("io.rabby"),
@@ -34,10 +38,6 @@ export function WalletConnect() {
         client={client}
         chain={apeChainCurtis}
         wallets={wallets}
-        accountAbstraction={{
-          chain: apeChainCurtis,
-          sponsorGas: false,
-        }}
         connectButton={{ label: "Connect Wallet" }}
         detailsButton={{
           style: {
@@ -97,10 +97,6 @@ export function WalletConnect() {
       client={client}
       chain={apeChainCurtis}
       wallets={wallets}
-      accountAbstraction={{
-        chain: apeChainCurtis,
-        sponsorGas: false,
-      }}
       connectButton={{
         label: "Connect Wallet",
         style: {

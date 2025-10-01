@@ -80,43 +80,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Sync with thirdweb account and create profiles automatically
   useEffect(() => {
     if (account?.address) {
-      if (user && !user.walletAddress) {
-        // Update existing user with wallet address and create/update profile
-        const updatedUser = { ...user, walletAddress: account.address, isVerified: true }
-        setUser(updatedUser)
-        localStorage.setItem("fortuna_square_user", JSON.stringify(updatedUser))
+      if (user) {
+        // User is logged in - check if this wallet is already linked
+        const profile = ProfileService.getProfile(user.id)
+        if (profile) {
+          const linkedWallets = ProfileService.getAllWallets(profile)
+          const isWalletLinked = linkedWallets.some(w => w.toLowerCase() === account.address.toLowerCase())
 
-        // Link wallet to existing profile
-        ProfileService.linkWalletToProfile(user.id, account.address).catch(error => {
-          console.error("Failed to link wallet to profile:", error)
-        })
-      } else if (!user) {
-        // Create new wallet-based user and profile
-        ProfileService.createProfileFromWallet(account.address).then(profile => {
+          if (!isWalletLinked) {
+            // This is a new wallet - link it to the profile
+            console.log("🔗 Linking new wallet to profile:", account.address)
+            ProfileService.linkAdditionalWallet(user.id, account.address).then(() => {
+              console.log("✅ Wallet linked successfully")
+            }).catch(error => {
+              console.error("Failed to link wallet:", error)
+            })
+          }
+        }
+      } else {
+        // No user logged in - check if wallet has existing profile
+        const existingProfile = ProfileService.getProfileByWallet(account.address)
+
+        if (existingProfile) {
+          // Wallet has a profile - log them in
           const walletUser: User = {
-            id: account.address,
-            username: profile.username,
-            email: "",
-            avatar: profile.avatar,
-            walletAddress: account.address,
+            id: existingProfile.id,
+            username: existingProfile.username,
+            email: existingProfile.email || "",
+            avatar: existingProfile.avatar,
+            walletAddress: existingProfile.walletAddress,
             isVerified: true,
           }
           setUser(walletUser)
           localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-          console.log("✅ Loaded wallet user with avatar:", profile.avatar)
-        }).catch(error => {
-          console.error("Failed to create wallet profile:", error)
-          // Fallback to basic user creation
-          const walletUser: User = {
-            id: account.address,
-            username: `${account.address.slice(0, 6)}...${account.address.slice(-4)}`,
-            email: "",
-            walletAddress: account.address,
-            isVerified: true,
-          }
-          setUser(walletUser)
-          localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-        })
+          console.log("✅ Logged in existing wallet user:", existingProfile.username)
+        } else {
+          // Create new wallet-based user and profile
+          ProfileService.createProfileFromWallet(account.address).then(profile => {
+            const walletUser: User = {
+              id: account.address,
+              username: profile.username,
+              email: "",
+              avatar: profile.avatar,
+              walletAddress: account.address,
+              isVerified: true,
+            }
+            setUser(walletUser)
+            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+            console.log("✅ Created new wallet user with avatar:", profile.avatar)
+          }).catch(error => {
+            console.error("Failed to create wallet profile:", error)
+            // Fallback to basic user creation
+            const walletUser: User = {
+              id: account.address,
+              username: `${account.address.slice(0, 6)}...${account.address.slice(-4)}`,
+              email: "",
+              walletAddress: account.address,
+              isVerified: true,
+            }
+            setUser(walletUser)
+            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+          })
+        }
       }
     } else if (!account && user?.walletAddress) {
       // Wallet disconnected, clear user if it was wallet-only
@@ -125,11 +150,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem("fortuna_square_user")
         console.log("✅ Cleared wallet-only user on disconnect")
       } else {
-        // Remove wallet address but keep user account
-        const updatedUser = { ...user, walletAddress: undefined }
-        setUser(updatedUser)
-        localStorage.setItem("fortuna_square_user", JSON.stringify(updatedUser))
-        console.log("✅ Kept user account, removed wallet address")
+        // Keep user account even if wallet disconnected (they have email/social login)
+        console.log("✅ Wallet disconnected but user has email login")
       }
     }
   }, [account, user])

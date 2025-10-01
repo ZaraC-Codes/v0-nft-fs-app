@@ -163,6 +163,8 @@ export class ProfileService {
       username,
       email,
       walletAddress,
+      linkedWallets: walletAddress ? [walletAddress] : [], // Initialize with primary wallet
+      activeWallet: walletAddress, // Set as active wallet
       createdAt: now,
       updatedAt: now,
       verified: walletAddress ? true : false, // Auto-verify wallet users
@@ -256,5 +258,122 @@ export class ProfileService {
       username: finalUsername,
       email
     })
+  }
+
+  /**
+   * Link additional wallet to a profile
+   */
+  static async linkAdditionalWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+    const profile = this.getProfile(profileId)
+    if (!profile) {
+      console.error("Profile not found:", profileId)
+      return null
+    }
+
+    // Check if wallet is already linked to another profile
+    const existingWalletProfile = this.getProfileByWallet(walletAddress)
+    if (existingWalletProfile && existingWalletProfile.id !== profileId) {
+      throw new Error("This wallet is already linked to another profile")
+    }
+
+    // Check if wallet is already linked to this profile
+    const linkedWallets = profile.linkedWallets || []
+    if (linkedWallets.includes(walletAddress)) {
+      console.log("Wallet already linked to this profile")
+      return profile
+    }
+
+    // Add wallet to linkedWallets array
+    const updatedLinkedWallets = [...linkedWallets, walletAddress]
+
+    return this.updateProfile(profileId, {
+      linkedWallets: updatedLinkedWallets
+    })
+  }
+
+  /**
+   * Unlink wallet from profile
+   */
+  static async unlinkWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+    const profile = this.getProfile(profileId)
+    if (!profile) {
+      return null
+    }
+
+    const linkedWallets = profile.linkedWallets || []
+
+    // Don't allow unlinking if it's the only wallet
+    if (linkedWallets.length <= 1) {
+      throw new Error("Cannot unlink the only wallet from profile")
+    }
+
+    // Don't allow unlinking primary wallet
+    if (profile.walletAddress === walletAddress) {
+      throw new Error("Cannot unlink primary wallet. Set a different primary wallet first.")
+    }
+
+    // Remove wallet from linkedWallets
+    const updatedLinkedWallets = linkedWallets.filter(w => w.toLowerCase() !== walletAddress.toLowerCase())
+
+    // If active wallet is being unlinked, switch to primary
+    const updates: Partial<UserProfile> = {
+      linkedWallets: updatedLinkedWallets
+    }
+
+    if (profile.activeWallet?.toLowerCase() === walletAddress.toLowerCase()) {
+      updates.activeWallet = profile.walletAddress
+    }
+
+    return this.updateProfile(profileId, updates)
+  }
+
+  /**
+   * Set active wallet for transactions
+   */
+  static async setActiveWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+    const profile = this.getProfile(profileId)
+    if (!profile) {
+      return null
+    }
+
+    const linkedWallets = profile.linkedWallets || []
+
+    // Verify wallet is linked to this profile
+    if (!linkedWallets.some(w => w.toLowerCase() === walletAddress.toLowerCase())) {
+      throw new Error("Wallet is not linked to this profile")
+    }
+
+    return this.updateProfile(profileId, {
+      activeWallet: walletAddress
+    })
+  }
+
+  /**
+   * Set primary wallet (displayed on profile)
+   */
+  static async setPrimaryWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+    const profile = this.getProfile(profileId)
+    if (!profile) {
+      return null
+    }
+
+    const linkedWallets = profile.linkedWallets || []
+
+    // Verify wallet is linked to this profile
+    if (!linkedWallets.some(w => w.toLowerCase() === walletAddress.toLowerCase())) {
+      throw new Error("Wallet is not linked to this profile")
+    }
+
+    return this.updateProfile(profileId, {
+      walletAddress,
+      activeWallet: walletAddress // Also set as active
+    })
+  }
+
+  /**
+   * Get all wallets for a profile
+   */
+  static getAllWallets(profile: UserProfile): string[] {
+    return profile.linkedWallets || (profile.walletAddress ? [profile.walletAddress] : [])
   }
 }

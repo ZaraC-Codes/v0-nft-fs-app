@@ -17,6 +17,7 @@ import { Search, User, Wallet, Menu, X, Bell, LogOut, Settings, UserCircle, Chev
 import { useAuth } from "@/components/auth/auth-provider"
 import { useActiveAccount } from "thirdweb/react"
 import { WalletConnect } from "@/components/web3/wallet-connect"
+import { WalletSwitcher } from "@/components/wallet/wallet-switcher"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -106,6 +107,9 @@ export function Header() {
             {/* User Actions - Only show when user is logged in */}
             {user && (
               <div className="flex items-center space-x-2">
+                {/* Wallet Switcher */}
+                <WalletSwitcher />
+
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-4 w-4" />

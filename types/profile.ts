@@ -5,7 +5,9 @@ export interface UserProfile {
   bio?: string
   avatar?: string
   coverImage?: string
-  walletAddress?: string
+  walletAddress?: string // Primary/default wallet
+  linkedWallets?: string[] // Additional linked wallets
+  activeWallet?: string // Currently selected wallet for transactions
   createdAt: Date
   updatedAt: Date
   verified: boolean
@@ -65,6 +67,7 @@ export interface PortfolioNFT {
   bundleItems?: PortfolioNFT[]
   bundleCount?: number
   chainId: number
+  ownerWallet?: string // Which wallet owns this NFT
 }
 
 export type ListingType = 'sale' | 'rent' | 'swap' | 'none'
