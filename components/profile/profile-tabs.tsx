@@ -394,7 +394,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
 
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-2">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
                             {nft.name}
                           </h3>
@@ -406,6 +406,15 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                               </span>
                             )}
                           </p>
+                          {/* Owner Wallet Badge - show if multi-wallet and has ownerWallet */}
+                          {nft.ownerWallet && (
+                            <div className="mt-1">
+                              <Badge variant="outline" className="text-xs font-mono">
+                                <Wallet className="h-3 w-3 mr-1" />
+                                {nft.ownerWallet.slice(0, 6)}...{nft.ownerWallet.slice(-4)}
+                              </Badge>
+                            </div>
+                          )}
                         </div>
                         <div className="text-right">
                           {/* Listing Status Badge */}

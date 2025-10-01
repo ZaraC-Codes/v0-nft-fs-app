@@ -15,6 +15,7 @@ interface ProfileContextType {
   removeFromWatchlist: (nftId: string) => Promise<void>
   isInWatchlist: (contractAddress: string, tokenId: string) => boolean
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>
+  refreshProfile: () => Promise<void>
   loading: boolean
 }
 
@@ -668,42 +669,61 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }
 
-  // Fetch real NFTs when profile has a wallet address (for non-demo profiles)
+  // Fetch real NFTs from all linked wallets (for non-demo profiles)
   useEffect(() => {
     const fetchWalletNFTs = async () => {
-      if (!userProfile?.walletAddress || isDemoProfile) return
+      if (!userProfile || isDemoProfile) return
+
+      // Get all wallets to fetch from
+      const { ProfileService } = await import("@/lib/profile-service")
+      const allWallets = ProfileService.getAllWallets(userProfile)
+
+      if (allWallets.length === 0) return
 
       setLoading(true)
       try {
-        console.log("Fetching NFTs for wallet:", userProfile.walletAddress)
+        console.log(`Fetching NFTs from ${allWallets.length} linked wallet(s):`, allWallets)
 
-        // Use ThirdWeb API to fetch NFTs on ApeChain Curtis (chainId: 33111)
-        const response = await fetch(`/api/wallet-nfts?address=${userProfile.walletAddress}&chainId=33111`)
+        // Fetch NFTs from all wallets in parallel
+        const fetchPromises = allWallets.map(async (walletAddress) => {
+          try {
+            const response = await fetch(`/api/wallet-nfts?address=${walletAddress}&chainId=33111`)
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch NFTs: ${response.statusText}`)
-        }
+            if (!response.ok) {
+              console.warn(`Failed to fetch NFTs for ${walletAddress}:`, response.statusText)
+              return []
+            }
 
-        const data = await response.json()
-        console.log(`Fetched ${data.nfts?.length || 0} NFTs for wallet`)
+            const data = await response.json()
+            console.log(`Fetched ${data.nfts?.length || 0} NFTs for wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`)
 
-        // Map the NFT data to our PortfolioNFT format
-        const mappedNFTs: PortfolioNFT[] = (data.nfts || []).map((nft: any) => ({
-          contractAddress: nft.contractAddress,
-          tokenId: nft.tokenId,
-          name: nft.name || `Token #${nft.tokenId}`,
-          image: nft.image,
-          collection: nft.collectionName || 'Unknown Collection',
-          chainId: nft.chainId || 33111, // Include chainId from API response
-          acquiredAt: new Date(),
-          estimatedValue: 0,
-          rarity: undefined,
-          lastSalePrice: undefined,
-          listing: { type: "none" as const },
-          isBundle: false,
-        }))
+            // Map the NFT data to our PortfolioNFT format with owner wallet
+            return (data.nfts || []).map((nft: any) => ({
+              contractAddress: nft.contractAddress,
+              tokenId: nft.tokenId,
+              name: nft.name || `Token #${nft.tokenId}`,
+              image: nft.image,
+              collection: nft.collectionName || 'Unknown Collection',
+              chainId: nft.chainId || 33111,
+              acquiredAt: new Date(),
+              estimatedValue: 0,
+              rarity: undefined,
+              lastSalePrice: undefined,
+              listing: { type: "none" as const },
+              isBundle: false,
+              ownerWallet: walletAddress, // Track which wallet owns this NFT
+            }))
+          } catch (error) {
+            console.error(`Error fetching NFTs for ${walletAddress}:`, error)
+            return []
+          }
+        })
 
-        setPortfolio(mappedNFTs)
+        const allNFTs = await Promise.all(fetchPromises)
+        const combinedNFTs = allNFTs.flat()
+
+        console.log(`✅ Total NFTs fetched from all wallets: ${combinedNFTs.length}`)
+        setPortfolio(combinedNFTs)
       } catch (error) {
         console.error("Failed to fetch wallet NFTs:", error)
         setPortfolio([])
@@ -713,7 +733,24 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
 
     fetchWalletNFTs()
-  }, [userProfile?.walletAddress, isDemoProfile])
+  }, [userProfile?.id, userProfile?.linkedWallets, isDemoProfile])
+
+  // Refresh profile from ProfileService
+  const refreshProfile = async () => {
+    if (!userProfile || isDemoProfile) return
+
+    try {
+      const { ProfileService } = await import("@/lib/profile-service")
+      const updatedProfile = ProfileService.getProfile(userProfile.id)
+
+      if (updatedProfile) {
+        setUserProfile(updatedProfile)
+        console.log("✅ Profile refreshed from ProfileService")
+      }
+    } catch (error) {
+      console.error("Failed to refresh profile:", error)
+    }
+  }
 
   // Don't auto-initialize profile - let the profile page set it
 
@@ -729,6 +766,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       removeFromWatchlist,
       isInWatchlist,
       updateProfile,
+      refreshProfile,
       loading,
     }}>
       {children}
