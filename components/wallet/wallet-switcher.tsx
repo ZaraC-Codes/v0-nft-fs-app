@@ -28,6 +28,7 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
   const [isSwitching, setIsSwitching] = useState(false)
 
   // Get all available wallets from profile
+  // linkedWallets already includes the primary wallet, so we need to filter and organize properly
   const availableWallets = userProfile
     ? [
         {
@@ -35,11 +36,13 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
           name: "Embedded Wallet",
           isPrimary: true,
         },
-        ...(userProfile.linkedWallets || []).map((addr) => ({
-          address: addr,
-          name: "MetaMask", // We'll detect the actual wallet type later
-          isPrimary: false,
-        })),
+        ...(userProfile.linkedWallets || [])
+          .filter((addr) => addr.toLowerCase() !== userProfile.walletAddress?.toLowerCase())
+          .map((addr) => ({
+            address: addr,
+            name: "MetaMask",
+            isPrimary: false,
+          })),
       ]
     : []
 
@@ -65,7 +68,7 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
     try {
       // Disconnect current wallet
       if (account) {
-        disconnect(account)
+        await disconnect()
         // Wait for disconnect to complete
         await new Promise(resolve => setTimeout(resolve, 500))
       }
