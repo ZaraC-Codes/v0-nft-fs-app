@@ -24,6 +24,7 @@ export function LinkExternalWallet() {
     createWallet("io.metamask"),
     createWallet("io.rabby"),
     createWallet("com.coinbase.wallet"),
+    createWallet("io.useglyph"),
     createWallet("walletConnect"),
   ]
 

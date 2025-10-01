@@ -10,7 +10,7 @@ import { ChevronDown } from "lucide-react";
 // External wallets are linked separately through Settings page
 const embeddedWallet = inAppWallet({
   auth: {
-    options: ["email", "google", "apple", "facebook", "discord"],
+    options: ["email", "google", "apple", "facebook", "x", "passkey"],
   },
   smartAccount: {
     chain: apeChainCurtis,

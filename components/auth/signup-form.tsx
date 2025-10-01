@@ -24,7 +24,7 @@ export function SignupForm() {
 
   const embeddedWallet = inAppWallet({
     auth: {
-      options: ["email", "google", "apple", "facebook", "discord"],
+      options: ["email", "google", "apple", "facebook", "x", "passkey"],
     },
     smartAccount: {
       chain: apeChainCurtis,
@@ -61,7 +61,7 @@ export function SignupForm() {
 
       <div className="text-center">
         <p className="text-xs text-muted-foreground">
-          Signup methods: Email • Google • Apple • Facebook • Discord
+          Signup methods: Email • Google • Apple • Facebook • X (Twitter) • Passkey
         </p>
       </div>
     </div>
