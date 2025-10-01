@@ -81,18 +81,39 @@ export function LinkExternalWallet() {
     setIsLinking(true)
 
     try {
-      console.log("📞 Requesting accounts from wallet...")
+      console.log(`📞 Requesting accounts from ${walletName}...`)
 
-      // Request accounts from browser wallet extension
-      // This will prompt the user to connect their wallet if not already connected
-      const accounts = await ethereum.request({
-        method: 'eth_requestAccounts'
-      }).catch((err: any) => {
-        console.error("❌ eth_requestAccounts error:", err)
-        throw err
-      })
+      // First check if wallet is already connected
+      let accounts = []
+      try {
+        accounts = await ethereum.request({ method: 'eth_accounts' })
+        console.log(`📊 Already connected accounts:`, accounts)
+      } catch (err) {
+        console.log("⚠️ eth_accounts check failed:", err)
+      }
 
-      console.log("✅ Accounts received:", accounts)
+      // If no accounts connected, request connection
+      if (!accounts || accounts.length === 0) {
+        console.log(`🔌 Wallet not connected. Requesting connection from ${walletName}...`)
+        toast.info(`Please approve the connection request in your ${walletName} extension.`)
+
+        try {
+          accounts = await ethereum.request({
+            method: 'eth_requestAccounts'
+          })
+          console.log("✅ Connection approved, accounts received:", accounts)
+        } catch (err: any) {
+          console.error("❌ Connection request failed:", err)
+          if (err.code === 4001) {
+            toast.error("Connection request rejected. Please approve the connection in your wallet.")
+          } else {
+            toast.error(`Failed to connect to ${walletName}. Error: ${err.message}`)
+          }
+          throw err
+        }
+      } else {
+        console.log(`✅ ${walletName} already connected`)
+      }
 
       if (!accounts || accounts.length === 0) {
         toast.error("No wallet account found. Please unlock your wallet and try again.")
