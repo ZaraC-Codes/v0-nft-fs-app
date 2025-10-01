@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useActiveAccount } from "thirdweb/react"
 import { ProfileService } from "@/lib/profile-service"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
@@ -13,24 +12,37 @@ import { Wallet, Link as LinkIcon, CheckCircle2, AlertCircle, ExternalLink } fro
 export function LinkExternalWallet() {
   const { userProfile, refreshProfile } = useProfile()
   const { user } = useAuth()
-  const account = useActiveAccount()
   const [isLinking, setIsLinking] = useState(false)
 
   const handleLinkWallet = async () => {
+    console.log("🔗 Link Wallet clicked")
+
     // Check if browser has wallet extensions available
-    if (typeof window === 'undefined' || !window.ethereum) {
+    if (typeof window === 'undefined' || !(window as any).ethereum) {
+      console.error("❌ No window.ethereum found")
       toast.error("No wallet detected. Please install MetaMask, Glyph, or another wallet extension first.")
       return
     }
 
+    console.log("✅ window.ethereum detected")
+
     if (!userProfile) {
+      console.error("❌ No userProfile")
       toast.error("Profile not loaded. Please refresh and try again.")
       return
     }
 
+    console.log("✅ userProfile loaded:", userProfile.username)
+
+    setIsLinking(true)
+
     try {
+      console.log("📞 Requesting accounts from wallet...")
+
       // Request accounts from browser wallet extension
       const accounts = await (window as any).ethereum.request({ method: 'eth_requestAccounts' })
+
+      console.log("✅ Accounts received:", accounts)
 
       if (!accounts || accounts.length === 0) {
         toast.error("No wallet account found. Please unlock your wallet and try again.")
@@ -52,16 +64,6 @@ export function LinkExternalWallet() {
 
       if (isAlreadyLinked) {
         toast.error("This wallet is already linked to your account")
-        return
-      }
-
-      setIsLinking(true)
-
-      // Create a temporary account object for signing
-      // We need to use the ThirdWeb SDK to sign the message
-      if (!account) {
-        toast.error("Please wait for your embedded wallet to load, then try again.")
-        setIsLinking(false)
         return
       }
 
@@ -161,7 +163,10 @@ export function LinkExternalWallet() {
           </div>
 
           <Button
-            onClick={handleLinkWallet}
+            onClick={() => {
+              console.log("🔘 Button clicked!")
+              handleLinkWallet()
+            }}
             disabled={isLinking}
             className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
           >
