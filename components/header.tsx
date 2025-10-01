@@ -163,9 +163,9 @@ export function Header() {
                 {/* Dropdown Menu */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <button className="inline-flex items-center justify-center rounded-md hover:bg-accent hover:text-accent-foreground h-8 w-8">
                       <Settings className="h-4 w-4" />
-                    </Button>
+                    </button>
                   </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-64 bg-card/90 backdrop-blur-xl border-border/50 z-[100]" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
