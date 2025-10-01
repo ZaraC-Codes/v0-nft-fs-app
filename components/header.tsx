@@ -13,12 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Search, User, Wallet, Menu, X, Bell, Heart, ShoppingCart, LogOut, Settings, UserCircle } from "lucide-react"
+import { Search, User, Wallet, Menu, X, Bell, LogOut, Settings, UserCircle, ChevronDown } from "lucide-react"
 import { useAuth } from "@/components/auth/auth-provider"
+import { useActiveAccount } from "thirdweb/react"
+import { WalletConnect } from "@/components/web3/wallet-connect"
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const { user, logout, connectWallet } = useAuth()
+  const { user, logout } = useAuth()
+  const account = useActiveAccount()
 
   return (
     <header className="sticky top-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -26,8 +29,12 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded bg-gradient-to-br from-primary to-secondary neon-glow" />
-            <span className="text-xl font-bold neon-text text-primary">CyberNFT</span>
+            <img
+              src="/fs-temp-logo.png"
+              alt="Fortuna Square Logo"
+              className="h-8 w-8 object-contain"
+            />
+            <span className="text-xl font-bold neon-text text-primary">Fortuna Square</span>
           </Link>
 
           {/* Search Bar - Desktop */}
@@ -43,75 +50,105 @@ export function Header() {
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/explore" className="text-sm font-medium hover:text-primary transition-colors">
-              Explore
+            <Link href="/" className="text-sm font-medium hover:text-primary transition-colors">
+              Home
             </Link>
-            <Link href="/create" className="text-sm font-medium hover:text-primary transition-colors">
-              Create
-            </Link>
-            <Link href="/collections" className="text-sm font-medium hover:text-primary transition-colors">
-              Collections
-            </Link>
-            <Link href="/analytics" className="text-sm font-medium hover:text-primary transition-colors">
-              Analytics
-            </Link>
-            <Link href="/history" className="text-sm font-medium hover:text-primary transition-colors">
-              History
-            </Link>
-            <Link href="/community" className="text-sm font-medium hover:text-primary transition-colors">
-              Community
+
+            {/* Demos Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="h-auto px-2 py-1 text-sm font-medium hover:text-primary transition-colors flex items-center gap-1">
+                  Demos
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48 bg-card/90 backdrop-blur-xl border-border/50" align="start">
+                <DropdownMenuItem asChild>
+                  <Link href="/collections" className="cursor-pointer">
+                    Collections
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/bundles" className="cursor-pointer">
+                    Bundles
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/treasury" className="cursor-pointer">
+                    Treasury
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/cross-chain-demo" className="cursor-pointer">
+                    Cross-Chain
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile/crypto_collector" className="cursor-pointer">
+                    Profiles
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            <Link href="/treasuries" className="text-sm font-medium hover:text-primary transition-colors">
+              Treasuries
             </Link>
           </nav>
 
           {/* Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {/* User Actions - Only show when user is logged in */}
             {user && (
-              <>
+              <div className="flex items-center space-x-2">
                 {/* Notifications */}
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="h-4 w-4" />
                   <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-secondary">3</Badge>
                 </Button>
-
-                {/* Favorites */}
-                <Button variant="ghost" size="icon">
-                  <Heart className="h-4 w-4" />
-                </Button>
-
-                {/* Cart */}
-                <Button variant="ghost" size="icon" className="relative">
-                  <ShoppingCart className="h-4 w-4" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-accent">2</Badge>
-                </Button>
-              </>
+              </div>
             )}
 
-            {/* Connect Wallet / User Menu */}
+            {/* Wallet Connection - Always available */}
+            <div className="hidden sm:flex">
+              <WalletConnect />
+            </div>
+
+            {/* User Menu - Only show when user is logged in */}
             {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.username} />
-                      <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
-                        {user.username[0]?.toUpperCase()}
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
+              <div className="flex items-center space-x-2">
+                {/* Profile Avatar Link */}
+                <Link href={`/profile/${user.username}`}>
+                  <Avatar className="h-8 w-8 cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all">
+                    <AvatarImage
+                      src={user?.avatar || "/placeholder.svg"}
+                      alt={user?.username || "User"}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white">
+                      {user?.username?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+
+                {/* Dropdown Menu */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Settings className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56 bg-card/90 backdrop-blur-xl border-border/50" align="end">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user.username}</p>
-                      {user.email && <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>}
-                      {user.walletAddress && (
-                        <p className="w-[200px] truncate text-xs text-primary">{user.walletAddress}</p>
-                      )}
+                      <p className="font-medium">
+                        {user?.username || "User"}
+                      </p>
+                      {user?.email && <p className="w-[200px] truncate text-sm text-muted-foreground">{user.email}</p>}
                     </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link href="/profile">
+                    <Link href={`/profile/${user?.username || 'me'}`}>
                       <UserCircle className="mr-2 h-4 w-4" />
                       Profile
                     </Link>
@@ -122,12 +159,6 @@ export function Header() {
                       Settings
                     </Link>
                   </DropdownMenuItem>
-                  {!user.walletAddress && (
-                    <DropdownMenuItem onClick={connectWallet}>
-                      <Wallet className="mr-2 h-4 w-4" />
-                      Connect Wallet
-                    </DropdownMenuItem>
-                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
@@ -135,22 +166,8 @@ export function Header() {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-            ) : (
-              <div className="flex items-center space-x-2">
-                <Button
-                  onClick={connectWallet}
-                  className="hidden sm:flex bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
-                >
-                  <Wallet className="mr-2 h-4 w-4" />
-                  Connect Wallet
-                </Button>
-                <Button variant="ghost" size="icon" asChild>
-                  <Link href="/auth/login">
-                    <User className="h-4 w-4" />
-                  </Link>
-                </Button>
               </div>
-            )}
+            ) : null}
 
             {/* Mobile Menu Toggle */}
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -171,25 +188,40 @@ export function Header() {
 
               {/* Mobile Navigation */}
               <nav className="flex flex-col space-y-2">
-                <Link href="/explore" className="text-sm font-medium hover:text-primary transition-colors py-2">
-                  Explore
+                <Link href="/" className="text-sm font-medium hover:text-primary transition-colors py-2">
+                  Home
                 </Link>
-                <Link href="/create" className="text-sm font-medium hover:text-primary transition-colors py-2">
-                  Create
-                </Link>
-                <Link href="/collections" className="text-sm font-medium hover:text-primary transition-colors py-2">
+
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider pt-2">
+                  Demos
+                </div>
+                <Link href="/collections" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
                   Collections
                 </Link>
-                <Link href="/analytics" className="text-sm font-medium hover:text-primary transition-colors py-2">
-                  Analytics
+                <Link href="/bundles" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
+                  Bundles
                 </Link>
-                <Link href="/history" className="text-sm font-medium hover:text-primary transition-colors py-2">
-                  History
+                <Link href="/treasury" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
+                  Treasury
                 </Link>
-                <Link href="/community" className="text-sm font-medium hover:text-primary transition-colors py-2">
-                  Community
+                <Link href="/cross-chain-demo" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
+                  Cross-Chain
                 </Link>
+                <Link href="/profile/crypto_collector" className="text-sm font-medium hover:text-primary transition-colors py-2 pl-4">
+                  Profiles
+                </Link>
+
+                <div className="pt-2">
+                  <Link href="/treasuries" className="text-sm font-medium hover:text-primary transition-colors py-2">
+                    Treasuries
+                  </Link>
+                </div>
               </nav>
+
+              {/* Mobile Wallet Connection */}
+              <div className="space-y-2">
+                <WalletConnect />
+              </div>
 
               {/* Mobile Auth */}
               {!user && (

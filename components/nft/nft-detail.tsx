@@ -11,6 +11,7 @@ import { Heart, Share2, Eye, ShoppingCart, Zap, Clock, TrendingUp, ExternalLink,
 import { useToast } from "@/hooks/use-toast"
 import { BidModal } from "./bid-modal"
 import { OfferModal } from "./offer-modal"
+import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 
 interface NFTDetailProps {
   nft: {
@@ -50,6 +51,7 @@ interface NFTDetailProps {
     blockchain: string
     tokenId: string
     contractAddress: string
+    chainId: number
     history: Array<{
       event: string
       price: string | null
@@ -104,9 +106,18 @@ export function NFTDetail({ nft }: NFTDetailProps) {
           <div className="relative aspect-square">
             <img src={nft.image || "/placeholder.svg"} alt={nft.title} className="w-full h-full object-cover" />
 
+            {/* Chain Badge */}
+            {getChainMetadata(nft.chainId) && (
+              <Badge
+                className={`absolute top-4 left-4 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0`}
+              >
+                {getChainMetadata(nft.chainId)!.icon} {getChainMetadata(nft.chainId)!.shortName}
+              </Badge>
+            )}
+
             {/* Rarity Badge */}
             <Badge
-              className={`absolute top-4 left-4 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
+              className={`absolute top-13 left-4 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
             >
               {nft.rarity}
             </Badge>

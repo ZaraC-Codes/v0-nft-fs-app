@@ -52,7 +52,7 @@ export function SignupForm() {
       setIsLoading(false)
       toast({
         title: "Account created!",
-        description: "Welcome to CyberNFT. Your account has been created successfully.",
+        description: "Welcome to Fortuna Square. Your account has been created successfully.",
       })
     }, 2000)
   }

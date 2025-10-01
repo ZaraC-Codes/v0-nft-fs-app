@@ -12,12 +12,16 @@ export function Footer() {
           {/* Brand */}
           <div className="space-y-4">
             <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded bg-gradient-to-br from-primary to-secondary neon-glow" />
-              <span className="text-xl font-bold neon-text text-primary">CyberNFT</span>
+              <img
+                src="/fs-temp-logo.png"
+                alt="Fortuna Square Logo"
+                className="h-8 w-8 object-contain"
+              />
+              <span className="text-xl font-bold neon-text text-primary">Fortuna Square</span>
             </div>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              The future of digital ownership. Discover, collect, and trade unique NFTs in our cyberpunk-inspired
-              marketplace.
+              The premier digital marketplace. Discover, collect, and trade unique NFTs in our advanced
+              trading platform.
             </p>
             <div className="flex space-x-2">
               <Button size="icon" variant="ghost" className="hover:text-primary">
@@ -79,7 +83,7 @@ export function Footer() {
           {/* Newsletter */}
           <div className="space-y-4">
             <h3 className="font-semibold text-foreground">Stay Updated</h3>
-            <p className="text-sm text-muted-foreground">Get the latest news and updates from the CyberNFT universe.</p>
+            <p className="text-sm text-muted-foreground">Get the latest news and updates from the Fortuna Square marketplace.</p>
             <div className="space-y-2">
               <Input placeholder="Enter your email" className="bg-card/50 border-border/50 focus:border-primary/50" />
               <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow">
@@ -96,7 +100,7 @@ export function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm text-muted-foreground">© 2025 CyberNFT. All rights reserved.</p>
+          <p className="text-sm text-muted-foreground">© 2025 Fortuna Square. All rights reserved.</p>
           <div className="flex items-center space-x-4 mt-4 md:mt-0">
             <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
               Privacy Policy

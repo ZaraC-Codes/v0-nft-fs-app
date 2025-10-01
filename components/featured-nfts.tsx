@@ -1,48 +1,69 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Eye, Zap } from "lucide-react"
+import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 
 const featuredNFTs = [
   {
     id: 1,
     title: "Cyber Samurai #001",
     creator: "NeonArtist",
-    price: "2.5 ETH",
+    price: "2.5 APE",
     image: "/cyberpunk-samurai-neon-digital-art.jpg",
     rarity: "Legendary",
     likes: 234,
     views: 1520,
+    chainId: apeChainCurtis.id,
+    contractAddress: "0x1234567890123456789012345678901234567890",
+    tokenId: "1",
+    collection: "Cyber Samurai",
   },
   {
     id: 2,
     title: "Digital Dreams",
     creator: "FutureVision",
-    price: "1.8 ETH",
+    price: "0.018 ETH",
     image: "/futuristic-cityscape-neon-lights-digital.jpg",
     rarity: "Epic",
     likes: 189,
     views: 987,
+    chainId: sepolia.id,
+    contractAddress: "0x2345678901234567890123456789012345678901",
+    tokenId: "42",
+    collection: "Digital Dreams",
   },
   {
     id: 3,
     title: "Neon Genesis",
     creator: "CyberCreator",
-    price: "3.2 ETH",
+    price: "3.2 APE",
     image: "/abstract-neon-geometric-cyberpunk-art.jpg",
     rarity: "Legendary",
     likes: 456,
     views: 2341,
+    chainId: apeChainCurtis.id,
+    contractAddress: "0x3456789012345678901234567890123456789012",
+    tokenId: "777",
+    collection: "Neon Genesis",
   },
   {
     id: 4,
     title: "Electric Soul",
     creator: "DigitalMind",
-    price: "1.2 ETH",
+    price: "0.012 ETH",
     image: "/electric-portrait-neon-cyberpunk-face.jpg",
     rarity: "Rare",
     likes: 123,
     views: 654,
+    chainId: sepolia.id,
+    contractAddress: "0x4567890123456789012345678901234567890123",
+    tokenId: "99",
+    collection: "Electric Soul",
   },
 ]
 
@@ -54,6 +75,8 @@ const rarityColors = {
 }
 
 export function FeaturedNFTs() {
+  const [selectedNFT, setSelectedNFT] = useState<any>(null)
+
   return (
     <section className="py-16 lg:py-24">
       <div className="container mx-auto px-4">
@@ -82,29 +105,45 @@ export function FeaturedNFTs() {
                 <img
                   src={nft.image || "/placeholder.svg"}
                   alt={nft.title}
-                  className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
                 />
+
+                {/* Chain Badge */}
+                {getChainMetadata(nft.chainId) && (
+                  <Badge
+                    className={`absolute top-3 left-3 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0`}
+                  >
+                    {getChainMetadata(nft.chainId)!.icon} {getChainMetadata(nft.chainId)!.shortName}
+                  </Badge>
+                )}
 
                 {/* Rarity Badge */}
                 <Badge
-                  className={`absolute top-3 left-3 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
+                  className={`absolute top-12 left-3 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
                 >
                   {nft.rarity}
                 </Badge>
 
-                {/* Like Button */}
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="absolute top-3 right-3 bg-black/50 hover:bg-black/70 text-white"
-                >
-                  <Heart className="h-4 w-4" />
-                </Button>
+                {/* Watchlist Button */}
+                <div className="absolute top-3 right-3 z-50">
+                  <WatchlistToggle
+                    contractAddress={nft.contractAddress}
+                    tokenId={nft.tokenId}
+                    name={nft.title}
+                    collection={nft.collection}
+                    image={nft.image}
+                    chainId={nft.chainId}
+                    className="bg-black/50 hover:bg-black/70 text-white"
+                  />
+                </div>
 
                 {/* Hover Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                  <div className="p-4 w-full">
-                    <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow">
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
+                  <div className="p-4 w-full pointer-events-auto">
+                    <Button
+                      className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       Place Bid
                     </Button>
                   </div>

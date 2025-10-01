@@ -1,237 +1,325 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Camera, Save } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Separator } from "@/components/ui/separator"
+import { Camera, Save, User, Shield } from "lucide-react"
+import { useToast } from "@/components/ui/use-toast"
+import { useProfile } from "./profile-provider"
 
 interface EditProfileModalProps {
-  isOpen: boolean
-  onClose: () => void
-  user: {
-    id: string
-    username: string
-    displayName: string
-    bio: string
-    avatar: string
-    banner: string
-    socialLinks: {
-      twitter?: string
-      discord?: string
-      website?: string
-    }
-  }
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-export function EditProfileModal({ isOpen, onClose, user }: EditProfileModalProps) {
-  const [formData, setFormData] = useState({
-    displayName: user.displayName,
-    bio: user.bio,
-    twitter: user.socialLinks.twitter || "",
-    website: user.socialLinks.website || "",
-  })
-  const [avatarFile, setAvatarFile] = useState<File | null>(null)
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
-  const [bannerFile, setBannerFile] = useState<File | null>(null)
-  const [bannerPreview, setBannerPreview] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
+export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) {
+  const { userProfile, updateProfile, loading } = useProfile()
   const { toast } = useToast()
 
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setAvatarFile(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setAvatarPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+  const [formData, setFormData] = useState({
+    username: userProfile?.username || "",
+    bio: userProfile?.bio || "",
+    email: userProfile?.email || "",
+    showWalletAddress: userProfile?.showWalletAddress || false,
+    showEmail: userProfile?.showEmail || false,
+    isPublic: userProfile?.isPublic || true,
+  })
 
-  const handleBannerUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setBannerFile(file)
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setBannerPreview(e.target?.result as string)
-      }
-      reader.readAsDataURL(file)
-    }
-  }
+  const [avatarFile, setAvatarFile] = useState<File | null>(null)
+  const [coverFile, setCoverFile] = useState<File | null>(null)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
-
-    // Simulate profile update
-    setTimeout(() => {
-      setIsLoading(false)
-      toast({
-        title: "Profile updated",
-        description: "Your profile has been updated successfully",
+  // Update form data when profile changes
+  useEffect(() => {
+    if (userProfile) {
+      setFormData({
+        username: userProfile.username,
+        bio: userProfile.bio || "",
+        email: userProfile.email || "",
+        showWalletAddress: userProfile.showWalletAddress || false,
+        showEmail: userProfile.showEmail || false,
+        isPublic: userProfile.isPublic || true,
       })
-      onClose()
-    }, 2000)
+    }
+  }, [userProfile])
+
+  const handleInputChange = (field: string, value: string | boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
   }
+
+  const handleFileChange = (type: 'avatar' | 'cover', file: File | null) => {
+    if (type === 'avatar') {
+      setAvatarFile(file)
+    } else {
+      setCoverFile(file)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!userProfile) return
+
+    try {
+      const updates: any = {
+        username: formData.username,
+        bio: formData.bio,
+        email: formData.email,
+        showWalletAddress: formData.showWalletAddress,
+        showEmail: formData.showEmail,
+        isPublic: formData.isPublic,
+      }
+
+      // Mock file upload - in reality you'd upload to cloud storage
+      if (avatarFile) {
+        updates.avatar = URL.createObjectURL(avatarFile)
+      }
+      if (coverFile) {
+        updates.coverImage = URL.createObjectURL(coverFile)
+      }
+
+      await updateProfile(updates)
+
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been successfully updated.",
+      })
+
+      // Close modal after short delay to ensure toast shows
+      setTimeout(() => {
+        onOpenChange(false)
+      }, 500)
+    } catch (error) {
+      console.error("Profile update error:", error)
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive",
+      })
+      // Still close the modal even if there's an error
+      setTimeout(() => {
+        onOpenChange(false)
+      }, 500)
+    }
+  }
+
+  if (!userProfile) return null
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card/90 backdrop-blur-xl border-border/50 max-w-2xl max-h-[80vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-border/50 bg-card/95 backdrop-blur-xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Edit Profile
-          </DialogTitle>
+          <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
+          <DialogDescription>
+            Make changes to your profile information and privacy settings
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Banner Upload */}
-          <div className="space-y-2">
-            <Label>Banner Image</Label>
-            <div className="relative h-32 rounded-lg overflow-hidden border border-border/50">
-              <img
-                src={bannerPreview || user.banner || "/placeholder.svg"}
-                alt="Banner"
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleBannerUpload}
-                  className="hidden"
-                  id="banner-upload"
-                />
-                <label htmlFor="banner-upload" className="cursor-pointer">
-                  <Camera className="h-8 w-8 text-white" />
-                </label>
-              </div>
+        <div className="space-y-6 py-4">
+          {/* Profile Images Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Camera className="h-5 w-5" />
+              <h3 className="font-semibold">Profile Images</h3>
             </div>
-          </div>
 
-          {/* Avatar Upload */}
-          <div className="space-y-2">
-            <Label>Profile Picture</Label>
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Avatar className="w-20 h-20">
-                  <AvatarImage src={avatarPreview || user.avatar || "/placeholder.svg"} />
-                  <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xl">
-                    {user.displayName[0]}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+            {/* Cover Image */}
+            <div>
+              <Label className="text-sm font-medium">Cover Image</Label>
+              <div className="mt-2">
+                <div className="relative h-32 w-full rounded-lg border-2 border-dashed border-border bg-muted/50 flex items-center justify-center overflow-hidden">
+                  {(coverFile || userProfile.coverImage) ? (
+                    <img
+                      src={coverFile ? URL.createObjectURL(coverFile) : userProfile.coverImage}
+                      alt="Cover"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-center">
+                      <Camera className="mx-auto h-8 w-8 text-muted-foreground" />
+                      <p className="text-sm text-muted-foreground mt-2">Upload cover image</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
-                    onChange={handleAvatarUpload}
-                    className="hidden"
-                    id="avatar-upload"
+                    onChange={(e) => handleFileChange('cover', e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
-                  <label htmlFor="avatar-upload" className="cursor-pointer">
-                    <Camera className="h-5 w-5 text-white" />
-                  </label>
                 </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Recommended: Square image, at least 400x400px</p>
+            </div>
+
+            {/* Avatar */}
+            <div>
+              <Label className="text-sm font-medium">Profile Picture</Label>
+              <div className="mt-2 flex items-center gap-4">
+                <div className="relative">
+                  <Avatar className="h-20 w-20">
+                    <AvatarImage
+                      src={avatarFile ? URL.createObjectURL(avatarFile) : userProfile.avatar}
+                      alt={userProfile.username}
+                    />
+                    <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xl">
+                      {userProfile.username[0]?.toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange('avatar', e.target.files?.[0] || null)}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
+                <div>
+                  <Button variant="outline" className="relative">
+                    <Camera className="mr-2 h-4 w-4" />
+                    Change Avatar
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('avatar', e.target.files?.[0] || null)}
+                      className="absolute inset-0 opacity-0 cursor-pointer"
+                    />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="displayName">Display Name</Label>
-              <Input
-                id="displayName"
-                value={formData.displayName}
-                onChange={(e) => setFormData({ ...formData, displayName: e.target.value })}
-                className="bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={user.username}
-                disabled
-                className="bg-muted/50 border-border/50 text-muted-foreground"
-              />
-              <p className="text-xs text-muted-foreground">Username cannot be changed</p>
-            </div>
-          </div>
+          <Separator />
 
-          {/* Bio */}
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              placeholder="Tell us about yourself..."
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20 min-h-[100px]"
-              maxLength={160}
-            />
-            <p className="text-xs text-muted-foreground text-right">{formData.bio.length}/160</p>
-          </div>
-
-          {/* Social Links */}
+          {/* Basic Information Section */}
           <div className="space-y-4">
-            <Label>Social Links</Label>
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              <h3 className="font-semibold">Basic Information</h3>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="twitter">Twitter</Label>
+              <div>
+                <Label htmlFor="username">Username</Label>
                 <Input
-                  id="twitter"
-                  placeholder="https://twitter.com/username"
-                  value={formData.twitter}
-                  onChange={(e) => setFormData({ ...formData, twitter: e.target.value })}
-                  className="bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => handleInputChange("username", e.target.value)}
+                  placeholder="Enter your username"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="website">Website</Label>
+              <div>
+                <Label htmlFor="email">Email</Label>
                 <Input
-                  id="website"
-                  placeholder="https://yourwebsite.com"
-                  value={formData.website}
-                  onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                  className="bg-card/50 border-border/50 focus:border-primary/50 focus:ring-primary/20"
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  placeholder="Enter your email"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="bio">Bio</Label>
+              <Textarea
+                id="bio"
+                value={formData.bio}
+                onChange={(e) => handleInputChange("bio", e.target.value)}
+                placeholder="Tell us about yourself..."
+                rows={4}
+              />
+            </div>
+
+            {userProfile.walletAddress && (
+              <div>
+                <Label>Wallet Address</Label>
+                <Input
+                  value={userProfile.walletAddress}
+                  disabled
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Wallet address cannot be changed
+                </p>
+              </div>
+            )}
+          </div>
+
+          <Separator />
+
+          {/* Privacy Settings Section */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5" />
+              <h3 className="font-semibold">Privacy Settings</h3>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Public Profile</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Make your profile visible to everyone
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.isPublic}
+                  onCheckedChange={(checked) => handleInputChange("isPublic", checked)}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Show Wallet Address</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Display your wallet address on your profile
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.showWalletAddress}
+                  onCheckedChange={(checked) => handleInputChange("showWalletAddress", checked)}
+                />
+              </div>
+
+              <Separator />
+
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label className="text-base">Show Email</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Display your email address on your profile
+                  </p>
+                </div>
+                <Switch
+                  checked={formData.showEmail}
+                  onCheckedChange={(checked) => handleInputChange("showEmail", checked)}
                 />
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="bg-transparent">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
-            >
-              {isLoading ? (
-                "Saving..."
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
-              )}
-            </Button>
-          </div>
-        </form>
+        {/* Footer with Save Button */}
+        <div className="flex justify-end gap-2 pt-4 border-t">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   )

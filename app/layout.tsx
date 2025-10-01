@@ -2,7 +2,10 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter, JetBrains_Mono } from "next/font/google"
 import { AuthProvider } from "@/components/auth/auth-provider"
+import { ProfileProvider } from "@/components/profile/profile-provider"
+import { ThirdwebProvider } from "thirdweb/react"
 import { Toaster } from "@/components/ui/toaster"
+import { LoadingPage } from "@/components/loading-page"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -19,8 +22,8 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "CyberNFT - Digital Marketplace",
-  description: "Discover, collect, and trade unique NFTs in our cyberpunk-inspired marketplace",
+  title: "Fortuna Square - Digital Marketplace",
+  description: "Discover, collect, and trade unique NFTs in the premier digital marketplace",
   generator: "v0.app",
 }
 
@@ -32,11 +35,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans ${inter.variable} ${jetbrainsMono.variable} antialiased`}>
-        <Suspense fallback={null}>
-          <AuthProvider>
-            {children}
-            <Toaster />
-          </AuthProvider>
+        <Suspense fallback={<LoadingPage />}>
+          <ThirdwebProvider>
+            <AuthProvider>
+              <ProfileProvider>
+                {children}
+                <Toaster />
+              </ProfileProvider>
+            </AuthProvider>
+          </ThirdwebProvider>
         </Suspense>
       </body>
     </html>

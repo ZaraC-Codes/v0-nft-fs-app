@@ -17,8 +17,12 @@ export default function LoginPage() {
           <CardHeader className="text-center pb-4">
             {/* Logo */}
             <Link href="/" className="flex items-center justify-center space-x-2 mb-4">
-              <div className="h-10 w-10 rounded bg-gradient-to-br from-primary to-secondary neon-glow" />
-              <span className="text-2xl font-bold neon-text text-primary">CyberNFT</span>
+              <img
+                src="/fs-temp-logo.png"
+                alt="Fortuna Square Logo"
+                className="h-10 w-10 object-contain"
+              />
+              <span className="text-2xl font-bold neon-text text-primary">Fortuna Square</span>
             </Link>
 
             <Badge className="mb-4 bg-gradient-to-r from-primary/20 to-secondary/20 text-primary border-primary/30 mx-auto">

@@ -5,47 +5,52 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Eye } from "lucide-react"
 import Link from "next/link"
+import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 
 const relatedNFTs = [
   {
     id: "2",
     title: "Cyber Samurai #002",
     creator: "NeonArtist",
-    price: "2.1 ETH",
+    price: "2.1 APE",
     image: "/cyberpunk-nft-1.png",
     rarity: "Epic",
     likes: 189,
     views: 987,
+    chainId: apeChainCurtis.id,
   },
   {
     id: "3",
     title: "Cyber Samurai #003",
     creator: "NeonArtist",
-    price: "1.8 ETH",
+    price: "0.018 ETH",
     image: "/cyberpunk-nft-2.png",
     rarity: "Rare",
     likes: 156,
     views: 743,
+    chainId: sepolia.id,
   },
   {
     id: "4",
     title: "Cyber Samurai #004",
     creator: "NeonArtist",
-    price: "3.0 ETH",
+    price: "3.0 APE",
     image: "/cyberpunk-nft-3.png",
     rarity: "Legendary",
     likes: 298,
     views: 1456,
+    chainId: apeChainCurtis.id,
   },
   {
     id: "5",
     title: "Cyber Samurai #005",
     creator: "NeonArtist",
-    price: "1.5 ETH",
+    price: "0.015 ETH",
     image: "/cyberpunk-samurai-neon-digital-art.jpg",
     rarity: "Rare",
     likes: 134,
     views: 621,
+    chainId: sepolia.id,
   },
 ]
 
@@ -90,9 +95,18 @@ export function RelatedNFTs({ collectionId, currentNFTId }: RelatedNFTsProps) {
                   className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
                 />
 
+                {/* Chain Badge */}
+                {getChainMetadata(nft.chainId) && (
+                  <Badge
+                    className={`absolute top-3 left-3 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0`}
+                  >
+                    {getChainMetadata(nft.chainId)!.icon} {getChainMetadata(nft.chainId)!.shortName}
+                  </Badge>
+                )}
+
                 {/* Rarity Badge */}
                 <Badge
-                  className={`absolute top-3 left-3 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
+                  className={`absolute top-12 left-3 bg-gradient-to-r ${rarityColors[nft.rarity as keyof typeof rarityColors]} text-white border-0 neon-glow`}
                 >
                   {nft.rarity}
                 </Badge>

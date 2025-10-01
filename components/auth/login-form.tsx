@@ -30,7 +30,7 @@ export function LoginForm() {
       setIsLoading(false)
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in to CyberNFT.",
+        description: "You have successfully signed in to Fortuna Square.",
       })
     }, 2000)
   }
