@@ -186,8 +186,8 @@ export function LinkExternalWallet() {
 
       console.log("✅ Wallet signature verified:", signature.slice(0, 20) + "...")
 
-      // Link wallet to profile
-      await ProfileService.linkAdditionalWallet(userProfile.id, walletAddress)
+      // Link wallet to profile with wallet type 'metamask' (we know it's MetaMask since we detected it)
+      await ProfileService.linkAdditionalWallet(userProfile.id, walletAddress, 'metamask')
 
       // Refresh profile data
       await refreshProfile()

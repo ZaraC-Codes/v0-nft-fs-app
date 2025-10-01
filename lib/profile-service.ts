@@ -1,4 +1,4 @@
-import { UserProfile } from "@/types/profile"
+import { UserProfile, WalletMetadata, WalletType } from "@/types/profile"
 
 export interface CreateProfileParams {
   id: string
@@ -232,15 +232,22 @@ export class ProfileService {
   }
 
   /**
-   * Create profile from wallet connection
+   * Create profile from wallet connection (embedded wallet from email/social signup)
    */
-  static async createProfileFromWallet(walletAddress: string): Promise<UserProfile> {
+  static async createProfileFromWallet(walletAddress: string, walletType: WalletType = 'embedded'): Promise<UserProfile> {
     const username = this.generateUsernameFromWallet(walletAddress)
+
+    const walletMetadata: WalletMetadata = {
+      address: walletAddress,
+      type: walletType,
+      addedAt: new Date()
+    }
 
     return this.createProfile({
       id: walletAddress, // Use wallet address as ID for wallet-only users
       username,
-      walletAddress
+      walletAddress,
+      wallets: [walletMetadata]
     })
   }
 
@@ -261,9 +268,13 @@ export class ProfileService {
   }
 
   /**
-   * Link additional wallet to a profile
+   * Link additional wallet to a profile with metadata
    */
-  static async linkAdditionalWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
+  static async linkAdditionalWallet(
+    profileId: string,
+    walletAddress: string,
+    walletType: WalletType = 'metamask'
+  ): Promise<UserProfile | null> {
     const profile = this.getProfile(profileId)
     if (!profile) {
       console.error("Profile not found:", profileId)
@@ -276,17 +287,33 @@ export class ProfileService {
       throw new Error("This wallet is already linked to another profile")
     }
 
-    // Check if wallet is already linked to this profile
+    const wallets = profile.wallets || []
     const linkedWallets = profile.linkedWallets || []
-    if (linkedWallets.includes(walletAddress)) {
+
+    // Check if wallet is already linked (check both old and new format)
+    const isAlreadyLinked =
+      wallets.some(w => w.address.toLowerCase() === walletAddress.toLowerCase()) ||
+      linkedWallets.some(w => w.toLowerCase() === walletAddress.toLowerCase())
+
+    if (isAlreadyLinked) {
       console.log("Wallet already linked to this profile")
       return profile
     }
 
-    // Add wallet to linkedWallets array
+    // Add wallet to new wallets array with metadata
+    const newWalletMetadata: WalletMetadata = {
+      address: walletAddress,
+      type: walletType,
+      addedAt: new Date()
+    }
+
+    const updatedWallets = [...wallets, newWalletMetadata]
+
+    // Also update old linkedWallets for backwards compatibility
     const updatedLinkedWallets = [...linkedWallets, walletAddress]
 
     return this.updateProfile(profileId, {
+      wallets: updatedWallets,
       linkedWallets: updatedLinkedWallets
     })
   }

@@ -1,3 +1,12 @@
+export type WalletType = 'embedded' | 'metamask' | 'glyph' | 'rabby' | 'coinbase' | 'external'
+
+export interface WalletMetadata {
+  address: string
+  type: WalletType
+  label?: string // Custom user label
+  addedAt: Date
+}
+
 export interface UserProfile {
   id: string
   username: string
@@ -5,8 +14,9 @@ export interface UserProfile {
   bio?: string
   avatar?: string
   coverImage?: string
-  walletAddress?: string // Primary/default wallet
-  linkedWallets?: string[] // Additional linked wallets
+  walletAddress?: string // Primary/default wallet (for backwards compatibility)
+  linkedWallets?: string[] // Deprecated: kept for migration, use wallets instead
+  wallets?: WalletMetadata[] // New: all wallets with metadata
   activeWallet?: string // Currently selected wallet for transactions
   createdAt: Date
   updatedAt: Date

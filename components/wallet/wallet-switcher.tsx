@@ -27,40 +27,17 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
   const [selectedWalletAddress, setSelectedWalletAddress] = useState<string | null>(null)
   const [isSwitching, setIsSwitching] = useState(false)
 
-  // Get all available wallets from profile
-  // Determine which wallet is which based on the currently connected wallet type
-  const walletId = (account as any)?.wallet?.id
-  const isEmbeddedWalletConnected = walletId === "inApp" || !walletId || walletId === "embedded"
-
+  // Get all available wallets from profile using stored metadata
   const availableWallets = userProfile
-    ? (userProfile.linkedWallets || []).map((addr) => {
-        // If this address matches the currently connected account, use that to determine type
-        const isCurrentlyConnected = addr.toLowerCase() === account?.address?.toLowerCase()
+    ? (userProfile.wallets || []).map((wallet) => {
+        const isPrimary = wallet.type === 'embedded'
+        const name = isPrimary ? "Embedded Wallet" : "MetaMask"
 
-        let name = "External Wallet"
-        let isPrimary = false
-
-        if (isCurrentlyConnected) {
-          // Use the current connection to determine wallet type
-          if (isEmbeddedWalletConnected) {
-            name = "Embedded Wallet"
-            isPrimary = true
-          } else {
-            name = "MetaMask"
-            isPrimary = false
-          }
-        } else {
-          // For non-connected wallet, assume it's the opposite of current
-          if (isEmbeddedWalletConnected) {
-            name = "MetaMask"
-            isPrimary = false
-          } else {
-            name = "Embedded Wallet"
-            isPrimary = true
-          }
+        return {
+          address: wallet.address,
+          name,
+          isPrimary
         }
-
-        return { address: addr, name, isPrimary }
       })
     : []
 
