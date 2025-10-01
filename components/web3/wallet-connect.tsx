@@ -2,15 +2,15 @@
 
 import { ConnectButton } from "thirdweb/react";
 import { client, apeChainCurtis } from "@/lib/thirdweb";
-import { createWallet, inAppWallet } from "thirdweb/wallets";
+import { inAppWallet } from "thirdweb/wallets";
 import { useActiveAccount } from "thirdweb/react";
-import { Badge } from "@/components/ui/badge";
-import { Wallet, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
-// Embedded wallet with Smart Account for users without external wallets
+// Embedded wallet for primary account creation
+// External wallets are linked separately through Settings page
 const embeddedWallet = inAppWallet({
   auth: {
-    options: ["google", "apple", "x", "email", "passkey"],
+    options: ["email", "google", "apple", "facebook", "discord"],
   },
   smartAccount: {
     chain: apeChainCurtis,
@@ -18,25 +18,16 @@ const embeddedWallet = inAppWallet({
   },
 });
 
-// External wallets (no Smart Account - users keep their own addresses)
-const wallets = [
-  embeddedWallet,
-  createWallet("io.metamask"),
-  createWallet("io.rabby"),
-  createWallet("com.coinbase.wallet"),
-  createWallet("walletConnect"),
-];
-
 export function WalletConnect() {
   const account = useActiveAccount();
 
   if (account) {
-    // When wallet is connected, show a custom button with address
+    // When wallet is connected, show wallet address
     return (
       <ConnectButton
         client={client}
         chain={apeChainCurtis}
-        wallets={wallets}
+        wallets={[embeddedWallet]}
         connectButton={{ label: "Connect Wallet" }}
         detailsButton={{
           style: {
@@ -64,14 +55,15 @@ export function WalletConnect() {
           ),
         }}
         connectModal={{
-          title: "Connect to ApeChain NFT Marketplace",
-          titleIcon: "/logo.png",
-          size: "wide",
+          title: "Your Embedded Wallet",
+          titleIcon: "",
+          size: "compact",
+          showThirdwebBranding: false,
         }}
         detailsModal={{
           footer: () => (
             <div className="text-xs text-muted-foreground text-center">
-              Connected to ApeChain Curtis Testnet
+              To link external wallets (MetaMask, etc.), go to Settings
             </div>
           ),
         }}
@@ -90,14 +82,14 @@ export function WalletConnect() {
     );
   }
 
-  // When wallet is not connected, show connect button
+  // When wallet is not connected, show embedded wallet login/signup options only
   return (
     <ConnectButton
       client={client}
       chain={apeChainCurtis}
-      wallets={wallets}
+      wallets={[embeddedWallet]}
       connectButton={{
-        label: "Connect Wallet",
+        label: "Sign In / Sign Up",
         style: {
           background: "linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 100%)",
           border: "1px solid hsl(var(--border))",
@@ -114,9 +106,10 @@ export function WalletConnect() {
         },
       }}
       connectModal={{
-        title: "Connect to ApeChain NFT Marketplace",
-        titleIcon: "/logo.png",
-        size: "wide",
+        title: "Sign In or Create Account",
+        titleIcon: "",
+        size: "compact",
+        showThirdwebBranding: false,
       }}
       theme={{
         colors: {
