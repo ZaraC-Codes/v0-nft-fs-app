@@ -149,13 +149,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Only auto-create profile for embedded wallets (in-app wallet)
           // External wallets (MetaMask, etc.) require manual linking
           const walletId = (account as any).wallet?.id
-          console.log("🔍 Detected wallet ID:", walletId)
+          console.log("🔍 Detected wallet ID:", walletId, "Account:", account)
 
           // ThirdWeb uses "inApp" as the wallet ID for embedded wallets
-          const isEmbeddedWallet = walletId === "inApp"
+          // Also check for common external wallet IDs to be certain
+          const externalWalletIds = ["io.metamask", "io.rabby", "com.coinbase.wallet", "io.useglyph", "walletConnect"]
+          const isExternalWallet = externalWalletIds.includes(walletId)
 
-          if (isEmbeddedWallet) {
-            console.log("✅ Embedded wallet detected, creating profile automatically")
+          // If walletId is undefined or doesn't match known patterns, assume embedded wallet
+          // This handles cases where ThirdWeb might use different IDs
+          const shouldAutoCreate = !isExternalWallet
+
+          console.log("🔍 Wallet check - isExternal:", isExternalWallet, "shouldAutoCreate:", shouldAutoCreate)
+
+          if (shouldAutoCreate) {
+            console.log("✅ Creating profile automatically for connected wallet")
             ProfileService.createProfileFromWallet(account.address).then(profile => {
               const walletUser: User = {
                 id: profile.id,
@@ -167,7 +175,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               }
               setUser(walletUser)
               localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-              console.log("✅ Created embedded wallet user:", profile.username)
+              console.log("✅ Created wallet user:", profile.username)
             }).catch(error => {
               console.error("Failed to create wallet profile:", error)
             })
