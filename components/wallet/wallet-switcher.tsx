@@ -1,13 +1,11 @@
 "use client"
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
-import { useActiveAccount, useDisconnect, useConnect } from "thirdweb/react"
+import { useActiveAccount, useDisconnect } from "thirdweb/react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Wallet, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { createWallet, injectedProvider } from "thirdweb/wallets"
-import { client } from "@/lib/thirdweb"
 
 interface WalletSwitcherContextType {
   selectedWalletAddress: string | null
@@ -65,43 +63,68 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
     setIsSwitching(true)
 
     try {
-      // Disconnect current wallet
-      console.log("📴 Disconnecting current wallet...")
-      if (account && (account as any).wallet) {
-        await disconnect((account as any).wallet)
-        console.log("✅ Disconnected successfully")
-        // Wait for disconnect to complete
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-
-      // Connect to selected wallet
-      console.log("🔌 Connecting to new wallet...")
       if (wallet.isPrimary) {
-        // Connect to embedded wallet
-        console.log("📱 Connecting to embedded wallet...")
-        const embeddedWallet = createWallet("inApp")
-        const result = await connect(async () => {
-          const acc = await embeddedWallet.connect({ client })
-          console.log("✅ Embedded wallet connected:", acc.address)
-          return acc
-        })
-        console.log("✅ Connect result:", result)
-        toast.success("Switched to Embedded Wallet")
+        // Switching to embedded wallet - disconnect external wallet and reload
+        console.log("📱 Switching to embedded wallet - will reload page")
+        if (account && (account as any).wallet) {
+          await disconnect((account as any).wallet)
+        }
+        toast.info("Reloading to switch to Embedded Wallet...")
+        setTimeout(() => window.location.reload(), 500)
       } else {
-        // Connect to external wallet (MetaMask)
-        console.log("🦊 Connecting to MetaMask...")
-        const metaMaskWallet = createWallet("io.metamask")
-        const result = await connect(async () => {
-          const acc = await metaMaskWallet.connect({ client })
-          console.log("✅ MetaMask connected:", acc.address)
-          return acc
-        })
-        console.log("✅ Connect result:", result)
-        toast.success("Switched to MetaMask")
-      }
+        // Switching to MetaMask - use window.ethereum directly
+        console.log("🦊 Switching to MetaMask...")
 
-      setSelectedWalletAddress(address)
-      console.log("✅ Wallet switch completed successfully")
+        if (typeof window === 'undefined' || !(window as any).ethereum) {
+          toast.error("MetaMask not detected. Please install MetaMask extension.")
+          return
+        }
+
+        // Disconnect current wallet
+        if (account && (account as any).wallet) {
+          console.log("📴 Disconnecting embedded wallet...")
+          await disconnect((account as any).wallet)
+          await new Promise(resolve => setTimeout(resolve, 300))
+        }
+
+        // Request MetaMask connection
+        const ethereum = (window as any).ethereum
+        console.log("🔌 Requesting MetaMask connection...")
+
+        try {
+          const accounts = await ethereum.request({
+            method: 'eth_requestAccounts'
+          })
+
+          if (!accounts || accounts.length === 0) {
+            toast.error("No MetaMask account found")
+            return
+          }
+
+          const connectedAddress = accounts[0]
+          console.log("✅ MetaMask connected:", connectedAddress)
+
+          // Verify it's the wallet we expect
+          if (connectedAddress.toLowerCase() !== address.toLowerCase()) {
+            toast.error(`Please switch to ${address.slice(0, 6)}...${address.slice(-4)} in MetaMask`)
+            return
+          }
+
+          toast.success("Switched to MetaMask")
+          setSelectedWalletAddress(address)
+
+          // Reload page to ensure ThirdWeb picks up the new connection
+          setTimeout(() => window.location.reload(), 500)
+        } catch (err: any) {
+          console.error("❌ MetaMask connection failed:", err)
+          if (err.code === 4001) {
+            toast.error("MetaMask connection rejected")
+          } else {
+            toast.error(`Failed to connect to MetaMask: ${err.message}`)
+          }
+          throw err
+        }
+      }
     } catch (error: any) {
       console.error("❌ Failed to switch wallet:", error)
       console.error("❌ Error details:", {
