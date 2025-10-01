@@ -32,35 +32,51 @@ export function LinkExternalWallet() {
       return
     }
 
-    console.log("✅ window.ethereum detected")
+    // Only look for supported Ethereum wallets
+    let ethereum = null
+    let walletName = ""
 
-    // Log available wallet providers for debugging
-    let ethereum = (window as any).ethereum
+    // Check for specific wallet extensions we support
+    const win = window as any
 
-    console.log("📊 Wallet info:", {
-      isMetaMask: ethereum.isMetaMask,
-      isCoinbaseWallet: ethereum.isCoinbaseWallet,
-      isRabby: ethereum.isRabby,
-      hasProviders: !!ethereum.providers
-    })
-
-    // If multiple providers exist, try to find an Ethereum wallet
-    if (ethereum.providers && Array.isArray(ethereum.providers)) {
-      console.log(`📊 Found ${ethereum.providers.length} wallet providers`)
-
-      // Look for known Ethereum wallets (not Cardano like Eternl)
-      const ethProvider = ethereum.providers.find((p: any) =>
-        p.isMetaMask || p.isRabby || p.isCoinbaseWallet || p.isGlyph
-      )
-
-      if (ethProvider) {
-        console.log("✅ Selected Ethereum provider")
-        ethereum = ethProvider
-      } else {
-        console.log("⚠️ No known Ethereum provider found, using first provider")
-        ethereum = ethereum.providers[0]
-      }
+    // Check for Glyph
+    if (win.glyph?.ethereum) {
+      ethereum = win.glyph.ethereum
+      walletName = "Glyph"
+      console.log("✅ Found Glyph wallet")
     }
+    // Check for MetaMask
+    else if (win.ethereum?.isMetaMask) {
+      ethereum = win.ethereum
+      walletName = "MetaMask"
+      console.log("✅ Found MetaMask wallet")
+    }
+    // Check for Rabby
+    else if (win.ethereum?.isRabby) {
+      ethereum = win.ethereum
+      walletName = "Rabby"
+      console.log("✅ Found Rabby wallet")
+    }
+    // Check for Coinbase Wallet
+    else if (win.ethereum?.isCoinbaseWallet) {
+      ethereum = win.ethereum
+      walletName = "Coinbase Wallet"
+      console.log("✅ Found Coinbase Wallet")
+    }
+    // Fallback to window.ethereum if it exists
+    else if (win.ethereum) {
+      ethereum = win.ethereum
+      walletName = "Unknown Ethereum Wallet"
+      console.log("⚠️ Found unknown Ethereum wallet")
+    }
+
+    if (!ethereum) {
+      console.error("❌ No supported Ethereum wallet found")
+      toast.error("Please install MetaMask, Glyph, Rabby, or Coinbase Wallet extension first.")
+      return
+    }
+
+    console.log(`🔗 Using ${walletName} for wallet linking`)
 
     setIsLinking(true)
 
@@ -121,7 +137,7 @@ export function LinkExternalWallet() {
       // Refresh profile data
       await refreshProfile()
 
-      toast.success(`Wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} linked successfully!`)
+      toast.success(`${walletName} wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)} linked successfully!`)
 
     } catch (error: any) {
       console.error("Failed to link wallet:", error)
