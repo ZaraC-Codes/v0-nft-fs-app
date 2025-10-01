@@ -18,6 +18,7 @@ import { useAuth } from "@/components/auth/auth-provider"
 import { useActiveAccount } from "thirdweb/react"
 import { WalletConnect } from "@/components/web3/wallet-connect"
 import { useProfile } from "@/components/profile/profile-provider"
+import { useWalletSwitcher } from "@/components/wallet/wallet-switcher"
 import { ProfileService } from "@/lib/profile-service"
 import { toast } from "sonner"
 
@@ -26,22 +27,16 @@ export function Header() {
   const { user, logout } = useAuth()
   const account = useActiveAccount()
   const { userProfile, refreshProfile } = useProfile()
+  const { switchWallet } = useWalletSwitcher()
 
   const handleSwitchWallet = async (walletAddress: string) => {
-    if (!userProfile) return
-    try {
-      await ProfileService.setActiveWallet(userProfile.id, walletAddress)
-      await refreshProfile()
-      toast.success(`Switched to ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`)
-    } catch (error) {
-      console.error("Failed to switch wallet:", error)
-      toast.error("Failed to switch wallet")
-    }
+    console.log("🔘 Header wallet switch clicked:", walletAddress)
+    await switchWallet(walletAddress)
   }
 
-  // Get linked wallets safely - fallback to empty array if profile not loaded yet
-  const linkedWallets = userProfile ? ProfileService.getAllWallets(userProfile) : []
-  const activeWallet = userProfile?.activeWallet || userProfile?.walletAddress
+  // Get linked wallets with metadata
+  const walletMetadata = userProfile?.wallets || []
+  const linkedWallets = walletMetadata.map(w => w.address)
 
   // Debug logging
   if (typeof window !== 'undefined') {
@@ -184,29 +179,33 @@ export function Header() {
                       <div className="px-2 py-1.5">
                         <p className="text-xs font-semibold text-muted-foreground uppercase">Your Wallets</p>
                       </div>
-                      {linkedWallets.map((wallet) => {
-                        const isActive = activeWallet?.toLowerCase() === wallet.toLowerCase()
-                        const isPrimary = userProfile?.walletAddress?.toLowerCase() === wallet.toLowerCase()
+                      {walletMetadata.map((walletMeta) => {
+                        const isActive = account?.address?.toLowerCase() === walletMeta.address.toLowerCase()
+                        const isPrimary = walletMeta.type === 'embedded'
+                        const walletLabel = isPrimary ? "Embedded Wallet" : "MetaMask"
 
                         return (
                           <DropdownMenuItem
-                            key={wallet}
-                            onClick={() => handleSwitchWallet(wallet)}
+                            key={walletMeta.address}
+                            onClick={() => handleSwitchWallet(walletMeta.address)}
                             className="cursor-pointer"
                           >
                             <Wallet className="mr-2 h-4 w-4" />
-                            <div className="flex-1 flex items-center justify-between">
-                              <span className="font-mono text-xs">
-                                {wallet.slice(0, 6)}...{wallet.slice(-4)}
-                              </span>
-                              <div className="flex items-center gap-1">
-                                {isPrimary && (
-                                  <Badge variant="secondary" className="text-[10px] px-1 py-0">
-                                    Primary
-                                  </Badge>
-                                )}
-                                {isActive && <Check className="h-3 w-3 text-primary" />}
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-medium">{walletLabel}</span>
+                                <div className="flex items-center gap-1">
+                                  {isPrimary && (
+                                    <Badge variant="secondary" className="text-[10px] px-1 py-0">
+                                      Primary
+                                    </Badge>
+                                  )}
+                                  {isActive && <Check className="h-3 w-3 text-primary" />}
+                                </div>
                               </div>
+                              <span className="font-mono text-[10px] text-muted-foreground">
+                                {walletMeta.address.slice(0, 6)}...{walletMeta.address.slice(-4)}
+                              </span>
                             </div>
                           </DropdownMenuItem>
                         )

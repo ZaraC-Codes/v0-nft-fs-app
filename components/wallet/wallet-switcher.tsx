@@ -4,7 +4,6 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useActiveAccount, useDisconnect, useConnect } from "thirdweb/react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { Card, CardContent } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Wallet, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 import { createWallet, injectedProvider } from "thirdweb/wallets"
@@ -166,16 +165,19 @@ export function WalletSwitcher() {
             {availableWallets.map((wallet) => {
               const isConnected = account?.address?.toLowerCase() === wallet.address.toLowerCase()
               return (
-                <Button
+                <button
                   key={wallet.address}
-                  onClick={() => switchWallet(wallet.address)}
+                  onClick={() => {
+                    console.log("🔘 WalletSwitcher button clicked!", wallet.address)
+                    switchWallet(wallet.address)
+                  }}
                   disabled={isSwitching}
-                  variant={isConnected ? "default" : "outline"}
-                  className={`w-full justify-between ${
+                  style={{ zIndex: 9999, position: 'relative' }}
+                  className={`w-full flex items-center justify-between px-4 py-3 rounded-md border transition-colors ${
                     isConnected
-                      ? "bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
-                      : ""
-                  }`}
+                      ? "bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 text-white border-transparent"
+                      : "bg-background hover:bg-accent hover:text-accent-foreground border-input"
+                  } ${isSwitching ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center gap-2">
                     <Wallet className="h-4 w-4" />
@@ -187,7 +189,7 @@ export function WalletSwitcher() {
                     </div>
                   </div>
                   {isConnected && <Check className="h-4 w-4" />}
-                </Button>
+                </button>
               )
             })}
           </div>
