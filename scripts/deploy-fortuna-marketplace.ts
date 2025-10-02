@@ -41,7 +41,7 @@ async function main() {
   console.log("\n📋 Marketplace Configuration:");
   console.log("  Sale Fee:", await marketplace.saleFeePercent(), "bps (2.5%)");
   console.log("  Fee Recipient:", await marketplace.feeRecipient());
-  console.log("  Total Listings:", await marketplace.totalListings());
+  console.log("  Total Listings:", await marketplace.getTotalListings());
 
   console.log("\n🎯 Next Steps:");
   console.log("  1. Update .env.local with:");

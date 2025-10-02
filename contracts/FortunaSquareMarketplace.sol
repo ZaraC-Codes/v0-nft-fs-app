@@ -347,9 +347,10 @@ contract FortunaSquareMarketplace is Ownable, ReentrancyGuard {
     }
 
     /**
-     * @notice Get total number of listings created
+     * @notice Get the total number of listings created
+     * @return Total listing count
      */
-    function totalListings() external view returns (uint256) {
+    function getTotalListings() external view returns (uint256) {
         return _listingIdCounter;
     }
 

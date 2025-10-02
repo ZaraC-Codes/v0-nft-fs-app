@@ -1,11 +1,10 @@
-import { HardhatUserConfig } from "hardhat/config";
-import "@nomicfoundation/hardhat-toolbox";
-import "@nomicfoundation/hardhat-verify";
-import * as dotenv from "dotenv";
+const { config: dotenvConfig } = require("dotenv");
+require("@nomicfoundation/hardhat-toolbox");
+require("@nomicfoundation/hardhat-verify");
 
-dotenv.config({ path: ".env.local" });
+dotenvConfig({ path: ".env.local" });
 
-const config: HardhatUserConfig = {
+const config = {
   solidity: {
     version: "0.8.20",
     settings: {
@@ -43,4 +42,4 @@ const config: HardhatUserConfig = {
   },
 };
 
-export default config;
+module.exports = config;

@@ -39,7 +39,9 @@
       "Bash(dir:*)",
       "Bash(del hardhat.config.ts)",
       "Bash(npm pkg delete:*)",
-      "Bash(source:*)"
+      "Bash(source:*)",
+      "Bash(if exist hardhat.config.js move hardhat.config.js hardhat.config.cjs)",
+      "Bash(npm pkg get:*)"
     ],
     "deny": [],
     "ask": []

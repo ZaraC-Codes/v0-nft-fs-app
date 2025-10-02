@@ -1,4 +1,4 @@
-import { getContract, prepareContractCall, readContract } from "thirdweb";
+import { getContract, prepareContractCall, readContract, getContractEvents } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
@@ -26,10 +26,10 @@ export async function getAllListings() {
   const contract = getMarketplaceContract();
 
   try {
-    // Get the total listing count
+    // Get the total listing count using getTotalListings
     const listingCount = await readContract({
       contract,
-      method: "function _listingIdCounter() view returns (uint256)",
+      method: "function getTotalListings() view returns (uint256)",
       params: [],
     });
 
@@ -52,7 +52,8 @@ export async function getAllListings() {
 
     return listings;
   } catch (error) {
-    console.error("Error fetching listings:", error);
+    console.error("❌ Error fetching listings:", error);
+    console.error("Error details:", error instanceof Error ? error.message : JSON.stringify(error));
     return [];
   }
 }

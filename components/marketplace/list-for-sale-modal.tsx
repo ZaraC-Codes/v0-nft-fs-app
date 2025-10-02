@@ -365,12 +365,23 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("✅ Transaction prepared:", tx)
                 return tx
               }}
-              onTransactionConfirmed={() => {
+              onTransactionConfirmed={async (receipt) => {
                 console.log("✅ Transaction confirmed!")
+                console.log("📄 Transaction receipt:", receipt)
+
+                // Wait a moment for blockchain state to update
+                await new Promise(resolve => setTimeout(resolve, 3000))
+
                 toast({
                   title: "Listed Successfully!",
-                  description: `Your ${nft.isBundle ? "bundle" : "NFT"} is now listed for ${price} APE`,
+                  description: `Your ${nft.isBundle ? "bundle" : "NFT"} is now listed for ${price} APE. Refreshing listings...`,
                 })
+
+                // Trigger a refresh of the profile data
+                if (window.location.pathname.includes('/profile/')) {
+                  window.location.reload()
+                }
+
                 onClose()
               }}
               onError={(error) => {
