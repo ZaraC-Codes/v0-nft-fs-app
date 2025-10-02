@@ -14,7 +14,7 @@ import { useActiveAccount } from "thirdweb/react"
 import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { prepareApproveNFTContract, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
 import { cancelListing } from "@/lib/marketplace"
-import { Package, Plus, X, Check, AlertCircle } from "lucide-react"
+import { Package, Plus, X, Check, AlertCircle, Image as ImageIcon } from "lucide-react"
 import Image from "next/image"
 import { useProfile } from "@/components/profile/profile-provider"
 import { NFTWithTraits } from "@/lib/nft-matching"
@@ -32,11 +32,13 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const [selectedNFTs, setSelectedNFTs] = useState<NFTWithTraits[]>([])
   const [bundleName, setBundleName] = useState("")
   const [bundleDescription, setBundleDescription] = useState("")
-  const [step, setStep] = useState<"select" | "delist" | "approve" | "create">("select")
+  const [step, setStep] = useState<"select" | "customize" | "delist" | "approve" | "create">("select")
   const [approvedContracts, setApprovedContracts] = useState<Set<string>>(new Set())
   const [delistedNFTs, setDelistedNFTs] = useState<Set<string>>(new Set())
   const [isApprovingAll, setIsApprovingAll] = useState(false)
   const [isDelistingAll, setIsDelistingAll] = useState(false)
+  const [coverImageIndex, setCoverImageIndex] = useState<number>(0) // Index of NFT to use as cover
+  const [thumbnailIndices, setThumbnailIndices] = useState<number[]>([0, 1, 2]) // Indices of NFTs to show as thumbnails
 
   // Check which selected NFTs have active listings
   const listedNFTs = selectedNFTs.filter(nft =>
@@ -113,7 +115,12 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
     })))
     console.log("🔍 Needs delisting:", needsDelisting)
 
-    // If any NFTs are listed, go to delist step first
+    // Go to customize step to select cover image and thumbnails
+    setStep("customize")
+  }
+
+  const handleProceedFromCustomize = () => {
+    // After customization, check if delisting is needed
     if (needsDelisting) {
       console.log("✅ Going to delist step")
       setStep("delist")
@@ -200,10 +207,20 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const handleCreateBundle = () => {
     if (!selectedNFTs.length || !bundleName.trim()) return
 
-    // Generate bundle preview image (in production, upload to IPFS)
-    const bundleImageUrl = selectedNFTs[0].image || "/placeholder-nft.png"
+    // Use selected cover image
+    const coverNFT = selectedNFTs[coverImageIndex]
+    const bundleImageUrl = coverNFT?.image || "/placeholder-nft.png"
 
-    // Generate metadata URI
+    // Get selected thumbnails
+    const thumbnailData = thumbnailIndices
+      .filter(index => index < selectedNFTs.length)
+      .map(index => ({
+        name: selectedNFTs[index].name,
+        image: selectedNFTs[index].image || "/placeholder.svg",
+        tokenId: selectedNFTs[index].tokenId
+      }))
+
+    // Generate metadata URI with cover image and thumbnails
     const metadataURI = generateBundleMetadataURI(
       bundleName,
       bundleDescription || `A bundle of ${selectedNFTs.length} NFTs`,
@@ -211,8 +228,10 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
       selectedNFTs.map(nft => ({
         name: nft.name,
         contractAddress: nft.contractAddress,
-        tokenId: nft.tokenId
-      }))
+        tokenId: nft.tokenId,
+        image: nft.image
+      })),
+      thumbnailData
     )
 
     return {
@@ -250,6 +269,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
           </DialogTitle>
           <DialogDescription className="text-base">
             {step === "select" && "Select NFTs to bundle together"}
+            {step === "customize" && "Choose cover image and thumbnails"}
             {step === "delist" && "Cancel listings for selected NFTs"}
             {step === "approve" && "Approve NFT contracts for bundling"}
             {step === "create" && "Create your bundle"}
@@ -422,6 +442,123 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                   className="border-gray-700 hover:bg-gray-800"
                 >
                   Cancel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step: Customize Cover & Thumbnails */}
+          {step === "customize" && (
+            <>
+              <div className="space-y-6">
+                {/* Cover Image Selection */}
+                <Card className="glass-card border-cyan-500/30 p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <ImageIcon className="h-5 w-5 text-cyan-400" />
+                    Select Cover Image
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Choose one NFT to be the main cover image for your bundle card
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {selectedNFTs.map((nft, index) => (
+                      <div
+                        key={`${nft.contractAddress}-${nft.tokenId}`}
+                        onClick={() => setCoverImageIndex(index)}
+                        className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                          coverImageIndex === index
+                            ? "border-cyan-400 ring-2 ring-cyan-400/50"
+                            : "border-gray-700 hover:border-gray-600"
+                        }`}
+                      >
+                        <div className="aspect-square overflow-hidden rounded-lg">
+                          <img
+                            src={nft.image || "/placeholder.svg"}
+                            alt={nft.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        {coverImageIndex === index && (
+                          <div className="absolute top-2 right-2 bg-cyan-400 rounded-full p-1">
+                            <Check className="h-4 w-4 text-black" />
+                          </div>
+                        )}
+                        <div className="p-2">
+                          <p className="text-xs font-medium truncate">{nft.name}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
+                {/* Thumbnail Selection */}
+                <Card className="glass-card border-purple-500/30 p-6">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                    <Package className="h-5 w-5 text-purple-400" />
+                    Select Preview Thumbnails (up to 3)
+                  </h3>
+                  <p className="text-sm text-muted-foreground mb-4">
+                    Choose up to 3 NFTs to show as preview thumbnails on your bundle card
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {selectedNFTs.map((nft, index) => {
+                      const isSelected = thumbnailIndices.includes(index)
+                      const selectionNumber = isSelected ? thumbnailIndices.indexOf(index) + 1 : null
+
+                      return (
+                        <div
+                          key={`${nft.contractAddress}-${nft.tokenId}`}
+                          onClick={() => {
+                            if (isSelected) {
+                              // Remove from selection
+                              setThumbnailIndices(prev => prev.filter(i => i !== index))
+                            } else if (thumbnailIndices.length < 3) {
+                              // Add to selection (max 3)
+                              setThumbnailIndices(prev => [...prev, index])
+                            }
+                          }}
+                          className={`relative cursor-pointer rounded-lg border-2 transition-all ${
+                            isSelected
+                              ? "border-purple-400 ring-2 ring-purple-400/50"
+                              : "border-gray-700 hover:border-gray-600"
+                          } ${thumbnailIndices.length >= 3 && !isSelected ? "opacity-50 cursor-not-allowed" : ""}`}
+                        >
+                          <div className="aspect-square overflow-hidden rounded-lg">
+                            <img
+                              src={nft.image || "/placeholder.svg"}
+                              alt={nft.name}
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                          {isSelected && (
+                            <div className="absolute top-2 right-2 bg-purple-400 rounded-full w-6 h-6 flex items-center justify-center">
+                              <span className="text-xs font-bold text-black">{selectionNumber}</span>
+                            </div>
+                          )}
+                          <div className="p-2">
+                            <p className="text-xs font-medium truncate">{nft.name}</p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                </Card>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleProceedFromCustomize}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-600 hover:to-purple-600"
+                >
+                  Continue
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("select")}
+                  className="border-gray-700 hover:bg-gray-800"
+                >
+                  Back
                 </Button>
               </div>
             </>

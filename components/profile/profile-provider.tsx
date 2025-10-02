@@ -760,37 +760,50 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   if (bundleMetadata) {
                     console.log(`✅ Bundle metadata fetched:`, bundleMetadata)
 
-                    // Check cache first for preview images
-                    let previewImages = bundlePreviewCache.get(nft.contractAddress, nft.tokenId)
+                    // Try to parse thumbnails from NFT metadata (tokenURI)
+                    let previewImages: Array<{ image: string; name: string; tokenId: string }> = []
 
-                    // If not in cache, fetch from TBA
-                    if (!previewImages) {
+                    // Check if NFT has metadata property (from ThirdWeb)
+                    if (nft.metadata) {
                       try {
-                        const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
-                        console.log(`📍 Fetching preview images from TBA: ${tbaAddress}`)
+                        // ThirdWeb returns metadata as object
+                        const metadata = typeof nft.metadata === 'string' ? JSON.parse(nft.metadata) : nft.metadata
 
-                        const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-
-                        if (!response.ok) {
-                          throw new Error(`Failed to fetch bundle preview: ${response.status}`)
+                        if (metadata.properties?.thumbnails && Array.isArray(metadata.properties.thumbnails)) {
+                          previewImages = metadata.properties.thumbnails
+                          console.log(`✅ Loaded ${previewImages.length} thumbnails from bundle metadata`)
                         }
+                      } catch (parseError) {
+                        console.warn(`⚠️ Could not parse bundle metadata:`, parseError)
+                      }
+                    }
 
-                        const data = await response.json()
+                    // Fallback: If no thumbnails in metadata, use cached or fetch from TBA
+                    if (previewImages.length === 0) {
+                      previewImages = bundlePreviewCache.get(nft.contractAddress, nft.tokenId) || []
 
-                        // Get first 4 NFTs for preview (bundle cards show max 3 + count)
-                        const bundledNFTs = (data.nfts || []).slice(0, 4).map((item: any) => ({
-                          image: item.image || "/placeholder.svg",
-                          name: item.name || `Token #${item.tokenId}`,
-                          tokenId: item.tokenId,
-                        }))
+                      // Last resort: fetch from TBA (only if no cache)
+                      if (previewImages.length === 0) {
+                        try {
+                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                          console.log(`📍 Fetching preview images from TBA as fallback: ${tbaAddress}`)
 
-                        // Cache the preview images
-                        bundlePreviewCache.set(nft.contractAddress, nft.tokenId, bundledNFTs)
-                        previewImages = bundledNFTs
-                        console.log(`✅ Cached ${bundledNFTs.length} preview images for bundle ${nft.tokenId}`)
-                      } catch (previewError) {
-                        console.error(`❌ Error fetching preview images for bundle ${nft.tokenId}:`, previewError)
-                        previewImages = []
+                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+
+                          if (response.ok) {
+                            const data = await response.json()
+                            previewImages = (data.nfts || []).slice(0, 3).map((item: any) => ({
+                              image: item.image || "/placeholder.svg",
+                              name: item.name || `Token #${item.tokenId}`,
+                              tokenId: item.tokenId,
+                            }))
+
+                            bundlePreviewCache.set(nft.contractAddress, nft.tokenId, previewImages)
+                            console.log(`✅ Cached ${previewImages.length} preview images from TBA`)
+                          }
+                        } catch (previewError) {
+                          console.error(`❌ Error fetching TBA preview images:`, previewError)
+                        }
                       }
                     }
 
@@ -799,6 +812,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       isBundle: true,
                       bundleCount: bundleMetadata.itemCount,
                       name: bundleMetadata.name || baseNFT.name,
+                      image: nft.image, // Use cover image from metadata
                       bundlePreviewImages: previewImages,
                     }
                   }

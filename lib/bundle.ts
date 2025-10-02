@@ -429,12 +429,13 @@ export function generateBundleMetadataURI(
   bundleName: string,
   description: string,
   imageUrl: string,
-  nfts: Array<{ name: string; contractAddress: string; tokenId: string }>
+  nfts: Array<{ name: string; contractAddress: string; tokenId: string; image?: string }>,
+  thumbnails?: Array<{ name: string; image: string; tokenId: string }>
 ): string {
   const metadata = {
     name: bundleName,
     description,
-    image: imageUrl,
+    image: imageUrl, // Cover image
     attributes: [
       {
         trait_type: "Bundle Size",
@@ -450,7 +451,9 @@ export function generateBundleMetadataURI(
         name: nft.name,
         contract: nft.contractAddress,
         token_id: nft.tokenId
-      }))
+      })),
+      // Store thumbnail preview data
+      thumbnails: thumbnails || []
     }
   };
 
