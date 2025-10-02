@@ -1,6 +1,7 @@
 import { getContract, prepareContractCall, readContract } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
+import { createListing as createDirectListing } from "thirdweb/extensions/marketplace";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
 import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
@@ -279,38 +280,19 @@ export function prepareListForSale({
   price: string
   isBundle?: boolean
 }) {
-  const priceInWei = BigInt(Math.floor(parseFloat(price) * 1e18))
-  const currentTimestamp = BigInt(Math.floor(Date.now() / 1000))
-  const endTimestamp = currentTimestamp + BigInt(30 * 24 * 60 * 60) // 30 days from now
+  console.log("📝 Preparing listing with ThirdWeb marketplace extension...")
+  console.log("  - NFT Contract:", contractAddress)
+  console.log("  - Token ID:", tokenId)
+  console.log("  - Price:", price, "APE")
 
-  // Native currency address (APE on ApeChain)
-  const nativeCurrency = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+  const marketplaceContract = getMarketplaceContract()
 
-  const listingParams = {
-    assetContract: contractAddress,
+  return createDirectListing({
+    contract: marketplaceContract,
+    assetContractAddress: contractAddress,
     tokenId: BigInt(tokenId),
-    quantity: BigInt(1),
-    currency: nativeCurrency,
-    pricePerToken: priceInWei,
-    startTimestamp: currentTimestamp,
-    endTimestamp: endTimestamp,
-    reserved: false
-  }
-
-  console.log("📝 Preparing listing with params:", {
-    assetContract: contractAddress,
-    tokenId: tokenId,
-    quantity: "1",
-    currency: nativeCurrency,
-    pricePerToken: priceInWei.toString(),
-    startTimestamp: currentTimestamp.toString(),
-    endTimestamp: endTimestamp.toString(),
-    reserved: false
+    pricePerToken: price, // ThirdWeb will handle conversion to wei
   })
-
-  console.log("📝 BigInt params:", listingParams)
-
-  return createDirectListing(listingParams)
 }
 
 // Helper function to prepare a buy NFT transaction
