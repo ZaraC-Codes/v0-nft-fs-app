@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -76,6 +76,18 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
       }
     })
   }
+
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setSelectedNFTs([])
+      setBundleName("")
+      setBundleDescription("")
+      setStep("select")
+      setApprovedContracts(new Set())
+      setDelistedNFTs(new Set())
+    }
+  }, [isOpen])
 
   const handleProceedToApproval = () => {
     if (selectedNFTs.length === 0) {
