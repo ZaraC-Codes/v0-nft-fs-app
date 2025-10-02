@@ -1,7 +1,8 @@
-import { prepareContractCall, readContract, getContract, encode } from "thirdweb";
+import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
 import { apeChainCurtis, sepolia } from "./thirdweb";
+import { encodeFunctionData } from "viem";
 
 /**
  * Bundle Contract Addresses
@@ -260,27 +261,34 @@ export function prepareCreateBundle(
  * Prepare transaction to unwrap a bundle
  * This calls the TBA's executeCall which then calls BundleManager.unwrapBundle
  */
-export async function prepareUnwrapBundle(
+export function prepareUnwrapBundle(
   client: ThirdwebClient,
   chain: Chain,
   params: UnwrapBundleParams,
   tbaAddress: string
 ) {
-  const bundleManagerContract = getBundleManagerContract(client, chain);
+  const bundleManagerAddress = getBundleManagerContract(client, chain).address;
 
-  // First, prepare the inner unwrapBundle call to get the encoded data
-  const unwrapTransaction = prepareContractCall({
-    contract: bundleManagerContract,
-    method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
-    params: [
+  // Encode the unwrapBundle call using viem
+  const unwrapCalldata = encodeFunctionData({
+    abi: [{
+      name: "unwrapBundle",
+      type: "function",
+      stateMutability: "nonpayable",
+      inputs: [
+        { name: "bundleId", type: "uint256" },
+        { name: "nftContracts", type: "address[]" },
+        { name: "tokenIds", type: "uint256[]" }
+      ],
+      outputs: []
+    }],
+    functionName: "unwrapBundle",
+    args: [
       BigInt(params.bundleId),
       params.nftContracts,
       params.tokenIds.map(id => BigInt(id))
     ],
   });
-
-  // Encode the unwrapBundle call data
-  const unwrapCalldata = await encode(unwrapTransaction);
 
   // Call executeCall on the TBA
   const tbaContract = getContract({
@@ -293,7 +301,7 @@ export async function prepareUnwrapBundle(
     contract: tbaContract,
     method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
     params: [
-      bundleManagerContract.address,
+      bundleManagerAddress,
       0n, // value
       unwrapCalldata
     ],
