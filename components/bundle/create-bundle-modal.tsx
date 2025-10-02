@@ -86,10 +86,24 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
       alert("Please enter a bundle name")
       return
     }
+
+    // Debug logging
+    console.log("🔍 Selected NFTs:", selectedNFTs.length)
+    console.log("🔍 Listed NFTs:", listedNFTs.length)
+    console.log("🔍 Listed NFTs details:", listedNFTs.map(nft => ({
+      name: nft.name,
+      hasListing: !!nft.listing,
+      listingType: nft.listing?.type,
+      listingId: nft.listing?.listingId
+    })))
+    console.log("🔍 Needs delisting:", needsDelisting)
+
     // If any NFTs are listed, go to delist step first
     if (needsDelisting) {
+      console.log("✅ Going to delist step")
       setStep("delist")
     } else {
+      console.log("⏭️ Skipping delist, going to approve step")
       setStep("approve")
     }
   }
