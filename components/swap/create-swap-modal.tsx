@@ -288,6 +288,13 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
             <div className="flex gap-3 pt-4 border-t border-gray-800">
               <TransactionButton
                 transaction={() => {
+                  // Verify the active wallet owns this NFT
+                  if (selectedNFT.ownerWallet && selectedNFT.ownerWallet.toLowerCase() !== account.address.toLowerCase()) {
+                    const errorMsg = `Cannot create swap: This NFT belongs to ${selectedNFT.ownerWallet} but you're connected with ${account.address}. Please switch to the wallet that owns this NFT.`
+                    console.error("❌", errorMsg)
+                    throw new Error(errorMsg)
+                  }
+
                   const criteria = handleCreateListing()
                   if (!criteria) {
                     throw new Error("Invalid criteria")

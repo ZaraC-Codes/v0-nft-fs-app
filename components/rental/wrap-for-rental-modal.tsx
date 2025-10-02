@@ -171,6 +171,13 @@ export function WrapForRentalModal({ isOpen, onClose, nft }: WrapForRentalModalP
 
           <TransactionButton
             transaction={() => {
+              // Verify the active wallet owns this NFT
+              if (account && nft.ownerWallet && nft.ownerWallet.toLowerCase() !== account.address.toLowerCase()) {
+                const errorMsg = `Cannot wrap NFT: This NFT belongs to ${nft.ownerWallet} but you're connected with ${account.address}. Please switch to the wallet that owns this NFT.`
+                console.error("❌", errorMsg)
+                throw new Error(errorMsg)
+              }
+
               if (!handleWrap()) {
                 throw new Error("Invalid rental terms")
               }

@@ -192,25 +192,35 @@ export async function isNFTApproved({
     console.log("🔍 Detected token type:", tokenType);
   }
 
+  console.log("🔍 Checking approval:")
+  console.log("  - NFT Contract:", contractAddress)
+  console.log("  - Owner:", ownerAddress)
+  console.log("  - Marketplace (operator):", MARKETPLACE_CONTRACT_ADDRESS)
+  console.log("  - Token type:", tokenType)
+
   const nftContract = getContract({
     client,
     chain,
     address: contractAddress,
   });
 
+  let approved = false
   if (tokenType === 'erc1155') {
-    return await isApprovedForAllERC1155({
+    approved = await isApprovedForAllERC1155({
       contract: nftContract,
       owner: ownerAddress,
       operator: MARKETPLACE_CONTRACT_ADDRESS!,
     });
   } else {
-    return await isApprovedForAllERC721({
+    approved = await isApprovedForAllERC721({
       contract: nftContract,
       owner: ownerAddress,
       operator: MARKETPLACE_CONTRACT_ADDRESS!,
     });
   }
+
+  console.log("🔍 isApprovedForAll result:", approved)
+  return approved
 }
 
 // Prepare approval transaction for NFT

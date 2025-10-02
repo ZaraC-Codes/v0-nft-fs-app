@@ -33,15 +33,26 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
   // Check approval status when modal opens
   useEffect(() => {
     if (isOpen && account) {
-      checkApproval()
+      // Verify the active wallet owns this NFT before checking approval
+      if (nft.ownerWallet && nft.ownerWallet.toLowerCase() !== account.address.toLowerCase()) {
+        console.warn("⚠️ Active wallet doesn't own this NFT")
+        setIsApproved(null) // Don't show approval UI if wrong wallet
+      } else {
+        checkApproval()
+      }
     }
-  }, [isOpen, account])
+  }, [isOpen, account, nft.ownerWallet])
 
   const checkApproval = async () => {
     if (!account) return
 
     setIsCheckingApproval(true)
     try {
+      console.log("🔍 Checking approval for:")
+      console.log("  - Owner (active wallet):", account.address)
+      console.log("  - NFT owner (from metadata):", nft.owner)
+      console.log("  - Contract:", nft.contractAddress)
+
       const approved = await isNFTApproved({
         client,
         chain: apeChainCurtis,
@@ -203,6 +214,24 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
           </Card>
         </div>
 
+        {/* Wrong Wallet Warning */}
+        {account && nft.ownerWallet && nft.ownerWallet.toLowerCase() !== account.address.toLowerCase() && (
+          <Card className="p-4 bg-destructive/10 border-destructive/30">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-destructive font-medium">
+                <Info className="h-5 w-5" />
+                <span>Wrong Wallet Connected</span>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                This NFT belongs to <span className="font-mono text-foreground">{nft.ownerWallet.slice(0, 6)}...{nft.ownerWallet.slice(-4)}</span> but you're connected with <span className="font-mono text-foreground">{account.address.slice(0, 6)}...{account.address.slice(-4)}</span>.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Please switch to the wallet that owns this NFT using the dropdown in the header.
+              </p>
+            </div>
+          </Card>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-3 pt-4">
           <Button
@@ -219,6 +248,15 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
             </Button>
           )}
 
+          {account && !isCheckingApproval && isApproved === null && (
+            <Button
+              onClick={checkApproval}
+              className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500"
+            >
+              Check Approval Status
+            </Button>
+          )}
+
           {account && !isCheckingApproval && isApproved === false && (
             <TransactionButton
               transaction={async () => {
@@ -230,13 +268,20 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                   // Let the function auto-detect token type
                 })
               }}
-              onTransactionConfirmed={() => {
-                console.log("✅ Approval confirmed!")
+              onTransactionConfirmed={async () => {
+                console.log("✅ Approval transaction confirmed!")
                 toast({
-                  title: "Approved!",
-                  description: "You can now list your NFT for sale",
+                  title: "Approval Transaction Confirmed",
+                  description: "Verifying approval status...",
                 })
-                setIsApproved(true)
+                // Wait a moment for blockchain state to update, then re-check
+                setTimeout(async () => {
+                  await checkApproval()
+                  toast({
+                    title: "Approval Verified!",
+                    description: "You can now list your NFT for sale",
+                  })
+                }, 2000)
               }}
               onError={(error) => {
                 console.error("❌ Approval error:", error)
@@ -258,6 +303,15 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("🔍 Transaction function called")
                 console.log("🔍 Price:", price)
                 console.log("🔍 NFT:", nft)
+                console.log("🔍 Active account:", account.address)
+                console.log("🔍 NFT owner wallet:", nft.ownerWallet)
+
+                // Verify the active wallet owns this NFT
+                if (nft.ownerWallet && nft.ownerWallet.toLowerCase() !== account.address.toLowerCase()) {
+                  const errorMsg = `Cannot list NFT: This NFT belongs to ${nft.ownerWallet} but you're connected with ${account.address}. Please switch to the wallet that owns this NFT.`
+                  console.error("❌", errorMsg)
+                  throw new Error(errorMsg)
+                }
 
                 if (!handleListForSale()) {
                   console.error("❌ Validation failed")
