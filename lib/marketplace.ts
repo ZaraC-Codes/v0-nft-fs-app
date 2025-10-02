@@ -156,6 +156,18 @@ export function cancelListing(listingId: bigint) {
   });
 }
 
+// Update listing price
+export function updateListingPrice(listingId: bigint, newPriceInEth: string) {
+  const contract = getMarketplaceContract();
+  const priceInWei = BigInt(Math.floor(parseFloat(newPriceInEth) * 1e18));
+
+  return prepareContractCall({
+    contract,
+    method: "function updateListingPrice(uint256 _listingId, uint256 _newPricePerToken)",
+    params: [listingId, priceInWei],
+  });
+}
+
 // Detect if an NFT contract is ERC1155 or ERC721
 export async function detectNFTTokenType({
   client,

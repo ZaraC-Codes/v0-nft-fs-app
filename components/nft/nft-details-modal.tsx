@@ -28,8 +28,9 @@ import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { useToast } from "@/components/ui/use-toast"
 import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { TransactionButton, useActiveAccount } from "thirdweb/react"
-import { cancelListing } from "@/lib/marketplace"
+import { cancelListing, updateListingPrice } from "@/lib/marketplace"
 import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { Input } from "@/components/ui/input"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -103,6 +104,8 @@ export function NFTDetailsModal({
   const [swapModalOpen, setSwapModalOpen] = useState(false)
   const [swapListingId, setSwapListingId] = useState<string>("")
   const [swapCriteria, setSwapCriteria] = useState<SwapCriteria | null>(null)
+  const [isEditingPrice, setIsEditingPrice] = useState(false)
+  const [newPrice, setNewPrice] = useState("")
 
   if (!nft) return null
 
@@ -246,7 +249,86 @@ export function NFTDetailsModal({
                   <div className="space-y-2">
                     <Badge className="w-full justify-center py-2 bg-primary/20 text-primary border-primary/30">
                       Listed for {nft.listing.type === "sale" ? "Sale" : nft.listing.type === "rent" ? "Rent" : "Swap"}
+                      {nft.listing.sale && ` - ${nft.listing.sale.price} APE`}
                     </Badge>
+
+                    {/* Edit Price Section */}
+                    {nft.listing.type === "sale" && nft.listing.listingId !== undefined && (
+                      <>
+                        {!isEditingPrice ? (
+                          <Button
+                            variant="outline"
+                            className="w-full border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                            onClick={() => {
+                              setNewPrice(nft.listing?.sale?.price?.toString() || "")
+                              setIsEditingPrice(true)
+                            }}
+                          >
+                            Edit Price
+                          </Button>
+                        ) : (
+                          <div className="space-y-2">
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="New price in APE"
+                              value={newPrice}
+                              onChange={(e) => setNewPrice(e.target.value)}
+                              className="w-full"
+                            />
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                className="flex-1"
+                                onClick={() => {
+                                  setIsEditingPrice(false)
+                                  setNewPrice("")
+                                }}
+                              >
+                                Cancel
+                              </Button>
+                              <TransactionButton
+                                transaction={() => {
+                                  console.log("🔍 Updating price to:", newPrice)
+                                  if (nft.listing?.listingId === undefined) {
+                                    throw new Error("No listing ID found")
+                                  }
+                                  if (!newPrice || parseFloat(newPrice) <= 0) {
+                                    throw new Error("Invalid price")
+                                  }
+                                  return updateListingPrice(nft.listing.listingId, newPrice)
+                                }}
+                                onTransactionConfirmed={() => {
+                                  console.log("✅ Price updated!")
+                                  toast({
+                                    title: "Price Updated",
+                                    description: `New price: ${newPrice} APE`,
+                                  })
+                                  setIsEditingPrice(false)
+                                  setNewPrice("")
+                                  // Refresh to show new price
+                                  if (window.location.pathname.includes('/profile/')) {
+                                    window.location.reload()
+                                  }
+                                }}
+                                onError={(error) => {
+                                  console.error("❌ Update price error:", error)
+                                  toast({
+                                    title: "Failed to Update",
+                                    description: error.message,
+                                    variant: "destructive"
+                                  })
+                                }}
+                                className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600"
+                              >
+                                Save
+                              </TransactionButton>
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+
                     {nft.listing.listingId !== undefined ? (
                       <TransactionButton
                         transaction={() => {

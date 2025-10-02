@@ -299,41 +299,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
           )}
 
           {account && !isCheckingApproval && isApproved === true && (
-            <>
-              <TransactionButton
-                transaction={async () => {
-                  console.log("🔍 Forcing approval transaction for token:", nft.tokenId)
-                  return await prepareApproveNFT({
-                    client,
-                    chain: apeChainCurtis,
-                    contractAddress: nft.contractAddress,
-                    tokenId: nft.tokenId,
-                  })
-                }}
-                onTransactionConfirmed={async () => {
-                  console.log("✅ Force approval confirmed!")
-                  toast({
-                    title: "Approved!",
-                    description: "NFT approved for marketplace",
-                  })
-                  setTimeout(async () => {
-                    await checkApproval()
-                  }, 2000)
-                }}
-                onError={(error) => {
-                  console.error("❌ Force approval error:", error)
-                  toast({
-                    title: "Approval Failed",
-                    description: error.message,
-                    variant: "destructive"
-                  })
-                }}
-                className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
-              >
-                Re-approve NFT
-              </TransactionButton>
-
-              <TransactionButton
+            <TransactionButton
               transaction={() => {
                 console.log("🔍 Transaction function called")
                 console.log("🔍 Price:", price)
@@ -396,7 +362,6 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
             >
               List for Sale
             </TransactionButton>
-            </>
           )}
         </div>
       </DialogContent>
