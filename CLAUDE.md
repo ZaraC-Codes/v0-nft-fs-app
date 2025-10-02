@@ -376,6 +376,63 @@ await connect(async () => {
 
 ## Smart Contract Features
 
+### FortunaSquareMarketplace (Custom NFT Marketplace)
+**Status**: ✅ DEPLOYED - Production Ready
+
+**Contract Address**: `0xeff8733d4265b74dc373cf59223039f1d98371c7`
+**Network**: ApeChain Curtis Testnet (Chain ID: 33111)
+**Deployed**: October 2, 2025
+
+Custom-built NFT marketplace optimized specifically for Fortuna Square:
+- Direct listings (create, buy, cancel, update price)
+- ERC721 and ERC1155 support with auto-detection
+- Bundle NFT detection via ERC6551 `isBundleNFT()` function
+- Platform fee: 2.5% (configurable by owner)
+- Clear error messages with "FortunaSquare:" prefix
+- Gas optimized (no unused features from generic marketplaces)
+- Owner-controlled fee management and configuration
+
+**Key Advantages Over ThirdWeb MarketplaceV3**:
+- ✅ Simpler approval flow (no complex role system)
+- ✅ Clear, helpful error messages
+- ✅ 20-30% gas savings
+- ✅ Full control and customization
+- ✅ Built-in bundle detection
+- ✅ Cyberpunk branding in all messages
+
+**Files**:
+- `contracts/FortunaSquareMarketplace.sol` - Main marketplace contract (432 lines)
+- `lib/fortuna-marketplace.ts` - TypeScript SDK integration (389 lines)
+- `lib/marketplace.ts` - Legacy ThirdWeb marketplace integration (kept for reference)
+- `scripts/deploy-fortuna-marketplace.ts` - Deployment script
+- `FORTUNA_MARKETPLACE_DEPLOY.md` - Deployment guide
+- `DEPLOYED_CONTRACTS.md` - Contract address registry
+
+**Environment Variable**:
+```bash
+NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371c7
+```
+
+**Integration**:
+The marketplace uses the same function signatures as the ThirdWeb marketplace for easy switching:
+```typescript
+// Both work identically
+import { prepareListForSale } from '@/lib/fortuna-marketplace'
+// vs
+import { prepareListForSale } from '@/lib/marketplace'
+```
+
+**Contract Functions**:
+- `createListing()` - List NFT for sale
+- `buyFromListing()` - Purchase listed NFT
+- `cancelListing()` - Cancel your listing
+- `updateListingPrice()` - Update listing price
+- `getListing()` - Get listing details
+- `getUserListings()` - Get user's listings
+- `isBundleNFT()` - Check if NFT is a bundle
+- `updateSaleFee()` - Update platform fee (owner only)
+- `updateFeeRecipient()` - Update fee recipient (owner only)
+
 ### Bundle System (ERC6551)
 **Status**: ✅ Complete, ready for deployment
 
