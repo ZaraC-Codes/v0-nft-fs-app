@@ -19,7 +19,8 @@ import {
   DollarSign,
   User,
   ShoppingCart,
-  Tag
+  Tag,
+  Package
 } from "lucide-react"
 import { PortfolioNFT } from "@/types/profile"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
