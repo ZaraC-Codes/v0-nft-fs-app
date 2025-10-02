@@ -326,19 +326,39 @@ export async function getBundleMetadata(
   try {
     const contract = getBundleNFTContract(client, chain);
 
+    // Use the ABI directly instead of method string for tuple returns
     const result = await readContract({
       contract,
-      method: "function getBundleMetadata(uint256 tokenId) view returns (tuple(string name, uint256 itemCount, uint256 createdAt, address creator, bool exists))",
+      method: {
+        type: "function",
+        name: "getBundleMetadata",
+        inputs: [{ name: "tokenId", type: "uint256" }],
+        outputs: [
+          {
+            type: "tuple",
+            components: [
+              { name: "name", type: "string" },
+              { name: "itemCount", type: "uint256" },
+              { name: "createdAt", type: "uint256" },
+              { name: "creator", type: "address" },
+              { name: "exists", type: "bool" }
+            ]
+          }
+        ],
+        stateMutability: "view",
+      },
       params: [BigInt(bundleId)],
     }) as any;
 
+    console.log(`📦 Raw bundle metadata result:`, result)
+
     // ThirdWeb v5 returns tuple as an object with named properties
     return {
-      name: result.name || result[0],
-      itemCount: Number(result.itemCount || result[1]),
-      createdAt: new Date(Number(result.createdAt || result[2]) * 1000),
-      creator: result.creator || result[3],
-      exists: result.exists !== undefined ? result.exists : result[4],
+      name: result.name || result[0] || "",
+      itemCount: Number(result.itemCount || result[1] || 0),
+      createdAt: new Date(Number(result.createdAt || result[2] || 0) * 1000),
+      creator: result.creator || result[3] || "",
+      exists: result.exists !== undefined ? result.exists : (result[4] !== undefined ? result[4] : true),
     };
   } catch (error) {
     console.error("Error fetching bundle metadata:", error);
