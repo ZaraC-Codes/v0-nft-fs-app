@@ -448,6 +448,14 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       eventName: "ListingCancelled",
     });
 
+    // Fetch ListingUpdated events for this NFT
+    const updateEvents = await getContractEvents({
+      contract,
+      fromBlock: 0n,
+      toBlock: "latest" as any,
+      eventName: "ListingUpdated",
+    });
+
     // Filter and process listing events
     for (const event of listingEvents) {
       const args = event.args as any;
@@ -487,7 +495,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       // Find the corresponding listing to get NFT details
       const matchingListing = listingEvents.find(le => {
         const leArgs = le.args as any;
-        return leArgs.listingId === listingId;
+        return leArgs.listingId?.toString() === listingId?.toString();
       });
 
       if (matchingListing) {
@@ -497,6 +505,32 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
           activities.push({
             type: "delisted",
             from: args.seller,
+            date: new Date(Number(event.blockTimestamp || 0) * 1000),
+            txHash: event.transactionHash || "",
+          });
+        }
+      }
+    }
+
+    // Filter and process update events
+    for (const event of updateEvents) {
+      const args = event.args as any;
+      const listingId = args.listingId;
+
+      // Find the corresponding listing to get NFT details
+      const matchingListing = listingEvents.find(le => {
+        const leArgs = le.args as any;
+        return leArgs.listingId?.toString() === listingId?.toString();
+      });
+
+      if (matchingListing) {
+        const matchArgs = matchingListing.args as any;
+        if (matchArgs.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
+            matchArgs.tokenId?.toString() === tokenId) {
+          activities.push({
+            type: "price updated",
+            price: (Number(args.newPrice) / 1e18).toFixed(2),
+            from: matchArgs.seller,
             date: new Date(Number(event.blockTimestamp || 0) * 1000),
             txHash: event.transactionHash || "",
           });
