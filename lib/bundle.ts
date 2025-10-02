@@ -258,36 +258,31 @@ export function prepareCreateBundle(
 }
 
 /**
- * Prepare transaction to unwrap a bundle
- * This calls the TBA's executeCall which then calls BundleManager.unwrapBundle
+ * Prepare transaction to approve BundleManager to unwrap (called via TBA.executeCall)
  */
-export function prepareUnwrapBundle(
+export function prepareApproveBundleManagerForUnwrap(
   client: ThirdwebClient,
   chain: Chain,
-  params: UnwrapBundleParams,
+  bundleId: string,
+  nftContracts: string[],
   tbaAddress: string
 ) {
   const bundleManagerAddress = getBundleManagerContract(client, chain).address;
 
-  // Encode the unwrapBundle call using viem
-  const unwrapCalldata = encodeFunctionData({
+  // Encode the approveBundleManagerForUnwrap call
+  const approveCalldata = encodeFunctionData({
     abi: [{
-      name: "unwrapBundle",
+      name: "approveBundleManagerForUnwrap",
       type: "function",
       stateMutability: "nonpayable",
       inputs: [
         { name: "bundleId", type: "uint256" },
-        { name: "nftContracts", type: "address[]" },
-        { name: "tokenIds", type: "uint256[]" }
+        { name: "nftContracts", type: "address[]" }
       ],
       outputs: []
     }],
-    functionName: "unwrapBundle",
-    args: [
-      BigInt(params.bundleId),
-      params.nftContracts,
-      params.tokenIds.map(id => BigInt(id))
-    ],
+    functionName: "approveBundleManagerForUnwrap",
+    args: [BigInt(bundleId), nftContracts],
   });
 
   // Call executeCall on the TBA
@@ -302,8 +297,29 @@ export function prepareUnwrapBundle(
     method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
     params: [
       bundleManagerAddress,
-      0n, // value
-      unwrapCalldata
+      0n,
+      approveCalldata
+    ],
+  });
+}
+
+/**
+ * Prepare transaction to unwrap a bundle (called directly by bundle owner)
+ */
+export function prepareUnwrapBundle(
+  client: ThirdwebClient,
+  chain: Chain,
+  params: UnwrapBundleParams
+) {
+  const contract = getBundleManagerContract(client, chain);
+
+  return prepareContractCall({
+    contract,
+    method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
+    params: [
+      BigInt(params.bundleId),
+      params.nftContracts,
+      params.tokenIds.map(id => BigInt(id))
     ],
   });
 }

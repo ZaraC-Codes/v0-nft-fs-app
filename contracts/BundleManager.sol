@@ -182,8 +182,8 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * IMPORTANT: This function must be called by the TBA itself via executeCall
-     * The bundle owner should call TBA.executeCall(bundleManager, 0, unwrapBundleCalldata)
+     * The bundle owner calls this directly. The TBA must have approved this contract
+     * to transfer the NFTs, OR the bundle owner controls the TBA.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -196,30 +196,52 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
         require(nftContracts.length > 0, "Must specify NFTs");
         require(nftContracts.length == tokenIds.length, "Array length mismatch");
 
-        // Get the TBA address for this bundle
+        // Verify caller owns the bundle
+        address bundleOwner = bundleNFT.ownerOf(bundleId);
+        require(msg.sender == bundleOwner, "Not bundle owner");
+
+        // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
 
-        // Verify the caller is the TBA (not the bundle owner directly)
-        // This ensures the function is being called through the TBA's executeCall
-        require(msg.sender == accountAddress, "Must be called by TBA");
-
-        // Get the bundle owner
-        address bundleOwner = bundleNFT.ownerOf(bundleId);
-
         // Transfer all NFTs from TBA to owner
-        // Since msg.sender is the TBA, these transfers will succeed
+        // This will succeed if:
+        // 1. The TBA has approved this contract for all NFTs, OR
+        // 2. The individual NFTs have been approved, OR
+        // 3. The bundle owner is also the TBA owner (which they are by default)
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            IERC721(nftContracts[i]).safeTransferFrom(
-                accountAddress,
-                bundleOwner,
-                tokenIds[i]
-            );
+            IERC721 nft = IERC721(nftContracts[i]);
+
+            // Try to transfer - this will revert if we don't have permission
+            // The TBA is controlled by the bundle owner, so owner can approve this contract
+            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
 
         // Burn the bundle NFT
         bundleNFT.burnBundle(bundleId);
+    }
+
+    /**
+     * @dev Helper function to approve BundleManager to manage TBA's NFTs
+     * Bundle owner calls this via TBA.executeCall to grant permissions for unwrapping
+     * @param bundleId The bundle ID
+     * @param nftContracts Array of NFT contracts to approve
+     */
+    function approveBundleManagerForUnwrap(
+        uint256 bundleId,
+        address[] calldata nftContracts
+    ) external {
+        // Get the TBA address
+        address accountAddress = getBundleAccount(bundleId);
+
+        // This function must be called BY the TBA (via executeCall)
+        require(msg.sender == accountAddress, "Must be called by TBA");
+
+        // Approve BundleManager to transfer all NFTs from this TBA
+        for (uint256 i = 0; i < nftContracts.length; i++) {
+            IERC721(nftContracts[i]).setApprovalForAll(address(this), true);
+        }
     }
 
     /**
