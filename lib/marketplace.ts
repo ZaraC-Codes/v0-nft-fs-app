@@ -414,8 +414,6 @@ export function prepareBuyNFT({
 export async function getNFTActivity(contractAddress: string, tokenId: string) {
   const contract = getMarketplaceContract();
 
-  console.log("🔍 Fetching activity for NFT:", contractAddress, tokenId);
-
   try {
     const activities: Array<{
       type: string;
@@ -436,7 +434,6 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       contract,
       events: [listingCreatedEvent]
     });
-    console.log("📋 ListingCreated events:", listingEvents.length);
 
     // Define Sale event
     const saleEvent = prepareEvent({
@@ -448,7 +445,6 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       contract,
       events: [saleEvent]
     });
-    console.log("💰 Sale events:", saleEvents.length);
 
     // Define ListingCancelled event
     const cancelEvent = prepareEvent({
@@ -460,7 +456,6 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       contract,
       events: [cancelEvent]
     });
-    console.log("❌ ListingCancelled events:", cancelEvents.length);
 
     // Define ListingUpdated event
     const updateEvent = prepareEvent({
@@ -472,30 +467,14 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       contract,
       events: [updateEvent]
     });
-    console.log("✏️ ListingUpdated events:", updateEvents.length);
 
     // Filter and process listing events
-    console.log("🔍 Filtering for contract:", contractAddress.toLowerCase(), "tokenId:", tokenId);
-
-    if (listingEvents.length > 0) {
-      const firstEvent = listingEvents[0];
-      console.log("📋 Sample ListingCreated event structure:", {
-        args: firstEvent.args,
-        blockTimestamp: firstEvent.blockTimestamp,
-        transactionHash: firstEvent.transactionHash
-      });
-    }
-
     for (const event of listingEvents) {
       const args = event.args as any;
-      if (!args) {
-        console.log("⚠️ Event has no args");
-        continue;
-      }
+      if (!args) continue;
 
       if (args.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
           args.tokenId?.toString() === tokenId) {
-        console.log("✅ Found matching listing event!");
         activities.push({
           type: "listed",
           price: (Number(args.pricePerToken) / 1e18).toFixed(2),
@@ -577,10 +556,9 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     }
 
     // Sort by date descending (newest first)
-    console.log("✅ Total activities found:", activities.length);
     return activities.sort((a, b) => b.date.getTime() - a.date.getTime());
   } catch (error) {
-    console.error("❌ Error fetching NFT activity:", error);
+    console.error("Error fetching NFT activity:", error);
     return [];
   }
 }
