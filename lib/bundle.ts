@@ -1,4 +1,4 @@
-import { prepareContractCall, readContract, getContract, encodeFunctionData } from "thirdweb";
+import { prepareContractCall, readContract, getContract, encode } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
 import { apeChainCurtis, sepolia } from "./thirdweb";
@@ -269,7 +269,7 @@ export function prepareUnwrapBundle(
   const bundleManagerAddress = getBundleManagerContract(client, chain).address;
 
   // Encode the unwrapBundle call
-  const unwrapCalldata = encodeFunctionData({
+  const unwrapCalldata = encode({
     method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
     params: [
       BigInt(params.bundleId),
