@@ -429,28 +429,66 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Fetch ListingCreated events for this NFT
     const listingEvents = await getContractEvents({
       contract,
-      eventName: "ListingCreated",
+      event: {
+        type: "event",
+        name: "ListingCreated",
+        inputs: [
+          { type: "uint256", name: "listingId", indexed: true },
+          { type: "address", name: "seller", indexed: true },
+          { type: "address", name: "nftContract", indexed: true },
+          { type: "uint256", name: "tokenId", indexed: false },
+          { type: "uint256", name: "pricePerToken", indexed: false },
+          { type: "uint8", name: "tokenType", indexed: false }
+        ]
+      }
     });
     console.log("📋 ListingCreated events:", listingEvents.length);
 
     // Fetch Sale events for this NFT
     const saleEvents = await getContractEvents({
       contract,
-      eventName: "Sale",
+      event: {
+        type: "event",
+        name: "Sale",
+        inputs: [
+          { type: "uint256", name: "listingId", indexed: true },
+          { type: "address", name: "buyer", indexed: true },
+          { type: "address", name: "seller", indexed: true },
+          { type: "address", name: "nftContract", indexed: false },
+          { type: "uint256", name: "tokenId", indexed: false },
+          { type: "uint256", name: "quantity", indexed: false },
+          { type: "uint256", name: "totalPrice", indexed: false },
+          { type: "uint256", name: "platformFee", indexed: false }
+        ]
+      }
     });
     console.log("💰 Sale events:", saleEvents.length);
 
     // Fetch ListingCancelled events for this NFT
     const cancelEvents = await getContractEvents({
       contract,
-      eventName: "ListingCancelled",
+      event: {
+        type: "event",
+        name: "ListingCancelled",
+        inputs: [
+          { type: "uint256", name: "listingId", indexed: true },
+          { type: "address", name: "seller", indexed: true }
+        ]
+      }
     });
     console.log("❌ ListingCancelled events:", cancelEvents.length);
 
     // Fetch ListingUpdated events for this NFT
     const updateEvents = await getContractEvents({
       contract,
-      eventName: "ListingUpdated",
+      event: {
+        type: "event",
+        name: "ListingUpdated",
+        inputs: [
+          { type: "uint256", name: "listingId", indexed: true },
+          { type: "uint256", name: "newPrice", indexed: false }
+        ]
+      }
     });
     console.log("✏️ ListingUpdated events:", updateEvents.length);
 
