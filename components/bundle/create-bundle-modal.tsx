@@ -13,6 +13,7 @@ import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
 import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { prepareBatchApproveNFTs, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
+import { cancelListing } from "@/lib/marketplace"
 import { Package, Plus, X, Check, AlertCircle } from "lucide-react"
 import Image from "next/image"
 import { useProfile } from "@/components/profile/profile-provider"
@@ -30,8 +31,18 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const [selectedNFTs, setSelectedNFTs] = useState<NFTWithTraits[]>([])
   const [bundleName, setBundleName] = useState("")
   const [bundleDescription, setBundleDescription] = useState("")
-  const [step, setStep] = useState<"select" | "approve" | "create">("select")
+  const [step, setStep] = useState<"select" | "delist" | "approve" | "create">("select")
   const [isApproved, setIsApproved] = useState(false)
+  const [delistedNFTs, setDelistedNFTs] = useState<Set<string>>(new Set())
+
+  // Check which selected NFTs have active listings
+  const listedNFTs = selectedNFTs.filter(nft =>
+    nft.listing?.type === "sale" && nft.listing.listingId !== undefined
+  )
+  const needsDelisting = listedNFTs.length > 0 && listedNFTs.some(nft => {
+    const key = `${nft.contractAddress}-${nft.tokenId}`
+    return !delistedNFTs.has(key)
+  })
 
   // Get the chain from the first selected NFT (all must be same chain)
   const selectedChain = selectedNFTs.length > 0
@@ -75,7 +86,12 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
       alert("Please enter a bundle name")
       return
     }
-    setStep("approve")
+    // If any NFTs are listed, go to delist step first
+    if (needsDelisting) {
+      setStep("delist")
+    } else {
+      setStep("approve")
+    }
   }
 
   const handleProceedToCreate = () => {
@@ -136,6 +152,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
           </DialogTitle>
           <DialogDescription className="text-base">
             {step === "select" && "Select NFTs to bundle together"}
+            {step === "delist" && "Cancel listings for selected NFTs"}
             {step === "approve" && "Approve NFT contracts for bundling"}
             {step === "create" && "Create your bundle"}
           </DialogDescription>
@@ -307,6 +324,92 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                   className="border-gray-700 hover:bg-gray-800"
                 >
                   Cancel
+                </Button>
+              </div>
+            </>
+          )}
+
+          {/* Step: Delist NFTs (conditional) */}
+          {step === "delist" && (
+            <>
+              <Card className="glass-card border-red-500/30 p-6">
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-red-400 mb-1">Delist NFTs First</h3>
+                    <p className="text-sm text-gray-400 mb-4">
+                      The following NFTs are currently listed for sale and must be delisted before bundling:
+                    </p>
+                    <div className="space-y-3">
+                      {listedNFTs.map((nft) => {
+                        const key = `${nft.contractAddress}-${nft.tokenId}`
+                        const isDelisted = delistedNFTs.has(key)
+
+                        return (
+                          <div key={key} className="flex items-center justify-between p-3 bg-black/30 rounded-lg border border-gray-700">
+                            <div className="flex items-center gap-3">
+                              <div className="w-12 h-12 relative rounded-lg overflow-hidden bg-gray-800 flex-shrink-0">
+                                {nft.image && (
+                                  <Image
+                                    src={nft.image}
+                                    alt={nft.name}
+                                    fill
+                                    className="object-cover"
+                                  />
+                                )}
+                              </div>
+                              <div>
+                                <div className="font-medium text-white">{nft.name}</div>
+                                <div className="text-sm text-gray-400">
+                                  Listed for {nft.listing?.sale?.price} APE
+                                </div>
+                              </div>
+                            </div>
+                            {isDelisted ? (
+                              <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                                Delisted
+                              </Badge>
+                            ) : (
+                              <TransactionButton
+                                transaction={() => {
+                                  if (nft.listing?.listingId === undefined) {
+                                    throw new Error("No listing ID found")
+                                  }
+                                  return cancelListing(nft.listing.listingId)
+                                }}
+                                onTransactionConfirmed={() => {
+                                  setDelistedNFTs(prev => new Set(prev).add(key))
+                                }}
+                                className="bg-red-500/20 hover:bg-red-500/30 text-red-400 border-red-500/30"
+                              >
+                                Delist
+                              </TransactionButton>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </Card>
+
+              <div className="flex gap-3 pt-4 border-t border-gray-800">
+                <Button
+                  onClick={() => setStep("approve")}
+                  disabled={listedNFTs.some(nft => {
+                    const key = `${nft.contractAddress}-${nft.tokenId}`
+                    return !delistedNFTs.has(key)
+                  })}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50"
+                >
+                  Continue to Approval
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setStep("select")}
+                  className="border-gray-700 hover:bg-gray-800"
+                >
+                  Back
                 </Button>
               </div>
             </>
