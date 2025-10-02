@@ -598,6 +598,78 @@ export function NFTDetailsModal({
                         Rent
                       </Button>
                     </div>
+
+                    {/* Unwrap Bundle Button (only for bundles) */}
+                    {nft.isBundle && (
+                      <TransactionButton
+                        transaction={async () => {
+                          console.log("🎯 Unwrap Bundle button clicked!")
+                          console.log("  - Bundle token ID:", nft.tokenId)
+                          console.log("  - Bundle contract:", nft.contractAddress)
+
+                          // Import bundle utilities
+                          const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+                          const { client } = await import("@/lib/thirdweb")
+                          const { apeChainCurtis } = await import("@/lib/thirdweb")
+
+                          // Get the TBA address to fetch bundled NFTs
+                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                          console.log("📍 Bundle TBA address:", tbaAddress)
+
+                          // Fetch the bundled NFTs from TBA
+                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                          if (!response.ok) {
+                            throw new Error(`Failed to fetch bundle contents: ${response.status}`)
+                          }
+
+                          const data = await response.json()
+                          const bundledNFTs = data.nfts || []
+
+                          if (bundledNFTs.length === 0) {
+                            throw new Error("No NFTs found in bundle")
+                          }
+
+                          console.log(`📦 Found ${bundledNFTs.length} NFTs in bundle:`, bundledNFTs)
+
+                          // Prepare unwrap params
+                          const unwrapParams = {
+                            bundleId: nft.tokenId,
+                            nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
+                            tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
+                          }
+
+                          console.log("📝 Unwrap params:", unwrapParams)
+
+                          // Prepare unwrap transaction (currently only supports ApeChain Curtis)
+                          const tx = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
+                          console.log("✅ Transaction prepared:", tx)
+                          return tx
+                        }}
+                        onTransactionConfirmed={(receipt) => {
+                          console.log("✅ Bundle unwrapped successfully!", receipt)
+                          toast({
+                            title: "Bundle Unwrapped!",
+                            description: `Successfully extracted ${nft.bundleCount} NFTs from bundle. The bundle NFT has been burned.`,
+                          })
+                          // Refresh the page to show updated NFTs
+                          setTimeout(() => {
+                            window.location.reload()
+                          }, 2000)
+                        }}
+                        onError={(error) => {
+                          console.error("❌ Unwrap bundle error:", error)
+                          toast({
+                            title: "Unwrap Failed",
+                            description: error.message,
+                            variant: "destructive"
+                          })
+                        }}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Unwrap Bundle
+                      </TransactionButton>
+                    )}
                   </div>
                 )}
               </div>
