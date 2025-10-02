@@ -6,7 +6,7 @@ import { encodeFunctionData } from "viem";
 
 /**
  * Bundle Contract Addresses
- * Update these after deploying the contracts
+ * Updated: Oct 2, 2025 - New BundleManager deployment
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Curtis (testnet)
