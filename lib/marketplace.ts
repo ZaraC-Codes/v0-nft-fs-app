@@ -280,18 +280,38 @@ export function prepareListForSale({
   price: string
   isBundle?: boolean
 }) {
-  console.log("📝 Preparing listing with ThirdWeb marketplace extension...")
+  console.log("📝 Preparing listing with EXACT marketplace contract signature...")
   console.log("  - NFT Contract:", contractAddress)
   console.log("  - Token ID:", tokenId)
   console.log("  - Price:", price, "APE")
 
+  const priceInWei = BigInt(Math.floor(parseFloat(price) * 1e18))
+  const currentTimestamp = BigInt(Math.floor(Date.now() / 1000))
+  const endTimestamp = currentTimestamp + BigInt(30 * 24 * 60 * 60) // 30 days
+
+  // Native currency (APE)
+  const nativeCurrency = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+
+  // Create the struct parameter exactly as the contract expects
+  const listingParams = {
+    assetContract: contractAddress,
+    tokenId: BigInt(tokenId),
+    quantity: BigInt(1),
+    currency: nativeCurrency,
+    pricePerToken: priceInWei,
+    startTimestamp: currentTimestamp,
+    endTimestamp: endTimestamp,
+    reserved: false,
+  }
+
+  console.log("📝 Listing params:", listingParams)
+
   const marketplaceContract = getMarketplaceContract()
 
-  return createListing({
+  return prepareContractCall({
     contract: marketplaceContract,
-    assetContractAddress: contractAddress,
-    tokenId: BigInt(tokenId),
-    pricePerToken: price, // ThirdWeb will handle conversion to wei
+    method: "function createListing((address assetContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint128 startTimestamp, uint128 endTimestamp, bool reserved) _params) returns (uint256 listingId)",
+    params: [listingParams],
   })
 }
 
