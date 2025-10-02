@@ -402,36 +402,42 @@ Custom-built NFT marketplace optimized specifically for Fortuna Square:
 
 **Files**:
 - `contracts/FortunaSquareMarketplace.sol` - Main marketplace contract (432 lines)
-- `lib/fortuna-marketplace.ts` - TypeScript SDK integration (389 lines)
-- `lib/marketplace.ts` - Legacy ThirdWeb marketplace integration (kept for reference)
+- `lib/marketplace.ts` - Primary marketplace integration with FortunaSquareMarketplace
+- `lib/fortuna-marketplace.ts` - Alternative TypeScript SDK (not currently used)
+- `components/profile/profile-provider.tsx` - Fetches and merges listings with NFT data
 - `scripts/deploy-fortuna-marketplace.ts` - Deployment script
 - `FORTUNA_MARKETPLACE_DEPLOY.md` - Deployment guide
 - `DEPLOYED_CONTRACTS.md` - Contract address registry
 
-**Environment Variable**:
+**Environment Variables**:
 ```bash
+NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371c7
 NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371c7
 ```
 
-**Integration**:
-The marketplace uses the same function signatures as the ThirdWeb marketplace for easy switching:
-```typescript
-// Both work identically
-import { prepareListForSale } from '@/lib/fortuna-marketplace'
-// vs
-import { prepareListForSale } from '@/lib/marketplace'
-```
+**Integration Status**: ✅ Fully Working (as of Oct 2, 2025)
+- **Approval flow**: Checks both `getApproved(tokenId)` and `isApprovedForAll()` for ERC721
+- **Listing creation**: Uses direct contract call with correct function signature
+- **Listing display**: Fetches listings via `_listingIdCounter` iteration and merges with NFT data
+- **Active listings**: Shown with "For Sale" badge and price on profile page
 
 **Contract Functions**:
-- `createListing()` - List NFT for sale
-- `buyFromListing()` - Purchase listed NFT
-- `cancelListing()` - Cancel your listing
-- `updateListingPrice()` - Update listing price
-- `getListing()` - Get listing details
-- `getUserListings()` - Get user's listings
-- `isBundleNFT()` - Check if NFT is a bundle
-- `updateSaleFee()` - Update platform fee (owner only)
-- `updateFeeRecipient()` - Update fee recipient (owner only)
+- `createListing(address nftContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint256 duration)` - List NFT for sale
+- `buyFromListing(uint256 _listingId, address _buyFor, uint256 _quantity, address _currency, uint256 _expectedTotalPrice)` - Purchase listed NFT
+- `cancelListing(uint256 _listingId)` - Cancel your listing
+- `updateListingPrice(uint256 _listingId, uint256 _newPricePerToken)` - Update listing price
+- `getListing(uint256 listingId)` - Get listing details (returns Listing struct)
+- `getUserListings(address _user)` - Get user's listing IDs
+- `isBundleNFT(address _nftContract)` - Check if NFT is a bundle
+- `updateSaleFee(uint256 _newFeePercent)` - Update platform fee (owner only)
+- `updateFeeRecipient(address _newRecipient)` - Update fee recipient (owner only)
+- `_listingIdCounter()` - Public counter for total listings created (use this to iterate listings)
+
+**Critical Implementation Notes**:
+1. ⚠️ Contract does NOT have `getAllListings()` - must iterate through `_listingIdCounter`
+2. Listing struct fields: `listingId, seller, nftContract, tokenId, quantity, currency, pricePerToken, startTime, endTime, active, tokenType`
+3. Check `listing.active` field to filter active listings (NOT `status`)
+4. ERC721 approval requires checking BOTH `getApproved(tokenId)` AND `isApprovedForAll()`
 
 ### Bundle System (ERC6551)
 **Status**: ✅ Complete, ready for deployment
