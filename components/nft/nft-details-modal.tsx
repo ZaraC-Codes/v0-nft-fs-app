@@ -32,7 +32,6 @@ import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice, getNFTActivity } from "@/lib/marketplace"
 import { client, apeChainCurtis } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
-import { useEffect } from "react"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
