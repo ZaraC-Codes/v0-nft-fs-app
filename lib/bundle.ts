@@ -243,7 +243,7 @@ export function prepareUnwrapBundle(
 
   return prepareContractCall({
     contract,
-    method: "unwrapBundle",
+    method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
     params: [
       BigInt(params.bundleId),
       params.nftContracts,
@@ -264,7 +264,7 @@ export async function getBundleAccountAddress(
 
   const address = await readContract({
     contract,
-    method: "getBundleAccount",
+    method: "function getBundleAccount(uint256 bundleId) view returns (address)",
     params: [BigInt(bundleId)],
   });
 
