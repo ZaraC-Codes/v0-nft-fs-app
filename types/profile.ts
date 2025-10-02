@@ -84,9 +84,11 @@ export type ListingType = 'sale' | 'rent' | 'swap' | 'none'
 
 export interface NFTListing {
   type: ListingType
+  listingId?: bigint // Marketplace listing ID for cancellation
   sale?: {
     price: number
     lastSalePrice?: number
+    seller?: string
   }
   rent?: {
     pricePerDay: number

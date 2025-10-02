@@ -749,6 +749,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 ...nft,
                 listing: {
                   type: "sale" as const,
+                  listingId: listing.listingId,
                   sale: {
                     price: priceInEth,
                     lastSalePrice: nft.lastSalePrice,

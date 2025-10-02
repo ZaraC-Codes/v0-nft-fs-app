@@ -379,9 +379,9 @@ await connect(async () => {
 ### FortunaSquareMarketplace (Custom NFT Marketplace)
 **Status**: ✅ DEPLOYED - Production Ready
 
-**Contract Address**: `0xeff8733d4265b74dc373cf59223039f1d98371c7`
+**Contract Address**: `0x3109db997d454625af2f7678238c75dc6fa90367`
 **Network**: ApeChain Curtis Testnet (Chain ID: 33111)
-**Deployed**: October 2, 2025
+**Deployed**: October 2, 2025 (Updated with getTotalListings function)
 
 Custom-built NFT marketplace optimized specifically for Fortuna Square:
 - Direct listings (create, buy, cancel, update price)
@@ -391,6 +391,7 @@ Custom-built NFT marketplace optimized specifically for Fortuna Square:
 - Clear error messages with "FortunaSquare:" prefix
 - Gas optimized (no unused features from generic marketplaces)
 - Owner-controlled fee management and configuration
+- Public `getTotalListings()` function for fetching listing count
 
 **Key Advantages Over ThirdWeb MarketplaceV3**:
 - ✅ Simpler approval flow (no complex role system)
@@ -411,15 +412,16 @@ Custom-built NFT marketplace optimized specifically for Fortuna Square:
 
 **Environment Variables**:
 ```bash
-NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371c7
-NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371c7
+NEXT_PUBLIC_MARKETPLACE_CONTRACT_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa90367
+NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa90367
 ```
 
 **Integration Status**: ✅ Fully Working (as of Oct 2, 2025)
 - **Approval flow**: Checks both `getApproved(tokenId)` and `isApprovedForAll()` for ERC721
 - **Listing creation**: Uses direct contract call with correct function signature
-- **Listing display**: Fetches listings via `_listingIdCounter` iteration and merges with NFT data
+- **Listing display**: Fetches listings via `getTotalListings()` function and merges with NFT data
 - **Active listings**: Shown with "For Sale" badge and price on profile page
+- **Auto-refresh**: Profile page auto-refreshes after successful listing creation
 
 **Contract Functions**:
 - `createListing(address nftContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint256 duration)` - List NFT for sale
@@ -428,16 +430,18 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xeff8733d4265b74dc373cf59223039f1d98371
 - `updateListingPrice(uint256 _listingId, uint256 _newPricePerToken)` - Update listing price
 - `getListing(uint256 listingId)` - Get listing details (returns Listing struct)
 - `getUserListings(address _user)` - Get user's listing IDs
-- `isBundleNFT(address _nftContract)` - Check if NFT is a bundle
+- `getTotalListings()` - Get total number of listings created (added Oct 2, 2025)
+- `isBundleNFT(address _nftContract, uint256 tokenId)` - Check if NFT is a bundle
+- `isListingValid(uint256 listingId)` - Check if listing is active and not expired
 - `updateSaleFee(uint256 _newFeePercent)` - Update platform fee (owner only)
 - `updateFeeRecipient(address _newRecipient)` - Update fee recipient (owner only)
-- `_listingIdCounter()` - Public counter for total listings created (use this to iterate listings)
 
 **Critical Implementation Notes**:
-1. ⚠️ Contract does NOT have `getAllListings()` - must iterate through `_listingIdCounter`
-2. Listing struct fields: `listingId, seller, nftContract, tokenId, quantity, currency, pricePerToken, startTime, endTime, active, tokenType`
-3. Check `listing.active` field to filter active listings (NOT `status`)
-4. ERC721 approval requires checking BOTH `getApproved(tokenId)` AND `isApprovedForAll()`
+1. ✅ Use `getTotalListings()` to get total listing count, then iterate from 0 to count-1
+2. ⚠️ Contract does NOT have `getAllListings()` - must iterate and call `getListing(i)` for each
+3. Listing struct fields: `listingId, seller, nftContract, tokenId, quantity, currency, pricePerToken, startTime, endTime, active, tokenType`
+4. Check `listing.active` field to filter active listings (NOT `status`)
+5. ERC721 approval requires checking BOTH `getApproved(tokenId)` AND `isApprovedForAll()`
 
 ### Bundle System (ERC6551)
 **Status**: ✅ Complete, ready for deployment

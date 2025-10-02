@@ -27,6 +27,9 @@ import { SwapModal } from "@/components/swap/swap-modal"
 import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { useToast } from "@/components/ui/use-toast"
 import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { TransactionButton, useActiveAccount } from "thirdweb/react"
+import { cancelListing } from "@/lib/marketplace"
+import { client, apeChainCurtis } from "@/lib/thirdweb"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -244,18 +247,54 @@ export function NFTDetailsModal({
                     <Badge className="w-full justify-center py-2 bg-primary/20 text-primary border-primary/30">
                       Listed for {nft.listing.type === "sale" ? "Sale" : nft.listing.type === "rent" ? "Rent" : "Swap"}
                     </Badge>
-                    <Button
-                      variant="outline"
-                      className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
-                      onClick={() => {
-                        toast({
-                          title: "Cancel Listing",
-                          description: "This feature is coming soon!",
-                        })
-                      }}
-                    >
-                      Cancel Listing
-                    </Button>
+                    {nft.listing.listingId !== undefined ? (
+                      <TransactionButton
+                        transaction={() => {
+                          console.log("🔍 Canceling listing:", nft.listing?.listingId)
+                          if (!nft.listing?.listingId) {
+                            throw new Error("No listing ID found")
+                          }
+                          return cancelListing(nft.listing.listingId)
+                        }}
+                        onTransactionConfirmed={() => {
+                          console.log("✅ Listing canceled!")
+                          toast({
+                            title: "Listing Canceled",
+                            description: "Your NFT is no longer listed for sale",
+                          })
+                          // Refresh the page to update the listing status
+                          if (window.location.pathname.includes('/profile/')) {
+                            window.location.reload()
+                          }
+                          onClose()
+                        }}
+                        onError={(error) => {
+                          console.error("❌ Cancel listing error:", error)
+                          toast({
+                            title: "Failed to Cancel",
+                            description: error.message,
+                            variant: "destructive"
+                          })
+                        }}
+                        className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+                      >
+                        Cancel Listing
+                      </TransactionButton>
+                    ) : (
+                      <Button
+                        variant="outline"
+                        className="w-full border-red-500/50 text-red-400 hover:bg-red-500/10"
+                        onClick={() => {
+                          toast({
+                            title: "Error",
+                            description: "No listing ID found for this NFT",
+                            variant: "destructive"
+                          })
+                        }}
+                      >
+                        Cancel Listing (No ID)
+                      </Button>
+                    )}
                   </div>
                 )}
 
