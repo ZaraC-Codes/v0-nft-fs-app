@@ -260,12 +260,12 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
           {account && !isCheckingApproval && isApproved === false && (
             <TransactionButton
               transaction={async () => {
-                console.log("🔍 Preparing approval transaction...")
+                console.log("🔍 Preparing approval transaction for token:", nft.tokenId)
                 return await prepareApproveNFT({
                   client,
                   chain: apeChainCurtis,
                   contractAddress: nft.contractAddress,
-                  // Let the function auto-detect token type
+                  tokenId: nft.tokenId,
                 })
               }}
               onTransactionConfirmed={async () => {
@@ -301,11 +301,12 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
             <>
               <TransactionButton
                 transaction={async () => {
-                  console.log("🔍 Forcing approval transaction...")
+                  console.log("🔍 Forcing approval transaction for token:", nft.tokenId)
                   return await prepareApproveNFT({
                     client,
                     chain: apeChainCurtis,
                     contractAddress: nft.contractAddress,
+                    tokenId: nft.tokenId,
                   })
                 }}
                 onTransactionConfirmed={async () => {

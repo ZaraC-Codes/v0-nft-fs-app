@@ -224,16 +224,18 @@ export async function isNFTApproved({
   return approved
 }
 
-// Prepare approval transaction for NFT
+// Prepare approval transaction for NFT (specific token approval)
 export async function prepareApproveNFT({
   client,
   chain,
   contractAddress,
+  tokenId,
   tokenType
 }: {
   client: any
   chain: any
   contractAddress: string
+  tokenId?: string
   tokenType?: 'erc721' | 'erc1155'
 }) {
   // Auto-detect token type if not provided
@@ -249,17 +251,20 @@ export async function prepareApproveNFT({
   });
 
   if (tokenType === 'erc1155') {
+    // ERC1155 uses setApprovalForAll
     return setApprovalForAllERC1155({
       contract: nftContract,
       operator: MARKETPLACE_CONTRACT_ADDRESS!,
       approved: true,
     });
   } else {
-    // For ERC721, we need to use setApprovalForAll too
+    // For ERC721, approve the specific token (not setApprovalForAll)
+    // This is what the marketplace contract is checking!
+    console.log("🔍 Approving specific token:", tokenId, "for marketplace:", MARKETPLACE_CONTRACT_ADDRESS);
     return prepareContractCall({
       contract: nftContract,
-      method: "function setApprovalForAll(address operator, bool approved)",
-      params: [MARKETPLACE_CONTRACT_ADDRESS!, true],
+      method: "function approve(address to, uint256 tokenId)",
+      params: [MARKETPLACE_CONTRACT_ADDRESS!, BigInt(tokenId!)],
     });
   }
 }
