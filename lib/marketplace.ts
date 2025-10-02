@@ -1,4 +1,4 @@
-import { getContract, prepareContractCall, readContract, getContractEvents } from "thirdweb";
+import { getContract, prepareContractCall, readContract, getContractEvents, prepareEvent } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
@@ -426,69 +426,51 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       txHash: string;
     }> = [];
 
+    // Define ListingCreated event
+    const listingCreatedEvent = prepareEvent({
+      signature: "event ListingCreated(uint256 indexed listingId, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 pricePerToken, uint8 tokenType)"
+    });
+
     // Fetch ListingCreated events for this NFT
     const listingEvents = await getContractEvents({
       contract,
-      event: {
-        type: "event",
-        name: "ListingCreated",
-        inputs: [
-          { type: "uint256", name: "listingId", indexed: true },
-          { type: "address", name: "seller", indexed: true },
-          { type: "address", name: "nftContract", indexed: true },
-          { type: "uint256", name: "tokenId", indexed: false },
-          { type: "uint256", name: "pricePerToken", indexed: false },
-          { type: "uint8", name: "tokenType", indexed: false }
-        ]
-      }
+      events: [listingCreatedEvent]
     });
     console.log("📋 ListingCreated events:", listingEvents.length);
+
+    // Define Sale event
+    const saleEvent = prepareEvent({
+      signature: "event Sale(uint256 indexed listingId, address indexed buyer, address indexed seller, address nftContract, uint256 tokenId, uint256 quantity, uint256 totalPrice, uint256 platformFee)"
+    });
 
     // Fetch Sale events for this NFT
     const saleEvents = await getContractEvents({
       contract,
-      event: {
-        type: "event",
-        name: "Sale",
-        inputs: [
-          { type: "uint256", name: "listingId", indexed: true },
-          { type: "address", name: "buyer", indexed: true },
-          { type: "address", name: "seller", indexed: true },
-          { type: "address", name: "nftContract", indexed: false },
-          { type: "uint256", name: "tokenId", indexed: false },
-          { type: "uint256", name: "quantity", indexed: false },
-          { type: "uint256", name: "totalPrice", indexed: false },
-          { type: "uint256", name: "platformFee", indexed: false }
-        ]
-      }
+      events: [saleEvent]
     });
     console.log("💰 Sale events:", saleEvents.length);
+
+    // Define ListingCancelled event
+    const cancelEvent = prepareEvent({
+      signature: "event ListingCancelled(uint256 indexed listingId, address indexed seller)"
+    });
 
     // Fetch ListingCancelled events for this NFT
     const cancelEvents = await getContractEvents({
       contract,
-      event: {
-        type: "event",
-        name: "ListingCancelled",
-        inputs: [
-          { type: "uint256", name: "listingId", indexed: true },
-          { type: "address", name: "seller", indexed: true }
-        ]
-      }
+      events: [cancelEvent]
     });
     console.log("❌ ListingCancelled events:", cancelEvents.length);
+
+    // Define ListingUpdated event
+    const updateEvent = prepareEvent({
+      signature: "event ListingUpdated(uint256 indexed listingId, uint256 newPrice)"
+    });
 
     // Fetch ListingUpdated events for this NFT
     const updateEvents = await getContractEvents({
       contract,
-      event: {
-        type: "event",
-        name: "ListingUpdated",
-        inputs: [
-          { type: "uint256", name: "listingId", indexed: true },
-          { type: "uint256", name: "newPrice", indexed: false }
-        ]
-      }
+      events: [updateEvent]
     });
     console.log("✏️ ListingUpdated events:", updateEvents.length);
 
