@@ -35,7 +35,10 @@
       "Bash(move hardhat.config.ts hardhat.config.cjs)",
       "Read(//c/Users/zarac/**)",
       "Bash(timeout:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "Bash(dir:*)",
+      "Bash(del hardhat.config.ts)",
+      "Bash(npm pkg delete:*)"
     ],
     "deny": [],
     "ask": []
