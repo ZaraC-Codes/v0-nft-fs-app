@@ -422,6 +422,9 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 - **Listing display**: Fetches listings via `getTotalListings()` function and merges with NFT data
 - **Active listings**: Shown with "For Sale" badge and price on profile page
 - **Auto-refresh**: Profile page auto-refreshes after successful listing creation
+- **Activity feed**: NFT detail modals show marketplace activity (listings, sales, cancellations, price updates)
+- **Cancel/Edit listings**: Users can cancel or update price of their active listings from NFT modal
+- **Owner protection**: Buy/Rent/Swap buttons hidden when viewing own listings
 
 **Contract Functions**:
 - `createListing(address nftContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint256 duration)` - List NFT for sale
@@ -442,6 +445,15 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 3. Listing struct fields: `listingId, seller, nftContract, tokenId, quantity, currency, pricePerToken, startTime, endTime, active, tokenType`
 4. Check `listing.active` field to filter active listings (NOT `status`)
 5. ERC721 approval requires checking BOTH `getApproved(tokenId)` AND `isApprovedForAll()`
+6. ⚠️ **Event fetching with ThirdWeb v5**: Must use `prepareEvent()` with full Solidity signatures
+   ```typescript
+   const listingCreatedEvent = prepareEvent({
+     signature: "event ListingCreated(uint256 indexed listingId, address indexed seller, address indexed nftContract, uint256 tokenId, uint256 pricePerToken, uint8 tokenType)"
+   });
+   const events = await getContractEvents({ contract, events: [listingCreatedEvent] });
+   ```
+7. ⚠️ Without proper event signatures, `event.args` will be undefined - ThirdWeb needs the full ABI to decode events
+8. Contract events: `ListingCreated`, `Sale`, `ListingCancelled`, `ListingUpdated` (see contract for full signatures)
 
 ### Bundle System (ERC6551)
 **Status**: ✅ Complete, ready for deployment
