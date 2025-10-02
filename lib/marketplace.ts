@@ -1,7 +1,6 @@
 import { getContract, prepareContractCall, readContract } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
-import { createListing } from "thirdweb/extensions/marketplace";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
 import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
@@ -302,6 +301,8 @@ export function prepareListForSale({
   contractAddress,
   tokenId,
   price,
+  quantity = "1",
+  duration = 30 * 24 * 60 * 60, // 30 days default
   isBundle = false
 }: {
   client: any
@@ -309,21 +310,34 @@ export function prepareListForSale({
   contractAddress: string
   tokenId: string
   price: string
+  quantity?: string
+  duration?: number
   isBundle?: boolean
 }) {
-  console.log("📝 Preparing listing with ThirdWeb createListing extension...")
+  console.log("📝 Preparing FortunaSquare marketplace listing...")
   console.log("  - NFT Contract:", contractAddress)
   console.log("  - Token ID:", tokenId)
   console.log("  - Price:", price, "APE")
+  console.log("  - Quantity:", quantity)
+  console.log("  - Duration:", duration, "seconds")
 
   const marketplaceContract = getMarketplaceContract()
 
-  // Use ThirdWeb's createListing extension with simplified API
-  return createListing({
+  const priceInWei = BigInt(Math.floor(parseFloat(price) * 1e18))
+  const nativeCurrency = "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+
+  // Call FortunaSquareMarketplace's createListing function
+  return prepareContractCall({
     contract: marketplaceContract,
-    assetContractAddress: contractAddress,
-    tokenId: BigInt(tokenId),
-    pricePerToken: price, // ThirdWeb accepts string for price
+    method: "function createListing(address nftContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint256 duration) returns (uint256)",
+    params: [
+      contractAddress,
+      BigInt(tokenId),
+      BigInt(quantity),
+      nativeCurrency,
+      priceInWei,
+      BigInt(duration)
+    ],
   })
 }
 
