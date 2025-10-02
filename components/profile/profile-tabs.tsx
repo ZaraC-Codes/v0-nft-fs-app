@@ -269,19 +269,19 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         {/* Action Buttons Overlay */}
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
                           <div className="p-4 w-full pointer-events-auto">
-                            {nft.listing?.type === "sale" && (
+                            {nft.listing?.type === "sale" && user?.id !== profile.id && (
                               <Button className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow">
                                 <ShoppingCart className="h-4 w-4 mr-2" />
                                 Buy Bundle
                               </Button>
                             )}
-                            {nft.listing?.type === "rent" && (
+                            {nft.listing?.type === "rent" && user?.id !== profile.id && (
                               <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow">
                                 <Calendar className="h-4 w-4 mr-2" />
                                 Rent Bundle
                               </Button>
                             )}
-                            {nft.listing?.type === "swap" && (
+                            {nft.listing?.type === "swap" && user?.id !== profile.id && (
                               <Button
                                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                                 onClick={(e) => {
@@ -340,7 +340,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         {/* Action Buttons Overlay */}
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
                           <div className="p-4 w-full pointer-events-auto">
-                            {nft.listing?.type === "sale" && (
+                            {nft.listing?.type === "sale" && user?.id !== profile.id && (
                               <Button
                                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
                                 onClick={(e) => {
@@ -352,7 +352,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                                 Buy for {nft.listing.sale.price} APE
                               </Button>
                             )}
-                            {nft.listing?.type === "rent" && (
+                            {nft.listing?.type === "rent" && user?.id !== profile.id && (
                               <Button
                                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
                                 onClick={(e) => {
@@ -364,7 +364,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                                 Rent {nft.listing.rent.pricePerDay} APE/Day
                               </Button>
                             )}
-                            {nft.listing?.type === "swap" && (
+                            {nft.listing?.type === "swap" && user?.id !== profile.id && (
                               <Button
                                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                                 onClick={(e) => {
@@ -708,7 +708,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         {/* Action Buttons Overlay */}
                         <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
                           <div className="p-4 w-full pointer-events-auto">
-                            {item.listing?.type === "sale" && (
+                            {item.listing?.type === "sale" && item.listing.sale?.seller?.toLowerCase() !== user?.id?.toLowerCase() && (
                               <Button
                                 className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
                                 onClick={(e) => {
@@ -720,7 +720,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                                 Buy for {item.listing.sale.price} APE
                               </Button>
                             )}
-                            {item.listing?.type === "rent" && (
+                            {item.listing?.type === "rent" && item.listing.rent?.owner?.toLowerCase() !== user?.id?.toLowerCase() && (
                               <Button
                                 className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
                                 onClick={(e) => {
@@ -732,7 +732,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                                 Rent {item.listing.rent.pricePerDay} APE/Day
                               </Button>
                             )}
-                            {item.listing?.type === "swap" && (
+                            {item.listing?.type === "swap" && item.listing.swap?.creator?.toLowerCase() !== user?.id?.toLowerCase() && (
                               <Button
                                 className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                                 onClick={(e) => {
