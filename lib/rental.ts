@@ -269,7 +269,7 @@ export function prepareWrapForRental(
 
   return prepareContractCall({
     contract,
-    method: "wrapForRental",
+    method: "function wrapForRental(address nftContract, uint256 tokenId, uint256 pricePerDay, uint256 minDays, uint256 maxDays) returns (uint256 wrapperId)",
     params: [
       params.nftContract,
       BigInt(params.tokenId),
@@ -292,7 +292,7 @@ export function prepareRentNFT(
 
   return prepareContractCall({
     contract,
-    method: "rentNFT",
+    method: "function rentNFT(uint256 wrapperId, uint256 durationInDays) payable",
     params: [BigInt(params.wrapperId), BigInt(params.durationInDays)],
     value: params.totalCost,
   });
@@ -310,7 +310,7 @@ export function prepareUnwrapNFT(
 
   return prepareContractCall({
     contract,
-    method: "unwrapNFT",
+    method: "function unwrapNFT(uint256 wrapperId)",
     params: [BigInt(wrapperId)],
   });
 }
@@ -328,7 +328,7 @@ export async function calculateRentalCost(
 
   const result = await readContract({
     contract,
-    method: "calculateRentalCost",
+    method: "function calculateRentalCost(uint256 wrapperId, uint256 durationInDays) view returns (uint256 rentalCost, uint256 platformFee, uint256 totalCost)",
     params: [BigInt(wrapperId), BigInt(durationInDays)],
   });
 
@@ -351,7 +351,7 @@ export async function isAvailableForRent(
 
   return await readContract({
     contract,
-    method: "isAvailableForRent",
+    method: "function isAvailableForRent(uint256 wrapperId) view returns (bool)",
     params: [BigInt(wrapperId)],
   });
 }
@@ -369,7 +369,7 @@ export async function getWrapperInfo(
 
     const result = await readContract({
       contract,
-      method: "wrapperInfo",
+      method: "function wrapperInfo(uint256 tokenId) view returns (address originalContract, uint256 originalTokenId, address tbaAccount, uint256 pricePerDay, uint256 minDays, uint256 maxDays, bool isActive, uint256 createdAt)",
       params: [BigInt(wrapperId)],
     });
 
@@ -402,7 +402,7 @@ export async function getRentalDetails(
 
     const result = await readContract({
       contract,
-      method: "getRentalDetails",
+      method: "function getRentalDetails(uint256 wrapperId) view returns (address renter, uint256 startTime, uint256 endTime, uint256 timeRemaining)",
       params: [BigInt(wrapperId)],
     });
 
@@ -431,7 +431,7 @@ export async function getListingInfo(
 
     const result = await readContract({
       contract,
-      method: "listings",
+      method: "function listings(uint256) view returns (uint256 wrapperId, address owner, bool isActive, uint256 totalRentals, uint256 totalEarnings)",
       params: [BigInt(wrapperId)],
     });
 
@@ -461,7 +461,7 @@ export async function isRented(
 
     return await readContract({
       contract,
-      method: "isRented",
+      method: "function isRented(uint256 tokenId) view returns (bool)",
       params: [BigInt(wrapperId)],
     });
   } catch (error) {
@@ -485,7 +485,7 @@ export function prepareUpdateRentalTerms(
 
   return prepareContractCall({
     contract,
-    method: "updateRentalTerms",
+    method: "function updateRentalTerms(uint256 tokenId, uint256 pricePerDay, uint256 minDays, uint256 maxDays)",
     params: [BigInt(wrapperId), BigInt(pricePerDay), BigInt(minDays), BigInt(maxDays)],
   });
 }

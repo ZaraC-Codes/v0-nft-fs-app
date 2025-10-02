@@ -168,7 +168,7 @@ export function prepareApproveNFT(
 
   return prepareContractCall({
     contract,
-    method: "approve",
+    method: "function approve(address to, uint256 tokenId)",
     params: [swapContractAddress, BigInt(tokenId)],
   });
 }
@@ -186,7 +186,7 @@ export function prepareCreateSwapListing(
 
   return prepareContractCall({
     contract,
-    method: "createSwapListing",
+    method: "function createSwapListing(address nftContract, uint256 tokenId, address wantedNftContract, uint256 wantedTokenId, uint256 durationInDays) returns (uint256 listingId)",
     params: [
       nftContract,
       BigInt(params.tokenId),
@@ -209,7 +209,7 @@ export function prepareExecuteSwap(
 
   return prepareContractCall({
     contract,
-    method: "executeSwap",
+    method: "function executeSwap(uint256 listingId, uint256 myTokenId)",
     params: [BigInt(params.listingId), BigInt(params.myTokenId)],
   });
 }
@@ -226,7 +226,7 @@ export function prepareCancelSwapListing(
 
   return prepareContractCall({
     contract,
-    method: "cancelSwapListing",
+    method: "function cancelSwapListing(uint256 listingId)",
     params: [BigInt(listingId)],
   });
 }
@@ -244,7 +244,7 @@ export async function getSwapListing(
 
     const result = await readContract({
       contract,
-      method: "getSwapListing",
+      method: "function getSwapListing(uint256 listingId) view returns (address lister, address nftContract, uint256 tokenId, address wantedNftContract, uint256 wantedTokenId, bool isActive, uint256 createdAt, uint256 expiresAt)",
       params: [BigInt(listingId)],
     });
 
@@ -278,7 +278,7 @@ export async function isSwapListingValid(
 
     const result = await readContract({
       contract,
-      method: "isListingValid",
+      method: "function isListingValid(uint256 listingId) view returns (bool)",
       params: [BigInt(listingId)],
     });
 
@@ -310,7 +310,7 @@ export async function isNFTApprovedForSwap(
 
     const approvedAddress = await readContract({
       contract,
-      method: "getApproved",
+      method: "function getApproved(uint256 tokenId) view returns (address)",
       params: [BigInt(tokenId)],
     });
 
