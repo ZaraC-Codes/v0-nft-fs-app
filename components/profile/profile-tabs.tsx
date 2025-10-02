@@ -237,19 +237,39 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
 
                         {/* Preview Images for Bundle */}
                         <div className="absolute bottom-4 left-4 flex space-x-2 ">
-                          {[1, 2, 3].slice(0, nft.bundleCount).map((_, idx) => (
-                            <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
-                              <img
-                                src={`https://picsum.photos/100/100?random=${nft.tokenId}-${idx}`}
-                                alt=""
-                                className="w-full h-full object-cover"
-                              />
-                            </div>
-                          ))}
-                          {nft.bundleCount && nft.bundleCount > 3 && (
-                            <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
-                              <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
-                            </div>
+                          {nft.bundlePreviewImages && nft.bundlePreviewImages.length > 0 ? (
+                            <>
+                              {nft.bundlePreviewImages.slice(0, 3).map((previewItem, idx) => (
+                                <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
+                                  <img
+                                    src={previewItem.image}
+                                    alt={previewItem.name}
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                              ))}
+                              {nft.bundleCount && nft.bundleCount > 3 && (
+                                <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
+                                  <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
+                                </div>
+                              )}
+                            </>
+                          ) : (
+                            // Fallback to placeholder if preview images not loaded
+                            <>
+                              {[...Array(Math.min(3, nft.bundleCount || 0))].map((_, idx) => (
+                                <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20 bg-gray-800">
+                                  <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                    <span className="text-xs">#{idx + 1}</span>
+                                  </div>
+                                </div>
+                              ))}
+                              {nft.bundleCount && nft.bundleCount > 3 && (
+                                <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
+                                  <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
+                                </div>
+                              )}
+                            </>
                           )}
                         </div>
 

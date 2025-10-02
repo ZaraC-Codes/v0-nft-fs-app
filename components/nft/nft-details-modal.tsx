@@ -91,6 +91,138 @@ const getRarityColor = (rarity: string) => {
   return "from-gray-400 to-gray-500"
 }
 
+// Bundle Contents Tab Component - lazy loads bundle NFTs
+function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
+  const [bundleNFTs, setBundleNFTs] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const [hasLoaded, setHasLoaded] = useState(false)
+  const [activeTab, setActiveTab] = useState("contents")
+
+  const loadBundleContents = async () => {
+    if (hasLoaded || isLoading) return
+
+    setIsLoading(true)
+    console.log(`📦 Loading bundle contents for bundle #${nft.tokenId}...`)
+
+    try {
+      // Import bundle utilities
+      const { getBundleAccountAddress } = await import("@/lib/bundle")
+      const { client, apeChainCurtis } = await import("@/lib/thirdweb")
+
+      // Get the TBA address for this bundle
+      const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+      console.log(`📍 Bundle TBA address: ${tbaAddress}`)
+
+      // Fetch NFTs owned by the TBA
+      const response = await fetch(`/api/nfts?wallet=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+      const data = await response.json()
+
+      console.log(`✅ Loaded ${data.nfts?.length || 0} NFTs from bundle`)
+      setBundleNFTs(data.nfts || [])
+      setHasLoaded(true)
+    } catch (error) {
+      console.error("❌ Error loading bundle contents:", error)
+      setBundleNFTs([])
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  // Load bundle contents when "contents" tab is active
+  useEffect(() => {
+    if (activeTab === "contents" && !hasLoaded && !isLoading) {
+      loadBundleContents()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab])
+
+  return (
+    <Tabs defaultValue="contents" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="contents">Bundle Contents</TabsTrigger>
+        <TabsTrigger value="details">Details</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="contents" className="space-y-4">
+        <Card className="border-border/50 bg-card/50">
+          <CardHeader>
+            <CardTitle className="text-lg">NFTs in Bundle ({nft.bundleCount || bundleNFTs.length})</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+                <p>Loading bundle contents...</p>
+              </div>
+            ) : bundleNFTs.length === 0 && hasLoaded ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No NFTs found in bundle</p>
+              </div>
+            ) : bundleNFTs.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {bundleNFTs.map((item: any, index: number) => (
+                  <div key={index} className="bg-muted/20 rounded-lg p-4 space-y-3">
+                    <div className="relative">
+                      <img
+                        src={item.image || "/placeholder.svg"}
+                        alt={item.name || `Token #${item.tokenId}`}
+                        className="w-full aspect-square object-cover rounded-lg border border-border/30"
+                      />
+                      {item.chainId && getChainMetadata(item.chainId) && (
+                        <Badge className={`absolute top-2 left-2 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 text-xs`}>
+                          {getChainMetadata(item.chainId)!.icon} {getChainMetadata(item.chainId)!.shortName}
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-sm truncate">{item.name || `Token #${item.tokenId}`}</h4>
+                      <p className="text-xs text-muted-foreground truncate">{item.collectionName || 'Unknown Collection'}</p>
+                      <p className="text-xs text-muted-foreground">ID: {item.tokenId}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Click to load bundle contents</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="details" className="space-y-4">
+        <Card className="border-border/50 bg-card/50">
+          <CardHeader>
+            <CardTitle className="text-lg">Bundle Information</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">Bundle Name</span>
+              <span className="font-medium">{nft.name}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">Items in Bundle</span>
+              <span className="font-medium">{nft.bundleCount} NFTs</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">Token ID</span>
+              <span className="font-medium">#{nft.tokenId}</span>
+            </div>
+            <Separator />
+            <div className="flex justify-between py-2">
+              <span className="text-muted-foreground">Contract Address</span>
+              <span className="font-mono text-xs truncate max-w-[200px]">{nft.contractAddress}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  )
+}
+
 export function NFTDetailsModal({
   nft,
   isOpen,
@@ -539,45 +671,11 @@ export function NFTDetailsModal({
             </Card>
           </div>
 
-          {/* Bottom Section - Bundle Items OR Traits/Activity */}
+          {/* Bottom Section - Bundle Contents OR Traits/Activity */}
           <div className="space-y-6">
-            {/* Bundle Items for Bundle NFTs */}
-            {nft.isBundle && nft.bundleItems && (
-              <Card className="border-border/50 bg-card/50">
-                <CardHeader>
-                  <CardTitle className="text-lg">NFTs in Bundle ({nft.bundleCount})</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {nft.bundleItems.map((item, index) => (
-                      <div key={index} className="bg-muted/20 rounded-lg p-4 space-y-3">
-                        <div className="relative">
-                          <img
-                            src={item.image || "/placeholder.svg"}
-                            alt={item.name}
-                            className="w-full aspect-square object-cover rounded-lg border border-border/30"
-                          />
-                          {getChainMetadata(item.chainId) && (
-                            <Badge className={`absolute top-2 left-2 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 text-xs`}>
-                              {getChainMetadata(item.chainId)!.icon} {getChainMetadata(item.chainId)!.shortName}
-                            </Badge>
-                          )}
-                          {item.rarity && (
-                            <Badge className={`absolute top-11 left-2 bg-gradient-to-r ${getRarityColor(item.rarity)} text-white border-0 text-xs`}>
-                              #{item.rarity}
-                            </Badge>
-                          )}
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-medium text-sm truncate">{item.name}</h4>
-                          <p className="text-xs text-muted-foreground truncate">{item.collection}</p>
-                          <p className="text-xs text-muted-foreground">ID: {item.tokenId}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            {/* Bundle Contents Tab for Bundle NFTs */}
+            {nft.isBundle && (
+              <BundleContentsTab nft={nft} />
             )}
 
             {/* Traits/Activity Tabs for Individual NFTs */}

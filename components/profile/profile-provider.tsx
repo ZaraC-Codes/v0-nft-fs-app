@@ -680,7 +680,30 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
       if (allWallets.length === 0) return
 
-      setLoading(true)
+      // Import portfolio cache
+      const { portfolioCache } = await import("@/lib/portfolio-cache")
+
+      // Check cache first (stale-while-revalidate)
+      const { data: cachedData, shouldRefresh } = portfolioCache.get(allWallets)
+
+      if (cachedData) {
+        console.log(`📦 Loading portfolio from cache (${cachedData.length} NFTs)`)
+        setPortfolio(cachedData)
+        setLoading(false)
+
+        // If data is fresh, we're done!
+        if (!shouldRefresh) {
+          console.log(`✅ Portfolio cache is fresh, no refresh needed`)
+          return
+        }
+
+        // If data is stale, continue to fetch in background
+        console.log(`🔄 Portfolio cache is stale, fetching fresh data in background...`)
+      } else {
+        // No cache, show loading state
+        setLoading(true)
+      }
+
       try {
         console.log(`Fetching NFTs from ${allWallets.length} linked wallet(s):`, allWallets)
 
@@ -698,21 +721,91 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             console.log(`Fetched ${data.nfts?.length || 0} NFTs for wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`)
 
             // Map the NFT data to our PortfolioNFT format with owner wallet
-            return (data.nfts || []).map((nft: any) => ({
-              contractAddress: nft.contractAddress,
-              tokenId: nft.tokenId,
-              name: nft.name || `Token #${nft.tokenId}`,
-              image: nft.image,
-              collection: nft.collectionName || 'Unknown Collection',
-              chainId: nft.chainId || 33111,
-              acquiredAt: new Date(),
-              estimatedValue: 0,
-              rarity: undefined,
-              lastSalePrice: undefined,
-              listing: { type: "none" as const },
-              isBundle: false,
-              ownerWallet: walletAddress, // Track which wallet owns this NFT
+            const nfts = await Promise.all((data.nfts || []).map(async (nft: any) => {
+              // Import bundle utilities dynamically
+              const { BUNDLE_CONTRACT_ADDRESSES, getBundleMetadata, getBundleAccountAddress } = await import("@/lib/bundle")
+              const { bundlePreviewCache } = await import("@/lib/bundle-preview-cache")
+              const { client } = await import("@/lib/thirdweb")
+              const { apeChainCurtis } = await import("@/lib/thirdweb")
+
+              // Check if this is a bundle NFT
+              const bundleNFTAddress = BUNDLE_CONTRACT_ADDRESSES[33111]?.bundleNFT?.toLowerCase()
+              const isBundleNFT = nft.contractAddress.toLowerCase() === bundleNFTAddress
+
+              // Base NFT data
+              const baseNFT = {
+                contractAddress: nft.contractAddress,
+                tokenId: nft.tokenId,
+                name: nft.name || `Token #${nft.tokenId}`,
+                image: nft.image,
+                collection: nft.collectionName || 'Unknown Collection',
+                chainId: nft.chainId || 33111,
+                acquiredAt: new Date(),
+                estimatedValue: 0,
+                rarity: undefined,
+                lastSalePrice: undefined,
+                listing: { type: "none" as const },
+                ownerWallet: walletAddress,
+                isBundle: false,
+              }
+
+              // If it's a bundle NFT, fetch bundle metadata and preview images
+              if (isBundleNFT) {
+                try {
+                  console.log(`📦 Detected bundle NFT: ${nft.tokenId}`)
+
+                  // Fetch bundle metadata
+                  const bundleMetadata = await getBundleMetadata(client, apeChainCurtis, nft.tokenId)
+
+                  if (bundleMetadata) {
+                    console.log(`✅ Bundle metadata fetched:`, bundleMetadata)
+
+                    // Check cache first for preview images
+                    let previewImages = bundlePreviewCache.get(nft.contractAddress, nft.tokenId)
+
+                    // If not in cache, fetch from TBA
+                    if (!previewImages) {
+                      try {
+                        const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                        console.log(`📍 Fetching preview images from TBA: ${tbaAddress}`)
+
+                        const response = await fetch(`/api/nfts?wallet=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                        const data = await response.json()
+
+                        // Get first 4 NFTs for preview (bundle cards show max 3 + count)
+                        const bundledNFTs = (data.nfts || []).slice(0, 4).map((item: any) => ({
+                          image: item.image || "/placeholder.svg",
+                          name: item.name || `Token #${item.tokenId}`,
+                          tokenId: item.tokenId,
+                        }))
+
+                        // Cache the preview images
+                        bundlePreviewCache.set(nft.contractAddress, nft.tokenId, bundledNFTs)
+                        previewImages = bundledNFTs
+                        console.log(`✅ Cached ${bundledNFTs.length} preview images for bundle ${nft.tokenId}`)
+                      } catch (previewError) {
+                        console.error(`❌ Error fetching preview images for bundle ${nft.tokenId}:`, previewError)
+                        previewImages = []
+                      }
+                    }
+
+                    return {
+                      ...baseNFT,
+                      isBundle: true,
+                      bundleCount: bundleMetadata.itemCount,
+                      name: bundleMetadata.name || baseNFT.name,
+                      bundlePreviewImages: previewImages,
+                    }
+                  }
+                } catch (error) {
+                  console.error(`❌ Error fetching bundle metadata for token ${nft.tokenId}:`, error)
+                }
+              }
+
+              return baseNFT
             }))
+
+            return nfts
           } catch (error) {
             console.error(`Error fetching NFTs for ${walletAddress}:`, error)
             return []
@@ -768,10 +861,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         }
 
         console.log(`✅ Total NFTs fetched from all wallets: ${combinedNFTs.length}`)
+
+        // Cache the fresh portfolio data
+        const { portfolioCache } = await import("@/lib/portfolio-cache")
+        portfolioCache.set(allWallets, combinedNFTs)
+        console.log(`💾 Cached portfolio with ${combinedNFTs.length} NFTs`)
+
         setPortfolio(combinedNFTs)
       } catch (error) {
         console.error("Failed to fetch wallet NFTs:", error)
-        setPortfolio([])
+        // Don't overwrite cached data on error if we already have it
+        if (!cachedData) {
+          setPortfolio([])
+        }
       } finally {
         setLoading(false)
       }

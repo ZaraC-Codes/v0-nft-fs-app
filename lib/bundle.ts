@@ -308,7 +308,7 @@ export async function bundleAccountExists(
 
   const exists = await readContract({
     contract,
-    method: "bundleAccountExists",
+    method: "function bundleAccountExists(uint256 bundleId) view returns (bool)",
     params: [BigInt(bundleId)],
   });
 
@@ -328,7 +328,7 @@ export async function getBundleMetadata(
 
     const result = await readContract({
       contract,
-      method: "getBundleMetadata",
+      method: "function getBundleMetadata(uint256 tokenId) view returns (string name, uint256 itemCount, uint256 createdAt, address creator, bool exists)",
       params: [BigInt(bundleId)],
     });
 
@@ -358,7 +358,7 @@ export async function isBundleExists(
 
     const exists = await readContract({
       contract,
-      method: "bundleExists",
+      method: "function bundleExists(uint256 tokenId) view returns (bool)",
       params: [BigInt(bundleId)],
     });
 
@@ -381,7 +381,7 @@ export async function getTotalBundles(
 
     const total = await readContract({
       contract,
-      method: "totalBundles",
+      method: "function totalBundles() view returns (uint256)",
       params: [],
     });
 

@@ -76,6 +76,7 @@ export interface PortfolioNFT {
   isBundle?: boolean
   bundleItems?: PortfolioNFT[]
   bundleCount?: number
+  bundlePreviewImages?: Array<{ image: string; name: string; tokenId: string }>
   chainId: number
   ownerWallet?: string // Which wallet owns this NFT
 }
