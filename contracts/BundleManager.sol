@@ -182,8 +182,7 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * The bundle owner calls this directly. The TBA must have approved this contract
-     * to transfer the NFTs, OR the bundle owner controls the TBA.
+     * Bundle owner calls this directly. BundleManager uses TBA's executeCall to transfer each NFT.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -202,18 +201,23 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
+        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
 
-        // Transfer all NFTs from TBA to owner
-        // This will succeed if:
-        // 1. The TBA has approved this contract for all NFTs, OR
-        // 2. The individual NFTs have been approved, OR
-        // 3. The bundle owner is also the TBA owner (which they are by default)
+        // Transfer all NFTs from TBA to owner using TBA's executeCall
+        // Since the bundle owner owns the bundle NFT, they control the TBA
+        // and can execute calls through it
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            IERC721 nft = IERC721(nftContracts[i]);
+            // Encode the transferFrom call
+            bytes memory transferCalldata = abi.encodeWithSelector(
+                IERC721.transferFrom.selector,
+                accountAddress,  // from (TBA)
+                bundleOwner,     // to (bundle owner)
+                tokenIds[i]      // tokenId
+            );
 
-            // Try to transfer - this will revert if we don't have permission
-            // The TBA is controlled by the bundle owner, so owner can approve this contract
-            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
+            // Execute the transfer through the TBA
+            // The TBA owns the NFT, so this transfer will succeed
+            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
