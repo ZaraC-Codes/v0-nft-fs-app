@@ -1,7 +1,7 @@
 import { getContract, prepareContractCall, readContract } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
-import { createListing as createDirectListing } from "thirdweb/extensions/marketplace";
+import { createListing } from "thirdweb/extensions/marketplace";
 import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
 import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
@@ -287,7 +287,7 @@ export function prepareListForSale({
 
   const marketplaceContract = getMarketplaceContract()
 
-  return createDirectListing({
+  return createListing({
     contract: marketplaceContract,
     assetContractAddress: contractAddress,
     tokenId: BigInt(tokenId),
