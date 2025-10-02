@@ -427,7 +427,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Fetch ListingCreated events for this NFT
     const listingEvents = await getContractEvents({
       contract,
-      fromBlock: 0n,
+      fromBlock: 1n,
       toBlock: "latest" as any,
       eventName: "ListingCreated",
     });
@@ -435,7 +435,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Fetch Sale events for this NFT
     const saleEvents = await getContractEvents({
       contract,
-      fromBlock: 0n,
+      fromBlock: 1n,
       toBlock: "latest" as any,
       eventName: "Sale",
     });
@@ -443,7 +443,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Fetch ListingCancelled events for this NFT
     const cancelEvents = await getContractEvents({
       contract,
-      fromBlock: 0n,
+      fromBlock: 1n,
       toBlock: "latest" as any,
       eventName: "ListingCancelled",
     });
@@ -451,7 +451,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Fetch ListingUpdated events for this NFT
     const updateEvents = await getContractEvents({
       contract,
-      fromBlock: 0n,
+      fromBlock: 1n,
       toBlock: "latest" as any,
       eventName: "ListingUpdated",
     });

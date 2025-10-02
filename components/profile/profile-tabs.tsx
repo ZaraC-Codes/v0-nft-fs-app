@@ -932,7 +932,11 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
             nft={selectedNFT}
             isOpen={isModalOpen}
             onClose={handleModalClose}
-            isOwner={user?.id === profile.id}
+            isOwner={(() => {
+              const isOwner = user?.id === profile.id;
+              console.log("🔍 isOwner check:", { userId: user?.id, profileId: profile.id, isOwner });
+              return isOwner;
+            })()}
             onListForSale={(nft) => {
               setSelectedNFTForSale(nft)
               handleModalClose()
