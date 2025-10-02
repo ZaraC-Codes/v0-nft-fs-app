@@ -251,7 +251,7 @@ export function NFTDetailsModal({
                       <TransactionButton
                         transaction={() => {
                           console.log("🔍 Canceling listing:", nft.listing?.listingId)
-                          if (!nft.listing?.listingId) {
+                          if (nft.listing?.listingId === undefined) {
                             throw new Error("No listing ID found")
                           }
                           return cancelListing(nft.listing.listingId)
