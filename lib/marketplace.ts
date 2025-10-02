@@ -456,17 +456,26 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
 
     // Filter and process listing events
     console.log("🔍 Filtering for contract:", contractAddress.toLowerCase(), "tokenId:", tokenId);
+
+    if (listingEvents.length > 0) {
+      const firstEvent = listingEvents[0];
+      console.log("📋 Sample ListingCreated event structure:", {
+        args: firstEvent.args,
+        blockTimestamp: firstEvent.blockTimestamp,
+        transactionHash: firstEvent.transactionHash
+      });
+    }
+
     for (const event of listingEvents) {
       const args = event.args as any;
-      if (!args) continue; // Skip if no args
-
-      // Log first event to see structure
-      if (listingEvents.indexOf(event) === 0) {
-        console.log("📋 Sample ListingCreated event args:", args);
+      if (!args) {
+        console.log("⚠️ Event has no args");
+        continue;
       }
 
       if (args.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
           args.tokenId?.toString() === tokenId) {
+        console.log("✅ Found matching listing event!");
         activities.push({
           type: "listed",
           price: (Number(args.pricePerToken) / 1e18).toFixed(2),
