@@ -328,16 +328,17 @@ export async function getBundleMetadata(
 
     const result = await readContract({
       contract,
-      method: "function getBundleMetadata(uint256 tokenId) view returns (string name, uint256 itemCount, uint256 createdAt, address creator, bool exists)",
+      method: "function getBundleMetadata(uint256 tokenId) view returns (tuple(string name, uint256 itemCount, uint256 createdAt, address creator, bool exists))",
       params: [BigInt(bundleId)],
-    });
+    }) as any;
 
+    // ThirdWeb v5 returns tuple as an object with named properties
     return {
-      name: result[0],
-      itemCount: Number(result[1]),
-      createdAt: new Date(Number(result[2]) * 1000),
-      creator: result[3],
-      exists: result[4],
+      name: result.name || result[0],
+      itemCount: Number(result.itemCount || result[1]),
+      createdAt: new Date(Number(result.createdAt || result[2]) * 1000),
+      creator: result.creator || result[3],
+      exists: result.exists !== undefined ? result.exists : result[4],
     };
   } catch (error) {
     console.error("Error fetching bundle metadata:", error);
