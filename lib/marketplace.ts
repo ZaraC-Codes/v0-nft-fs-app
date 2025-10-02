@@ -151,7 +151,7 @@ export function cancelListing(listingId: bigint) {
 
   return prepareContractCall({
     contract,
-    method: "function cancelListing(uint256 _listingId)",
+    method: "function cancelListing(uint256 listingId)",
     params: [listingId],
   });
 }
@@ -163,7 +163,7 @@ export function updateListingPrice(listingId: bigint, newPriceInEth: string) {
 
   return prepareContractCall({
     contract,
-    method: "function updateListingPrice(uint256 _listingId, uint256 _newPricePerToken)",
+    method: "function updateListingPrice(uint256 listingId, uint256 newPrice)",
     params: [listingId, priceInWei],
   });
 }
