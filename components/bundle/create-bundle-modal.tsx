@@ -669,7 +669,6 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                     onClose()
                     // TODO: Refresh user's NFTs and show success message
                   }}
-                  disabled={!isApproved}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                 >
                   Create Bundle
