@@ -34,7 +34,8 @@
       "Bash(dev-clean.bat)",
       "Bash(move hardhat.config.ts hardhat.config.cjs)",
       "Read(//c/Users/zarac/**)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(npx tsx:*)"
     ],
     "deny": [],
     "ask": []
