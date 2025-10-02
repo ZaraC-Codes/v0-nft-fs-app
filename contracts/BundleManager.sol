@@ -182,6 +182,8 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
+     * IMPORTANT: This function must be called by the TBA itself via executeCall
+     * The bundle owner should call TBA.executeCall(bundleManager, 0, unwrapBundleCalldata)
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -194,28 +196,23 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
         require(nftContracts.length > 0, "Must specify NFTs");
         require(nftContracts.length == tokenIds.length, "Array length mismatch");
 
-        // Verify caller owns the bundle
-        address bundleOwner = bundleNFT.ownerOf(bundleId);
-        require(msg.sender == bundleOwner, "Not bundle owner");
-
-        // Get the TBA address
+        // Get the TBA address for this bundle
         address accountAddress = getBundleAccount(bundleId);
 
-        // Transfer all NFTs from TBA back to owner
+        // Verify the caller is the TBA (not the bundle owner directly)
+        // This ensures the function is being called through the TBA's executeCall
+        require(msg.sender == accountAddress, "Must be called by TBA");
+
+        // Get the bundle owner
+        address bundleOwner = bundleNFT.ownerOf(bundleId);
+
+        // Transfer all NFTs from TBA to owner
+        // Since msg.sender is the TBA, these transfers will succeed
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            // Prepare the transfer call
-            bytes memory transferCalldata = abi.encodeWithSignature(
-                "safeTransferFrom(address,address,uint256)",
+            IERC721(nftContracts[i]).safeTransferFrom(
                 accountAddress,
                 bundleOwner,
                 tokenIds[i]
-            );
-
-            // Execute the transfer via the TBA
-            IERC6551Account(payable(accountAddress)).executeCall(
-                nftContracts[i],
-                0,
-                transferCalldata
             );
         }
 

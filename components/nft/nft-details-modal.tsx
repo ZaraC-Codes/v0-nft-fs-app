@@ -658,8 +658,9 @@ export function NFTDetailsModal({
                           console.log("📝 Unwrap params:", unwrapParams)
 
                           // Prepare unwrap transaction (currently only supports ApeChain Curtis)
-                          const tx = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
-                          console.log("✅ Transaction prepared:", tx)
+                          // This calls TBA.executeCall which then calls BundleManager.unwrapBundle
+                          const tx = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams, tbaAddress)
+                          console.log("✅ Transaction prepared (calling TBA.executeCall):", tx)
                           return tx
                         }}
                         onTransactionConfirmed={(receipt) => {

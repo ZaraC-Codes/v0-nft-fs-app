@@ -1,4 +1,4 @@
-import { prepareContractCall, readContract, getContract } from "thirdweb";
+import { prepareContractCall, readContract, getContract, encodeFunctionData } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
 import { apeChainCurtis, sepolia } from "./thirdweb";
@@ -258,21 +258,40 @@ export function prepareCreateBundle(
 
 /**
  * Prepare transaction to unwrap a bundle
+ * This calls the TBA's executeCall which then calls BundleManager.unwrapBundle
  */
 export function prepareUnwrapBundle(
   client: ThirdwebClient,
   chain: Chain,
-  params: UnwrapBundleParams
+  params: UnwrapBundleParams,
+  tbaAddress: string
 ) {
-  const contract = getBundleManagerContract(client, chain);
+  const bundleManagerAddress = getBundleManagerContract(client, chain).address;
 
-  return prepareContractCall({
-    contract,
+  // Encode the unwrapBundle call
+  const unwrapCalldata = encodeFunctionData({
     method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
     params: [
       BigInt(params.bundleId),
       params.nftContracts,
       params.tokenIds.map(id => BigInt(id))
+    ],
+  });
+
+  // Call executeCall on the TBA
+  const tbaContract = getContract({
+    client,
+    chain,
+    address: tbaAddress,
+  });
+
+  return prepareContractCall({
+    contract: tbaContract,
+    method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
+    params: [
+      bundleManagerAddress,
+      0n, // value
+      unwrapCalldata
     ],
   });
 }
