@@ -414,6 +414,8 @@ export function prepareBuyNFT({
 export async function getNFTActivity(contractAddress: string, tokenId: string) {
   const contract = getMarketplaceContract();
 
+  console.log("🔍 Fetching activity for NFT:", contractAddress, tokenId);
+
   try {
     const activities: Array<{
       type: string;
@@ -429,24 +431,28 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
       contract,
       eventName: "ListingCreated",
     });
+    console.log("📋 ListingCreated events:", listingEvents.length);
 
     // Fetch Sale events for this NFT
     const saleEvents = await getContractEvents({
       contract,
       eventName: "Sale",
     });
+    console.log("💰 Sale events:", saleEvents.length);
 
     // Fetch ListingCancelled events for this NFT
     const cancelEvents = await getContractEvents({
       contract,
       eventName: "ListingCancelled",
     });
+    console.log("❌ ListingCancelled events:", cancelEvents.length);
 
     // Fetch ListingUpdated events for this NFT
     const updateEvents = await getContractEvents({
       contract,
       eventName: "ListingUpdated",
     });
+    console.log("✏️ ListingUpdated events:", updateEvents.length);
 
     // Filter and process listing events
     for (const event of listingEvents) {
@@ -535,9 +541,10 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     }
 
     // Sort by date descending (newest first)
+    console.log("✅ Total activities found:", activities.length);
     return activities.sort((a, b) => b.date.getTime() - a.date.getTime());
   } catch (error) {
-    console.error("Error fetching NFT activity:", error);
+    console.error("❌ Error fetching NFT activity:", error);
     return [];
   }
 }
