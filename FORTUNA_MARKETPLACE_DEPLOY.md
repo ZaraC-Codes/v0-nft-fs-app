@@ -28,7 +28,36 @@ FORTUNA_MARKETPLACE_DEPLOY.md            # This file
 
 ## 🚀 Deployment Options
 
-### Option 1: ThirdWeb Dashboard (Recommended - Easiest)
+### Option 1: ThirdWeb CLI (Recommended - Fastest ⚡)
+
+**Run this command in your terminal:**
+
+```bash
+npx thirdweb deploy
+```
+
+**What happens:**
+1. Opens your browser for authentication (sign in with wallet)
+2. Compiles `FortunaSquareMarketplace.sol` automatically
+3. Uploads contract to IPFS
+4. Opens deployment interface in your browser
+5. Select network: **ApeChain Curtis Testnet**
+6. Enter constructor parameter: `_feeRecipient` (your wallet address)
+7. Click "Deploy" and confirm in MetaMask
+
+**After deployment:**
+1. Copy the deployed contract address from the dashboard
+2. Add to `.env.local`:
+   ```bash
+   NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xYourDeployedAddress
+   ```
+3. Restart dev server: `pnpm run dev`
+
+**That's it!** The CLI handles everything automatically. ✨
+
+---
+
+### Option 2: ThirdWeb Dashboard (Manual Upload)
 
 1. **Visit ThirdWeb Dashboard**
    ```
@@ -56,7 +85,7 @@ FORTUNA_MARKETPLACE_DEPLOY.md            # This file
    NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0xYourDeployedAddress
    ```
 
-### Option 2: Remix IDE (Alternative)
+### Option 3: Remix IDE (Alternative)
 
 1. **Open Remix**: https://remix.ethereum.org
 
@@ -83,7 +112,7 @@ FORTUNA_MARKETPLACE_DEPLOY.md            # This file
 6. **Save Address**
    Copy from Remix and add to `.env.local`
 
-### Option 3: Fix Hardhat & Deploy Locally
+### Option 4: Fix Hardhat & Deploy Locally
 
 **Issue**: Hardhat has a known bug with TypeScript + ESM projects
 
