@@ -38,7 +38,8 @@
       "Bash(npx tsx:*)",
       "Bash(dir:*)",
       "Bash(del hardhat.config.ts)",
-      "Bash(npm pkg delete:*)"
+      "Bash(npm pkg delete:*)",
+      "Bash(source:*)"
     ],
     "deny": [],
     "ask": []
