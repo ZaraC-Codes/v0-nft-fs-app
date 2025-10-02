@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -240,6 +240,7 @@ export function NFTDetailsModal({
   onBuyNFT
 }: NFTDetailsModalProps) {
   const { toast } = useToast()
+  const account = useActiveAccount()
   const [swapModalOpen, setSwapModalOpen] = useState(false)
   const [swapListingId, setSwapListingId] = useState<string>("")
   const [swapCriteria, setSwapCriteria] = useState<SwapCriteria | null>(null)
@@ -609,9 +610,25 @@ export function NFTDetailsModal({
                           console.log("  - Bundle contract:", nft.contractAddress)
 
                           // Import bundle utilities
-                          const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+                          const { prepareUnwrapBundle, getBundleAccountAddress, getBundleNFTContract } = await import("@/lib/bundle")
                           const { client } = await import("@/lib/thirdweb")
                           const { apeChainCurtis } = await import("@/lib/thirdweb")
+                          const { readContract } = await import("thirdweb")
+
+                          // First, verify the current owner of the bundle
+                          const bundleContract = getBundleNFTContract(client, apeChainCurtis)
+                          const currentOwner = await readContract({
+                            contract: bundleContract,
+                            method: "function ownerOf(uint256 tokenId) view returns (address)",
+                            params: [BigInt(nft.tokenId)]
+                          })
+                          console.log("👤 Current bundle owner:", currentOwner)
+                          console.log("👤 Your wallet address:", account?.address)
+
+                          // Check if you actually own the bundle
+                          if (currentOwner.toLowerCase() !== account?.address?.toLowerCase()) {
+                            throw new Error(`You don't own this bundle. Current owner: ${currentOwner.slice(0, 6)}...${currentOwner.slice(-4)}`)
+                          }
 
                           // Get the TBA address to fetch bundled NFTs
                           const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
