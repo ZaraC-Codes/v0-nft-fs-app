@@ -769,7 +769,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                         const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
                         console.log(`📍 Fetching preview images from TBA: ${tbaAddress}`)
 
-                        const response = await fetch(`/api/nfts?wallet=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                        const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+
+                        if (!response.ok) {
+                          throw new Error(`Failed to fetch bundle preview: ${response.status}`)
+                        }
+
                         const data = await response.json()
 
                         // Get first 4 NFTs for preview (bundle cards show max 3 + count)

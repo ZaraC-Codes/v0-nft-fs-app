@@ -96,7 +96,7 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
   const [bundleNFTs, setBundleNFTs] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [hasLoaded, setHasLoaded] = useState(false)
-  const [activeTab, setActiveTab] = useState("contents")
+  const [activeTab, setActiveTab] = useState("details")
 
   const loadBundleContents = async () => {
     if (hasLoaded || isLoading) return
@@ -113,8 +113,13 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
       const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
       console.log(`📍 Bundle TBA address: ${tbaAddress}`)
 
-      // Fetch NFTs owned by the TBA
-      const response = await fetch(`/api/nfts?wallet=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+      // Fetch NFTs owned by the TBA - use correct API endpoint
+      const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch bundle contents: ${response.status}`)
+      }
+
       const data = await response.json()
 
       console.log(`✅ Loaded ${data.nfts?.length || 0} NFTs from bundle`)
@@ -137,10 +142,10 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
   }, [activeTab])
 
   return (
-    <Tabs defaultValue="contents" className="w-full" value={activeTab} onValueChange={setActiveTab}>
+    <Tabs defaultValue="details" className="w-full" value={activeTab} onValueChange={setActiveTab}>
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="contents">Bundle Contents</TabsTrigger>
         <TabsTrigger value="details">Details</TabsTrigger>
+        <TabsTrigger value="contents">Bundle Contents</TabsTrigger>
       </TabsList>
 
       <TabsContent value="contents" className="space-y-4">
