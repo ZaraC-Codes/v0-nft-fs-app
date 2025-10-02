@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
 import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
-import { prepareBatchApproveNFTs, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
+import { prepareApproveNFTContract, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
 import { cancelListing } from "@/lib/marketplace"
 import { Package, Plus, X, Check, AlertCircle } from "lucide-react"
 import Image from "next/image"
@@ -32,7 +32,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const [bundleName, setBundleName] = useState("")
   const [bundleDescription, setBundleDescription] = useState("")
   const [step, setStep] = useState<"select" | "delist" | "approve" | "create">("select")
-  const [isApproved, setIsApproved] = useState(false)
+  const [approvedContracts, setApprovedContracts] = useState<Set<string>>(new Set())
   const [delistedNFTs, setDelistedNFTs] = useState<Set<string>>(new Set())
 
   // Check which selected NFTs have active listings
@@ -109,7 +109,6 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   }
 
   const handleProceedToCreate = () => {
-    setIsApproved(true)
     setStep("create")
   }
 
@@ -433,53 +432,62 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
           {step === "approve" && (
             <>
               <Card className="glass-card border-yellow-500/30 p-6">
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-3 mb-4">
                   <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <h3 className="font-semibold text-yellow-400 mb-1">Batch Approval Required</h3>
-                    <p className="text-sm text-gray-400 mb-3">
-                      You need to approve {uniqueContracts.length} NFT contract{uniqueContracts.length !== 1 ? 's' : ''} to allow bundling.
-                      This is a one-time approval per contract.
+                    <h3 className="font-semibold text-yellow-400 mb-1">Contract Approvals Required</h3>
+                    <p className="text-sm text-gray-400">
+                      Approve each NFT contract individually to allow bundling. This is a one-time approval per contract.
                     </p>
-                    <div className="space-y-2">
-                      {uniqueContracts.map((contract, index) => (
-                        <div key={contract} className="text-xs text-gray-500 font-mono">
-                          {index + 1}. {contract}
-                        </div>
-                      ))}
-                    </div>
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  {uniqueContracts.map((contract, index) => {
+                    const isApproved = approvedContracts.has(contract)
+                    return (
+                      <div key={contract} className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
+                        <div className="flex-1">
+                          <div className="text-xs text-gray-500 font-mono truncate">{contract}</div>
+                        </div>
+                        {isApproved ? (
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                            <Check className="h-3 w-3 mr-1" />
+                            Approved
+                          </Badge>
+                        ) : (
+                          <TransactionButton
+                            transaction={() => prepareApproveNFTContract(
+                              client,
+                              selectedChain,
+                              contract
+                            )}
+                            onTransactionConfirmed={() => {
+                              setApprovedContracts(prev => new Set(prev).add(contract))
+                              console.log(`✅ Approved contract: ${contract}`)
+                            }}
+                            onError={(error) => {
+                              console.error(`❌ Error approving ${contract}:`, error)
+                            }}
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-sm px-4 py-2"
+                          >
+                            Approve
+                          </TransactionButton>
+                        )}
+                      </div>
+                    )
+                  })}
                 </div>
               </Card>
 
               <div className="flex gap-3 pt-4 border-t border-gray-800">
-                <TransactionButton
-                  transaction={() => {
-                    console.log("🔧 Preparing batchApproveNFTs transaction")
-                    console.log("  - Client:", !!client)
-                    console.log("  - Chain:", selectedChain.id)
-                    console.log("  - Contracts:", uniqueContracts)
-                    try {
-                      const tx = prepareBatchApproveNFTs(
-                        client,
-                        selectedChain,
-                        uniqueContracts
-                      )
-                      console.log("✅ Transaction prepared:", tx)
-                      return tx
-                    } catch (error) {
-                      console.error("❌ Error preparing transaction:", error)
-                      throw error
-                    }
-                  }}
-                  onTransactionConfirmed={handleProceedToCreate}
-                  onError={(error) => {
-                    console.error("❌ Transaction error:", error)
-                  }}
-                  className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                <Button
+                  onClick={handleProceedToCreate}
+                  disabled={approvedContracts.size !== uniqueContracts.length}
+                  className="flex-1 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 disabled:opacity-50"
                 >
-                  Approve Contracts
-                </TransactionButton>
+                  Continue to Bundle Creation
+                </Button>
                 <Button
                   variant="outline"
                   onClick={() => setStep("select")}

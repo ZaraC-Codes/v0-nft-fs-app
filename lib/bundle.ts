@@ -193,20 +193,45 @@ export function getBundleNFTContract(client: ThirdwebClient, chain: Chain) {
 }
 
 /**
- * Prepare transaction to batch approve NFT contracts
+ * Prepare transaction to approve a single NFT contract for bundle manager
+ * User calls setApprovalForAll directly on the NFT contract
+ */
+export function prepareApproveNFTContract(
+  client: ThirdwebClient,
+  chain: Chain,
+  nftContract: string
+) {
+  const bundleManagerAddress = BUNDLE_CONTRACT_ADDRESSES[chain.id as keyof typeof BUNDLE_CONTRACT_ADDRESSES]?.manager;
+
+  if (!bundleManagerAddress) {
+    throw new Error(`Bundle Manager not deployed on chain ${chain.id}`);
+  }
+
+  const contract = getContract({
+    client,
+    chain,
+    address: nftContract,
+  });
+
+  return prepareContractCall({
+    contract,
+    method: "function setApprovalForAll(address operator, bool approved)",
+    params: [bundleManagerAddress, true],
+  });
+}
+
+/**
+ * Prepare transaction to batch approve NFT contracts (DEPRECATED - broken in contract)
  */
 export function prepareBatchApproveNFTs(
   client: ThirdwebClient,
   chain: Chain,
   nftContracts: string[]
 ) {
-  const contract = getBundleManagerContract(client, chain);
-
-  return prepareContractCall({
-    contract,
-    method: "function batchApproveNFTs(address[] calldata nftContracts)",
-    params: [nftContracts],
-  });
+  // This contract function is broken - it tries to call setApprovalForAll from within the contract
+  // which results in "ERC721: approve to caller" error
+  // Instead, call prepareApproveNFTContract for each contract individually
+  throw new Error("Use prepareApproveNFTContract for each contract individually");
 }
 
 /**
