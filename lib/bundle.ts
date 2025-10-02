@@ -260,16 +260,17 @@ export function prepareCreateBundle(
  * Prepare transaction to unwrap a bundle
  * This calls the TBA's executeCall which then calls BundleManager.unwrapBundle
  */
-export function prepareUnwrapBundle(
+export async function prepareUnwrapBundle(
   client: ThirdwebClient,
   chain: Chain,
   params: UnwrapBundleParams,
   tbaAddress: string
 ) {
-  const bundleManagerAddress = getBundleManagerContract(client, chain).address;
+  const bundleManagerContract = getBundleManagerContract(client, chain);
 
-  // Encode the unwrapBundle call
-  const unwrapCalldata = encode({
+  // First, prepare the inner unwrapBundle call to get the encoded data
+  const unwrapTransaction = prepareContractCall({
+    contract: bundleManagerContract,
     method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
     params: [
       BigInt(params.bundleId),
@@ -277,6 +278,9 @@ export function prepareUnwrapBundle(
       params.tokenIds.map(id => BigInt(id))
     ],
   });
+
+  // Encode the unwrapBundle call data
+  const unwrapCalldata = await encode(unwrapTransaction);
 
   // Call executeCall on the TBA
   const tbaContract = getContract({
@@ -289,7 +293,7 @@ export function prepareUnwrapBundle(
     contract: tbaContract,
     method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
     params: [
-      bundleManagerAddress,
+      bundleManagerContract.address,
       0n, // value
       unwrapCalldata
     ],
