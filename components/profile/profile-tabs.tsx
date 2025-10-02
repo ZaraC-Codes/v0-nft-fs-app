@@ -934,7 +934,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
             onClose={handleModalClose}
             isOwner={(() => {
               const isOwner = user?.id === profile.id;
-              console.log("🔍 isOwner check:", { userId: user?.id, profileId: profile.id, isOwner });
+              console.log("🔍 isOwner check - userId:", user?.id, "profileId:", profile.id, "isOwner:", isOwner);
               return isOwner;
             })()}
             onListForSale={(nft) => {

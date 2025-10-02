@@ -451,6 +451,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Filter and process listing events
     for (const event of listingEvents) {
       const args = event.args as any;
+      if (!args) continue; // Skip if no args
       if (args.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
           args.tokenId?.toString() === tokenId) {
         activities.push({
@@ -466,6 +467,7 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Filter and process sale events
     for (const event of saleEvents) {
       const args = event.args as any;
+      if (!args) continue; // Skip if no args
       if (args.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
           args.tokenId?.toString() === tokenId) {
         activities.push({
@@ -482,17 +484,18 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Filter and process cancel events
     for (const event of cancelEvents) {
       const args = event.args as any;
+      if (!args) continue; // Skip if no args
       const listingId = args.listingId;
 
       // Find the corresponding listing to get NFT details
       const matchingListing = listingEvents.find(le => {
         const leArgs = le.args as any;
-        return leArgs.listingId?.toString() === listingId?.toString();
+        return leArgs && leArgs.listingId?.toString() === listingId?.toString();
       });
 
       if (matchingListing) {
         const matchArgs = matchingListing.args as any;
-        if (matchArgs.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
+        if (matchArgs && matchArgs.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
             matchArgs.tokenId?.toString() === tokenId) {
           activities.push({
             type: "delisted",
@@ -507,17 +510,18 @@ export async function getNFTActivity(contractAddress: string, tokenId: string) {
     // Filter and process update events
     for (const event of updateEvents) {
       const args = event.args as any;
+      if (!args) continue; // Skip if no args
       const listingId = args.listingId;
 
       // Find the corresponding listing to get NFT details
       const matchingListing = listingEvents.find(le => {
         const leArgs = le.args as any;
-        return leArgs.listingId?.toString() === listingId?.toString();
+        return leArgs && leArgs.listingId?.toString() === listingId?.toString();
       });
 
       if (matchingListing) {
         const matchArgs = matchingListing.args as any;
-        if (matchArgs.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
+        if (matchArgs && matchArgs.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
             matchArgs.tokenId?.toString() === tokenId) {
           activities.push({
             type: "price updated",
