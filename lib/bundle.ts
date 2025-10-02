@@ -204,7 +204,7 @@ export function prepareBatchApproveNFTs(
 
   return prepareContractCall({
     contract,
-    method: "batchApproveNFTs",
+    method: "function batchApproveNFTs(address[] calldata nftContracts)",
     params: [nftContracts],
   });
 }
@@ -221,7 +221,7 @@ export function prepareCreateBundle(
 
   return prepareContractCall({
     contract,
-    method: "createBundle",
+    method: "function createBundle(address[] calldata nftContracts, uint256[] calldata tokenIds, string calldata bundleName, string calldata bundleTokenURI) returns (uint256 bundleId, address accountAddress)",
     params: [
       params.nftContracts,
       params.tokenIds.map(id => BigInt(id)),
