@@ -454,12 +454,28 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
 
               <div className="flex gap-3 pt-4 border-t border-gray-800">
                 <TransactionButton
-                  transaction={() => prepareBatchApproveNFTs(
-                    client,
-                    selectedChain,
-                    uniqueContracts
-                  )}
+                  transaction={() => {
+                    console.log("🔧 Preparing batchApproveNFTs transaction")
+                    console.log("  - Client:", !!client)
+                    console.log("  - Chain:", selectedChain.id)
+                    console.log("  - Contracts:", uniqueContracts)
+                    try {
+                      const tx = prepareBatchApproveNFTs(
+                        client,
+                        selectedChain,
+                        uniqueContracts
+                      )
+                      console.log("✅ Transaction prepared:", tx)
+                      return tx
+                    } catch (error) {
+                      console.error("❌ Error preparing transaction:", error)
+                      throw error
+                    }
+                  }}
                   onTransactionConfirmed={handleProceedToCreate}
+                  onError={(error) => {
+                    console.error("❌ Transaction error:", error)
+                  }}
                   className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                 >
                   Approve Contracts
