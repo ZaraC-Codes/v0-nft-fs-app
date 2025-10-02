@@ -28,9 +28,10 @@ import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { useToast } from "@/components/ui/use-toast"
 import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { TransactionButton, useActiveAccount } from "thirdweb/react"
-import { cancelListing, updateListingPrice } from "@/lib/marketplace"
+import { cancelListing, updateListingPrice, getNFTActivity } from "@/lib/marketplace"
 import { client, apeChainCurtis } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
+import { useEffect } from "react"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -106,6 +107,31 @@ export function NFTDetailsModal({
   const [swapCriteria, setSwapCriteria] = useState<SwapCriteria | null>(null)
   const [isEditingPrice, setIsEditingPrice] = useState(false)
   const [newPrice, setNewPrice] = useState("")
+  const [activity, setActivity] = useState<Array<{
+    type: string;
+    price?: string;
+    from?: string;
+    to?: string;
+    date: Date;
+    txHash: string;
+  }>>([])
+  const [isLoadingActivity, setIsLoadingActivity] = useState(false)
+
+  // Fetch real activity data when modal opens
+  useEffect(() => {
+    if (isOpen && nft) {
+      setIsLoadingActivity(true)
+      getNFTActivity(nft.contractAddress, nft.tokenId)
+        .then(data => {
+          setActivity(data)
+          setIsLoadingActivity(false)
+        })
+        .catch(err => {
+          console.error("Failed to fetch activity:", err)
+          setIsLoadingActivity(false)
+        })
+    }
+  }, [isOpen, nft])
 
   if (!nft) return null
 
@@ -589,29 +615,54 @@ export function NFTDetailsModal({
                       <CardTitle className="text-lg">Recent Activity</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <div className="space-y-3">
-                        {mockActivity.map((activity) => (
-                          <div key={activity.id} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              {getActivityIcon(activity.type)}
-                              <div>
-                                <p className="font-medium capitalize">{activity.type}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  {activity.date.toLocaleDateString()}
-                                </p>
+                      {isLoadingActivity ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Loading activity...
+                        </div>
+                      ) : activity.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          No marketplace activity yet
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {activity.map((item, idx) => (
+                            <div key={idx} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg">
+                              <div className="flex items-center gap-3">
+                                {getActivityIcon(item.type)}
+                                <div>
+                                  <p className="font-medium capitalize">{item.type}</p>
+                                  <p className="text-sm text-muted-foreground">
+                                    {item.date.toLocaleDateString()} at {item.date.toLocaleTimeString()}
+                                  </p>
+                                  {item.from && (
+                                    <p className="text-xs text-muted-foreground">
+                                      From: {formatAddress(item.from)}
+                                    </p>
+                                  )}
+                                  {item.to && (
+                                    <p className="text-xs text-muted-foreground">
+                                      To: {formatAddress(item.to)}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                {item.price && (
+                                  <p className="font-medium">{item.price} APE</p>
+                                )}
+                                <a
+                                  href={`https://curtis.explorer.caldera.xyz/tx/${item.txHash}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-xs text-blue-400 hover:text-blue-300"
+                                >
+                                  {formatAddress(item.txHash)}
+                                </a>
                               </div>
                             </div>
-                            <div className="text-right">
-                              {activity.price && (
-                                <p className="font-medium">{activity.price} APE</p>
-                              )}
-                              <p className="text-xs text-muted-foreground">
-                                {formatAddress(activity.txHash)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+                          ))}
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>
