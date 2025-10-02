@@ -26,11 +26,29 @@ export async function getAllListings() {
   const contract = getMarketplaceContract();
 
   try {
-    const listings = await readContract({
+    // Get the total listing count
+    const listingCount = await readContract({
       contract,
-      method: "function getAllListings() view returns ((uint256 listingId, uint256 tokenId, uint256 quantity, uint256 pricePerToken, uint128 startTimestamp, uint128 endTimestamp, address listingCreator, address assetContract, address currency, uint8 tokenType, uint8 status, bool reserved)[])",
+      method: "function _listingIdCounter() view returns (uint256)",
       params: [],
     });
+
+    console.log(`📊 Total listings created: ${listingCount}`)
+
+    // Fetch all listings by ID
+    const listings = [];
+    for (let i = 0; i < Number(listingCount); i++) {
+      try {
+        const listing = await readContract({
+          contract,
+          method: "function getListing(uint256 listingId) view returns ((uint256 listingId, address seller, address nftContract, uint256 tokenId, uint256 quantity, address currency, uint256 pricePerToken, uint256 startTime, uint256 endTime, bool active, uint8 tokenType))",
+          params: [BigInt(i)],
+        });
+        listings.push(listing);
+      } catch (error) {
+        console.warn(`Could not fetch listing ${i}:`, error);
+      }
+    }
 
     return listings;
   } catch (error) {

@@ -731,9 +731,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
           // Create a map of listings by contract + tokenId
           const listingMap = new Map()
           listings.forEach((listing: any) => {
-            const key = `${listing.assetContract.toLowerCase()}-${listing.tokenId.toString()}`
-            // Only include active listings (status 1 = ACTIVE in FortunaSquareMarketplace)
-            if (listing.status === 1) {
+            const key = `${listing.nftContract.toLowerCase()}-${listing.tokenId.toString()}`
+            // Only include active listings
+            if (listing.active) {
               listingMap.set(key, listing)
             }
           })
@@ -752,7 +752,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   sale: {
                     price: priceInEth,
                     lastSalePrice: nft.lastSalePrice,
-                    seller: listing.listingCreator
+                    seller: listing.seller
                   }
                 }
               }
