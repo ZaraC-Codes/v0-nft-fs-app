@@ -720,7 +720,51 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         })
 
         const allNFTs = await Promise.all(fetchPromises)
-        const combinedNFTs = allNFTs.flat()
+        let combinedNFTs = allNFTs.flat()
+
+        // Fetch marketplace listings and merge with NFT data
+        try {
+          const { getAllListings } = await import("@/lib/marketplace")
+          const listings = await getAllListings()
+          console.log(`📋 Fetched ${listings.length} marketplace listings`)
+
+          // Create a map of listings by contract + tokenId
+          const listingMap = new Map()
+          listings.forEach((listing: any) => {
+            const key = `${listing.assetContract.toLowerCase()}-${listing.tokenId.toString()}`
+            // Only include active listings (status 1 = ACTIVE in FortunaSquareMarketplace)
+            if (listing.status === 1) {
+              listingMap.set(key, listing)
+            }
+          })
+
+          // Merge listings into NFTs
+          combinedNFTs = combinedNFTs.map(nft => {
+            const key = `${nft.contractAddress.toLowerCase()}-${nft.tokenId}`
+            const listing = listingMap.get(key)
+
+            if (listing) {
+              const priceInEth = Number(listing.pricePerToken) / 1e18
+              return {
+                ...nft,
+                listing: {
+                  type: "sale" as const,
+                  sale: {
+                    price: priceInEth,
+                    lastSalePrice: nft.lastSalePrice,
+                    seller: listing.listingCreator
+                  }
+                }
+              }
+            }
+
+            return nft
+          })
+
+          console.log(`✅ Merged ${listingMap.size} active listings with NFT data`)
+        } catch (error) {
+          console.error("Failed to fetch marketplace listings:", error)
+        }
 
         console.log(`✅ Total NFTs fetched from all wallets: ${combinedNFTs.length}`)
         setPortfolio(combinedNFTs)
