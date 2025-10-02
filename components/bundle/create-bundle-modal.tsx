@@ -661,13 +661,31 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
               <div className="flex gap-3 pt-4 border-t border-gray-800">
                 <TransactionButton
                   transaction={() => {
+                    console.log("🎯 Create Bundle button clicked!")
+                    console.log("  - Selected NFTs:", selectedNFTs.length)
+                    console.log("  - Bundle name:", bundleName)
+                    console.log("  - Chain:", selectedChain.id)
+
                     const params = handleCreateBundle()
-                    if (!params) throw new Error("Invalid bundle parameters")
-                    return prepareCreateBundle(client, selectedChain, params)
+                    console.log("  - Bundle params:", params)
+
+                    if (!params) {
+                      console.error("❌ Invalid bundle parameters")
+                      throw new Error("Invalid bundle parameters")
+                    }
+
+                    console.log("📝 Preparing createBundle transaction...")
+                    const tx = prepareCreateBundle(client, selectedChain, params)
+                    console.log("✅ Transaction prepared:", tx)
+                    return tx
                   }}
-                  onTransactionConfirmed={() => {
+                  onTransactionConfirmed={(receipt) => {
+                    console.log("✅ Bundle created successfully!", receipt)
                     onClose()
                     // TODO: Refresh user's NFTs and show success message
+                  }}
+                  onError={(error) => {
+                    console.error("❌ Bundle creation error:", error)
                   }}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                 >
