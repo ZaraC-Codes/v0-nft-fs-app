@@ -58,6 +58,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
         chain: apeChainCurtis,
         contractAddress: nft.contractAddress,
         ownerAddress: account.address,
+        tokenId: nft.tokenId,
         // Let the function auto-detect token type
       })
       console.log("🔍 Approval status:", approved)

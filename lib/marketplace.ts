@@ -179,12 +179,14 @@ export async function isNFTApproved({
   chain,
   contractAddress,
   ownerAddress,
+  tokenId,
   tokenType
 }: {
   client: any
   chain: any
   contractAddress: string
   ownerAddress: string
+  tokenId?: string
   tokenType?: 'erc721' | 'erc1155'
 }) {
   // Auto-detect token type if not provided
@@ -196,6 +198,7 @@ export async function isNFTApproved({
   console.log("🔍 Checking approval:")
   console.log("  - NFT Contract:", contractAddress)
   console.log("  - Owner:", ownerAddress)
+  console.log("  - Token ID:", tokenId)
   console.log("  - Marketplace (operator):", MARKETPLACE_CONTRACT_ADDRESS)
   console.log("  - Token type:", tokenType)
 
@@ -206,21 +209,44 @@ export async function isNFTApproved({
   });
 
   let approved = false
+
   if (tokenType === 'erc1155') {
+    // ERC1155 always uses operator approval
     approved = await isApprovedForAllERC1155({
       contract: nftContract,
       owner: ownerAddress,
       operator: MARKETPLACE_CONTRACT_ADDRESS!,
     });
+    console.log("🔍 isApprovedForAll result:", approved)
   } else {
+    // ERC721: Check specific token approval first, then operator approval
+    if (tokenId) {
+      try {
+        const approvedAddress = await readContract({
+          contract: nftContract,
+          method: "function getApproved(uint256 tokenId) view returns (address)",
+          params: [BigInt(tokenId)],
+        });
+        console.log("🔍 getApproved result:", approvedAddress)
+
+        if (approvedAddress.toLowerCase() === MARKETPLACE_CONTRACT_ADDRESS!.toLowerCase()) {
+          console.log("✅ Token specifically approved for marketplace")
+          return true
+        }
+      } catch (error) {
+        console.log("⚠️ Could not check specific approval:", error)
+      }
+    }
+
+    // Fallback to operator approval
     approved = await isApprovedForAllERC721({
       contract: nftContract,
       owner: ownerAddress,
       operator: MARKETPLACE_CONTRACT_ADDRESS!,
     });
+    console.log("🔍 isApprovedForAll result:", approved)
   }
 
-  console.log("🔍 isApprovedForAll result:", approved)
   return approved
 }
 
