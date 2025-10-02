@@ -201,9 +201,9 @@ export function prepareApproveNFTContract(
   chain: Chain,
   nftContract: string
 ) {
-  const bundleManagerAddress = BUNDLE_CONTRACT_ADDRESSES[chain.id as keyof typeof BUNDLE_CONTRACT_ADDRESSES]?.manager;
+  const bundleManagerAddress = BUNDLE_CONTRACT_ADDRESSES[chain.id as keyof typeof BUNDLE_CONTRACT_ADDRESSES]?.bundleManager;
 
-  if (!bundleManagerAddress) {
+  if (!bundleManagerAddress || bundleManagerAddress === "0x...") {
     throw new Error(`Bundle Manager not deployed on chain ${chain.id}`);
   }
 

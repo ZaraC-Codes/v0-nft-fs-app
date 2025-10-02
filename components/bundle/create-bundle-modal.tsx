@@ -434,24 +434,29 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
               <Card className="glass-card border-yellow-500/30 p-6">
                 <div className="flex items-start gap-3 mb-4">
                   <AlertCircle className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
-                  <div>
+                  <div className="flex-1">
                     <h3 className="font-semibold text-yellow-400 mb-1">Contract Approvals Required</h3>
-                    <p className="text-sm text-gray-400">
-                      Approve each NFT contract individually to allow bundling. This is a one-time approval per contract.
+                    <p className="text-sm text-gray-400 mb-2">
+                      Approve {uniqueContracts.length} NFT contract{uniqueContracts.length !== 1 ? 's' : ''} to allow bundling.
                     </p>
+                    {approvedContracts.size > 0 && (
+                      <p className="text-xs text-green-400">
+                        {approvedContracts.size} of {uniqueContracts.length} approved
+                      </p>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {uniqueContracts.map((contract, index) => {
                     const isApproved = approvedContracts.has(contract)
                     return (
-                      <div key={contract} className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/50 border border-gray-700">
-                        <div className="flex-1">
-                          <div className="text-xs text-gray-500 font-mono truncate">{contract}</div>
+                      <div key={contract} className="flex items-center gap-2 p-2 rounded-lg bg-gray-800/50 border border-gray-700">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-xs text-gray-500 font-mono truncate" title={contract}>{contract}</div>
                         </div>
                         {isApproved ? (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30">
+                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 flex-shrink-0 text-xs">
                             <Check className="h-3 w-3 mr-1" />
                             Approved
                           </Badge>
@@ -469,7 +474,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                             onError={(error) => {
                               console.error(`❌ Error approving ${contract}:`, error)
                             }}
-                            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-sm px-4 py-2"
+                            className="bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-xs px-3 py-1.5 flex-shrink-0 whitespace-nowrap"
                           >
                             Approve
                           </TransactionButton>
