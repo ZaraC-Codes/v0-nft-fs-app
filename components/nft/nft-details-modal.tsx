@@ -647,13 +647,13 @@ export function NFTDetailsModal({
                               throw new Error("No NFTs found in bundle")
                             }
 
-                            // Unwrap bundle using emergencyUnwrapBundle (bypasses broken executeCall)
-                            console.log("🔄 Unwrapping bundle with emergency function...")
+                            // Demo mode: Verify NFTs and burn bundle (Curtis TBA implementation limitation)
+                            console.log("🎬 Demo unwrap - verifying NFTs and burning bundle...")
                             const bundleContract = getBundleNFTContract(client, apeChainCurtis)
 
                             const unwrapTransaction = prepareContractCall({
                               contract: bundleContract,
-                              method: "function emergencyUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
+                              method: "function demoUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
                               params: [
                                 BigInt(nft.tokenId),
                                 bundledNFTs.map((nft: any) => nft.contractAddress),
@@ -666,11 +666,11 @@ export function NFTDetailsModal({
                             // Clear portfolio cache to force refresh
                             const cacheKey = `portfolio_cache_${account.address}`
                             localStorage.removeItem(cacheKey)
-                            console.log("🗑️ Cleared portfolio cache after unwrap")
+                            console.log("🗑️ Cleared portfolio cache after demo unwrap")
 
                             toast({
-                              title: "Bundle Unwrapped!",
-                              description: `Successfully extracted ${bundledNFTs.length} NFTs and burned bundle.`,
+                              title: "Bundle Unwrapped (Demo Mode)!",
+                              description: `Verified ${bundledNFTs.length} NFTs in TBA and burned bundle NFT. On mainnet with proper ERC-6551, NFTs would be extracted.`,
                             })
                             setTimeout(() => window.location.reload(), 2000)
 
