@@ -9,12 +9,12 @@ import { encodeFunctionData } from "viem";
  * Updated: Oct 3, 2025 - Added ApeChain mainnet configuration
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
-  // ApeChain Mainnet (PRODUCTION) - Deployed Oct 3, 2025
+  // ApeChain Mainnet (PRODUCTION) - Deployed Oct 3, 2025 - FIXED with correct implementation
   [apeChain.id]: {
-    bundleNFT: "0x4c1E579711A9a8f9ba66aaa924fBf134F4cf107c", // BundleNFTUnified with emergency/demo unwrap
-    bundleManager: "0x4c1E579711A9a8f9ba66aaa924fBf134F4cf107c", // Same as bundleNFT (unified contract)
+    bundleNFT: "0x2784a09eaA5f03eaa2C49C0FfBAC57277f5B765e", // BundleNFTUnified - redeployed with correct implementation
+    bundleManager: "0x2784a09eaA5f03eaa2C49C0FfBAC57277f5B765e", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x2d25602551487c3f3354dd80d76d54383a243358", // Standard implementation
+    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis implementation (exists on mainnet)
   },
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
