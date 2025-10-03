@@ -76,9 +76,22 @@ const BUNDLE_MANAGER_ABI = [
   },
   {
     "inputs": [
-      { "name": "nftContracts", "type": "address[]" }
+      { "name": "bundleId", "type": "uint256" },
+      { "name": "nftContracts", "type": "address[]" },
+      { "name": "tokenIds", "type": "uint256[]" }
     ],
-    "name": "batchApproveNFTs",
+    "name": "emergencyUnwrapBundle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "name": "bundleId", "type": "uint256" },
+      { "name": "nftContracts", "type": "address[]" },
+      { "name": "tokenIds", "type": "uint256[]" }
+    ],
+    "name": "demoUnwrapBundle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
