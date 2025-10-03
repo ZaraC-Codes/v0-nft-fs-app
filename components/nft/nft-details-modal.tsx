@@ -600,108 +600,53 @@ export function NFTDetailsModal({
                       </Button>
                     </div>
 
-                    {/* Two-Step Unwrap Bundle (only for bundles) */}
+                    {/* Unwrap Bundle Button (only for bundles) */}
                     {nft.isBundle && (
-                      <div className="space-y-2">
-                        <div className="text-sm text-muted-foreground">
-                          Unwrapping requires 2 transactions:
-                        </div>
+                      <TransactionButton
+                        transaction={async () => {
+                          console.log("📦 Unwrap Bundle clicked!")
 
-                        {/* Step 1: Approve */}
-                        <TransactionButton
-                          transaction={async () => {
-                            console.log("🔓 Step 1: Approve BundleManager")
+                          const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+                          const { client } = await import("@/lib/thirdweb")
+                          const { apeChainCurtis } = await import("@/lib/thirdweb")
 
-                            const { prepareApproveBundleManagerForUnwrap, getBundleAccountAddress } = await import("@/lib/bundle")
-                            const { client } = await import("@/lib/thirdweb")
-                            const { apeChainCurtis } = await import("@/lib/thirdweb")
+                          // Get the TBA address
+                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
 
-                            // Get the TBA address
-                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                          // Fetch bundled NFTs
+                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                          const data = await response.json()
+                          const bundledNFTs = data.nfts || []
 
-                            // Fetch bundled NFTs to get their contract addresses
-                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-                            const data = await response.json()
-                            const bundledNFTs = data.nfts || []
+                          const unwrapParams = {
+                            bundleId: nft.tokenId,
+                            nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
+                            tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
+                          }
 
-                            // Get unique contract addresses
-                            const nftContracts = [...new Set(bundledNFTs.map((nft: any) => nft.contractAddress))]
+                          console.log("📝 Unwrapping with params:", unwrapParams)
 
-                            console.log("📝 Approving contracts:", nftContracts)
-
-                            return prepareApproveBundleManagerForUnwrap(
-                              client,
-                              apeChainCurtis,
-                              nft.tokenId,
-                              nftContracts,
-                              tbaAddress
-                            )
-                          }}
-                          onTransactionConfirmed={() => {
-                            toast({
-                              title: "Step 1 Complete!",
-                              description: "Now click 'Unwrap Bundle' to extract your NFTs.",
-                            })
-                          }}
-                          onError={(error) => {
-                            toast({
-                              title: "Approval Failed",
-                              description: error.message,
-                              variant: "destructive"
-                            })
-                          }}
-                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0"
-                        >
-                          <span className="mr-2">1️⃣</span>
-                          Approve Unwrap
-                        </TransactionButton>
-
-                        {/* Step 2: Unwrap */}
-                        <TransactionButton
-                          transaction={async () => {
-                            console.log("📦 Step 2: Unwrap Bundle")
-
-                            const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
-                            const { client } = await import("@/lib/thirdweb")
-                            const { apeChainCurtis } = await import("@/lib/thirdweb")
-
-                            // Get the TBA address
-                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
-
-                            // Fetch bundled NFTs
-                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-                            const data = await response.json()
-                            const bundledNFTs = data.nfts || []
-
-                            const unwrapParams = {
-                              bundleId: nft.tokenId,
-                              nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
-                              tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
-                            }
-
-                            return prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
-                          }}
-                          onTransactionConfirmed={() => {
-                            toast({
-                              title: "Bundle Unwrapped!",
-                              description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
-                            })
-                            setTimeout(() => window.location.reload(), 2000)
-                          }}
-                          onError={(error) => {
-                            toast({
-                              title: "Unwrap Failed",
-                              description: error.message,
-                              variant: "destructive"
-                            })
-                          }}
-                          className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
-                        >
-                          <Package className="h-4 w-4 mr-2" />
-                          <span className="mr-2">2️⃣</span>
-                          Unwrap Bundle
-                        </TransactionButton>
-                      </div>
+                          return prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast({
+                            title: "Bundle Unwrapped!",
+                            description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
+                          })
+                          setTimeout(() => window.location.reload(), 2000)
+                        }}
+                        onError={(error) => {
+                          toast({
+                            title: "Unwrap Failed",
+                            description: error.message,
+                            variant: "destructive"
+                          })
+                        }}
+                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
+                      >
+                        <Package className="h-4 w-4 mr-2" />
+                        Unwrap Bundle
+                      </TransactionButton>
                     )}
                   </div>
                 )}

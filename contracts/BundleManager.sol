@@ -182,8 +182,7 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * IMPORTANT: Before calling this, bundle owner must first call approveBundleManagerForUnwrap
-     * via TBA.executeCall to grant this contract approval to transfer the NFTs.
+     * The bundle owner calls this directly, and BundleManager uses the TBA to transfer NFTs.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -202,15 +201,22 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
+        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
 
         // Transfer all NFTs from TBA to owner
-        // This requires that the TBA has approved this contract via approveBundleManagerForUnwrap
+        // The TBA transfers its own NFTs via executeCall
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            IERC721 nft = IERC721(nftContracts[i]);
+            // Encode transferFrom call (TBA transfers to bundle owner)
+            bytes memory transferCalldata = abi.encodeWithSelector(
+                IERC721.transferFrom.selector,
+                accountAddress,  // from (TBA itself)
+                bundleOwner,     // to (bundle owner)
+                tokenIds[i]      // tokenId
+            );
 
-            // Transfer NFT from TBA to bundle owner
-            // This will revert if this contract is not approved by the TBA
-            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
+            // Have the TBA execute the transfer
+            // Since bundle owner owns the bundle NFT, they control the TBA
+            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
