@@ -30,7 +30,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice, getNFTActivity } from "@/lib/marketplace"
-import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 
 interface NFTDetailsModalProps {
@@ -107,10 +107,14 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
     try {
       // Import bundle utilities
       const { getBundleAccountAddress } = await import("@/lib/bundle")
-      const { client, apeChainCurtis } = await import("@/lib/thirdweb")
+      const { client, apeChain, apeChainCurtis, sepolia } = await import("@/lib/thirdweb")
+
+      // Determine the correct chain from NFT's chainId
+      const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChainCurtis)
+      console.log(`🔗 Using chain: ${nftChain.name} (ID: ${nftChain.id})`)
 
       // Get the TBA address for this bundle
-      const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+      const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
       console.log(`📍 Bundle TBA address: ${tbaAddress}`)
 
       // Fetch NFTs owned by the TBA - use correct API endpoint
@@ -619,14 +623,18 @@ export function NFTDetailsModal({
                             const { getBundleAccountAddress, getBundleNFTContract } = await import("@/lib/bundle")
                             const { prepareContractCall, sendTransaction } = await import("thirdweb")
 
+                            // Determine the correct chain from NFT's chainId
+                            const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChainCurtis)
+                            console.log(`🔗 Using chain for unwrap: ${nftChain.name} (ID: ${nftChain.id})`)
+
                             // Get the TBA address
-                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                            const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
                             console.log("📍 TBA Address:", tbaAddress)
 
                             // ⚠️ CRITICAL: Check if TBA contract is actually deployed
                             const { eth_getCode } = await import("thirdweb")
                             const { getRpcClient } = await import("thirdweb/rpc")
-                            const rpcRequest = getRpcClient({ client, chain: apeChainCurtis })
+                            const rpcRequest = getRpcClient({ client, chain: nftChain })
                             const tbaCode = await eth_getCode(rpcRequest, { address: tbaAddress })
 
                             console.log("🔍 TBA Code Length:", tbaCode.length)
@@ -649,7 +657,7 @@ export function NFTDetailsModal({
 
                             // Demo mode: Verify NFTs and burn bundle (Curtis TBA implementation limitation)
                             console.log("🎬 Demo unwrap - verifying NFTs and burning bundle...")
-                            const bundleContract = getBundleNFTContract(client, apeChainCurtis)
+                            const bundleContract = getBundleNFTContract(client, nftChain)
 
                             const unwrapTransaction = prepareContractCall({
                               contract: bundleContract,
