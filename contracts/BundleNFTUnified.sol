@@ -163,7 +163,7 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
     }
 
     /**
-     * @dev Unwrap a bundle - user transfers bundle back to contract, we extract NFTs, burn bundle
+     * @dev Unwrap a bundle - user must approve contract first, then we transfer bundle, extract NFTs, burn
      */
     function unwrapBundle(
         uint256 bundleId,
@@ -178,9 +178,9 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
         address bundleOwner = ownerOf(bundleId);
         require(msg.sender == bundleOwner, "Not bundle owner");
 
-        // Transfer bundle NFT to this contract temporarily
-        // This gives us control of the TBA
-        _transfer(bundleOwner, address(this), bundleId);
+        // Transfer bundle NFT from owner to this contract
+        // User must have approved this contract first via approve() or setApprovalForAll()
+        transferFrom(bundleOwner, address(this), bundleId);
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
