@@ -617,18 +617,12 @@ export function NFTDetailsModal({
 
                           try {
                             const { getBundleAccountAddress, getBundleNFTContract } = await import("@/lib/bundle")
-                            const { prepareContractCall, sendTransaction, getContract, eth_getCode } = await import("thirdweb")
+                            const { prepareContractCall, sendTransaction, getContract } = await import("thirdweb")
                             const { encodeFunctionData } = await import("viem")
 
                             // Get the TBA address
                             const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
                             console.log("📍 TBA Address:", tbaAddress)
-
-                            // Verify TBA exists
-                            const tbaCode = await eth_getCode({ client, address: tbaAddress as `0x${string}`, chain: apeChainCurtis })
-                            if (!tbaCode || tbaCode === "0x") {
-                              throw new Error("TBA does not exist for this bundle")
-                            }
 
                             // Fetch bundled NFTs (bypass cache with timestamp)
                             const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}&t=${Date.now()}`)
