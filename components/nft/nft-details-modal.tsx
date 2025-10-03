@@ -647,38 +647,47 @@ export function NFTDetailsModal({
                               const bundledNFT = bundledNFTs[i]
                               console.log(`📤 Transferring NFT ${i + 1}/${bundledNFTs.length}:`, bundledNFT.name)
 
-                              // Encode the safeTransferFrom call
-                              const transferCalldata = encodeFunctionData({
-                                abi: [{
-                                  name: "safeTransferFrom",
-                                  type: "function",
-                                  stateMutability: "nonpayable",
-                                  inputs: [
-                                    { name: "from", type: "address" },
-                                    { name: "to", type: "address" },
-                                    { name: "tokenId", type: "uint256" }
-                                  ],
-                                  outputs: []
-                                }],
-                                functionName: "safeTransferFrom",
-                                args: [tbaAddress, account.address, BigInt(bundledNFT.tokenId)]
-                              })
+                              try {
+                                // Encode the safeTransferFrom call
+                                const transferCalldata = encodeFunctionData({
+                                  abi: [{
+                                    name: "safeTransferFrom",
+                                    type: "function",
+                                    stateMutability: "nonpayable",
+                                    inputs: [
+                                      { name: "from", type: "address" },
+                                      { name: "to", type: "address" },
+                                      { name: "tokenId", type: "uint256" }
+                                    ],
+                                    outputs: []
+                                  }],
+                                  functionName: "safeTransferFrom",
+                                  args: [tbaAddress, account.address, BigInt(bundledNFT.tokenId)]
+                                })
 
-                              // Call TBA's executeCall to transfer NFT to user
-                              const executeCallTx = prepareContractCall({
-                                contract: tbaContract,
-                                method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
-                                params: [bundledNFT.contractAddress, 0n, transferCalldata]
-                              })
+                                console.log(`🔐 Encoded transfer data:`, transferCalldata.slice(0, 20) + "...")
 
-                              await sendTransaction({ transaction: executeCallTx, account })
-                              console.log(`✅ Transferred NFT ${i + 1}/${bundledNFTs.length}`)
+                                // Call TBA's executeCall to transfer NFT to user
+                                const executeCallTx = prepareContractCall({
+                                  contract: tbaContract,
+                                  method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
+                                  params: [bundledNFT.contractAddress, 0n, transferCalldata]
+                                })
 
-                              toast({
-                                title: `NFT ${i + 1}/${bundledNFTs.length} Transferred`,
-                                description: `${bundledNFT.name} extracted from bundle`,
-                              })
+                                const txResult = await sendTransaction({ transaction: executeCallTx, account })
+                                console.log(`✅ Transferred NFT ${i + 1}/${bundledNFTs.length} - TX:`, txResult.transactionHash)
+
+                                toast({
+                                  title: `NFT ${i + 1}/${bundledNFTs.length} Transferred`,
+                                  description: `${bundledNFT.name} extracted from bundle`,
+                                })
+                              } catch (nftError: any) {
+                                console.error(`❌ Failed to transfer NFT ${i + 1}:`, nftError)
+                                throw new Error(`Failed to transfer ${bundledNFT.name}: ${nftError.message}`)
+                              }
                             }
+
+                            console.log("✅ All NFTs transferred successfully!")
 
                             // Step 2: Burn the empty bundle NFT
                             console.log("🔥 Step 2: Burning empty bundle...")
