@@ -11,8 +11,8 @@ import { encodeFunctionData } from "viem";
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
-    bundleNFT: "0x1ee9E676Ba21acf44916a0831e111B0fB400a725", // BundleNFTUnified (single contract)
-    bundleManager: "0x1ee9E676Ba21acf44916a0831e111B0fB400a725", // Same as bundleNFT (unified contract)
+    bundleNFT: "0xd41094845999Ca79619547285af4A88cC5e16c20", // BundleNFTUnified (single contract)
+    bundleManager: "0xd41094845999Ca79619547285af4A88cC5e16c20", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
     accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Deployed on Curtis
   },
