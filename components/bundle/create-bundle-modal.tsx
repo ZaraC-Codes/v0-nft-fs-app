@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TransactionButton, useSendTransaction } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { prepareApproveNFTContract, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
 import { cancelListing } from "@/lib/marketplace"
 import { Package, Plus, X, Check, AlertCircle, Image as ImageIcon } from "lucide-react"
@@ -53,8 +53,12 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
 
   // Get the chain from the first selected NFT (all must be same chain)
   const selectedChain = selectedNFTs.length > 0
-    ? (selectedNFTs[0].chainId === apeChainCurtis.id ? apeChainCurtis : sepolia)
-    : apeChainCurtis
+    ? (selectedNFTs[0].chainId === apeChain.id
+        ? apeChain
+        : selectedNFTs[0].chainId === apeChainCurtis.id
+          ? apeChainCurtis
+          : sepolia)
+    : apeChain // Default to mainnet
 
   const handleToggleNFT = (nft: NFTWithTraits) => {
     setSelectedNFTs(prev => {
