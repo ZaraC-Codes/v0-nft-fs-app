@@ -602,51 +602,75 @@ export function NFTDetailsModal({
 
                     {/* Unwrap Bundle Button (only for bundles) */}
                     {nft.isBundle && (
-                      <TransactionButton
-                        transaction={async () => {
+                      <Button
+                        onClick={async () => {
                           console.log("📦 Unwrap Bundle clicked!")
 
-                          const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
-                          const { client } = await import("@/lib/thirdweb")
-                          const { apeChainCurtis } = await import("@/lib/thirdweb")
+                          try {
+                            const { prepareUnwrapBundle, getBundleAccountAddress, getBundleNFTContract, getBundleManagerContract } = await import("@/lib/bundle")
+                            const { client } = await import("@/lib/thirdweb")
+                            const { apeChainCurtis } = await import("@/lib/thirdweb")
+                            const { prepareContractCall, sendTransaction } = await import("thirdweb")
+                            const { useActiveAccount } = await import("thirdweb/react")
 
-                          // Get the TBA address
-                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                            // Get the TBA address
+                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
 
-                          // Fetch bundled NFTs
-                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-                          const data = await response.json()
-                          const bundledNFTs = data.nfts || []
+                            // Fetch bundled NFTs
+                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                            const data = await response.json()
+                            const bundledNFTs = data.nfts || []
 
-                          const unwrapParams = {
-                            bundleId: nft.tokenId,
-                            nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
-                            tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
+                            // Step 1: Approve BundleManager to transfer the bundle NFT
+                            console.log("📝 Step 1: Approving BundleManager...")
+                            const bundleNFTContract = getBundleNFTContract(client, apeChainCurtis)
+                            const bundleManagerContract = getBundleManagerContract(client, apeChainCurtis)
+
+                            const approveTransaction = prepareContractCall({
+                              contract: bundleNFTContract,
+                              method: "function approve(address to, uint256 tokenId)",
+                              params: [bundleManagerContract.address, BigInt(nft.tokenId)]
+                            })
+
+                            const account = useActiveAccount()
+                            await sendTransaction({ transaction: approveTransaction, account })
+
+                            toast({
+                              title: "Approval Successful",
+                              description: "Bundle NFT approved. Now unwrapping...",
+                            })
+
+                            // Step 2: Unwrap the bundle
+                            console.log("📝 Step 2: Unwrapping bundle...")
+                            const unwrapParams = {
+                              bundleId: nft.tokenId,
+                              nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
+                              tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
+                            }
+
+                            const unwrapTransaction = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
+                            await sendTransaction({ transaction: unwrapTransaction, account })
+
+                            toast({
+                              title: "Bundle Unwrapped!",
+                              description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
+                            })
+                            setTimeout(() => window.location.reload(), 2000)
+
+                          } catch (error: any) {
+                            console.error("Unwrap error:", error)
+                            toast({
+                              title: "Unwrap Failed",
+                              description: error.message,
+                              variant: "destructive"
+                            })
                           }
-
-                          console.log("📝 Unwrapping with params:", unwrapParams)
-
-                          return prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
-                        }}
-                        onTransactionConfirmed={() => {
-                          toast({
-                            title: "Bundle Unwrapped!",
-                            description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
-                          })
-                          setTimeout(() => window.location.reload(), 2000)
-                        }}
-                        onError={(error) => {
-                          toast({
-                            title: "Unwrap Failed",
-                            description: error.message,
-                            variant: "destructive"
-                          })
                         }}
                         className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
                       >
                         <Package className="h-4 w-4 mr-2" />
                         Unwrap Bundle
-                      </TransactionButton>
+                      </Button>
                     )}
                   </div>
                 )}
