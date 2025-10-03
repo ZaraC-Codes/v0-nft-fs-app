@@ -120,8 +120,9 @@ contract FortunaSquareBundleAccount is
 
             if (!success) {
                 // Forward revert reason
+                bytes memory result = results[i];
                 assembly {
-                    revert(add(results[i], 32), mload(results[i]))
+                    revert(add(result, 32), mload(result))
                 }
             }
         }
