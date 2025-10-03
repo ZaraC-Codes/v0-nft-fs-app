@@ -11,10 +11,10 @@ import { encodeFunctionData } from "viem";
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
-    bundleNFT: "0x1AF44aafaDa094CCb6fE35160Ff0A97A5B4119A1", // BundleNFTUnified (single contract) - Works for creation, unwrap has issues
-    bundleManager: "0x1AF44aafaDa094CCb6fE35160Ff0A97A5B4119A1", // Same as bundleNFT (unified contract)
+    bundleNFT: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // BundleNFTUnified with emergency unwrap - Oct 3, 2025
+    bundleManager: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis-specific implementation (createAccount works, executeCall has issues)
+    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis-specific implementation
   },
   // Sepolia (testnet)
   [sepolia.id]: {

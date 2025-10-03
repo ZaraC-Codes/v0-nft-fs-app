@@ -647,13 +647,13 @@ export function NFTDetailsModal({
                               throw new Error("No NFTs found in bundle")
                             }
 
-                            // Unwrap bundle - contract handles TBA transfers internally
-                            console.log("🔄 Unwrapping bundle...")
+                            // Unwrap bundle using emergencyUnwrapBundle (bypasses broken executeCall)
+                            console.log("🔄 Unwrapping bundle with emergency function...")
                             const bundleContract = getBundleNFTContract(client, apeChainCurtis)
 
                             const unwrapTransaction = prepareContractCall({
                               contract: bundleContract,
-                              method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
+                              method: "function emergencyUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
                               params: [
                                 BigInt(nft.tokenId),
                                 bundledNFTs.map((nft: any) => nft.contractAddress),
