@@ -34,6 +34,12 @@ interface IERC6551Account {
         uint256 value,
         bytes calldata data
     ) external payable returns (bytes memory);
+
+    function executeBatch(
+        address[] calldata targets,
+        uint256[] calldata values,
+        bytes[] calldata datas
+    ) external payable returns (bytes[] memory results);
 }
 
 /**
@@ -304,6 +310,51 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
 
         // Note: In production, would need proper ERC-6551 implementation
         // This demonstrates the concept for demo day
+    }
+
+    /**
+     * @dev Gas-optimized batch unwrap using FortunaSquareBundleAccount's executeBatch
+     * This is the FASTEST and MOST EFFICIENT unwrap method for production
+     * Works with custom FortunaSquareBundleAccount implementation
+     */
+    function batchUnwrapBundle(
+        uint256 bundleId,
+        address[] calldata nftContracts,
+        uint256[] calldata tokenIds
+    ) external nonReentrant {
+        require(bundles[bundleId].exists, "Bundle does not exist");
+
+        address bundleOwner = ownerOf(bundleId);
+        require(msg.sender == bundleOwner, "Not bundle owner");
+        require(nftContracts.length == tokenIds.length, "Array length mismatch");
+
+        address tbaAddress = getBundleAccount(bundleId);
+        IERC6551Account tba = IERC6551Account(tbaAddress);
+
+        // Prepare batch transfer data
+        address[] memory targets = new address[](nftContracts.length);
+        uint256[] memory values = new uint256[](nftContracts.length);
+        bytes[] memory datas = new bytes[](nftContracts.length);
+
+        for (uint256 i = 0; i < nftContracts.length; i++) {
+            targets[i] = nftContracts[i];
+            values[i] = 0;
+            datas[i] = abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                tbaAddress,
+                bundleOwner,
+                tokenIds[i]
+            );
+        }
+
+        // Execute all transfers in single call (HUGE gas savings!)
+        tba.executeBatch(targets, values, datas);
+
+        emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
+
+        // Burn the bundle NFT
+        delete bundles[bundleId];
+        _burn(bundleId);
     }
 
     /**
