@@ -616,8 +616,9 @@ export function NFTDetailsModal({
                           }
 
                           try {
-                            const { prepareUnwrapBundle, getBundleAccountAddress, getBundleNFTContract, getBundleManagerContract } = await import("@/lib/bundle")
-                            const { prepareContractCall, sendTransaction } = await import("thirdweb")
+                            const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+                            const { prepareContractCall, sendTransaction, getContract } = await import("thirdweb")
+                            const { encodeFunctionData } = await import("viem")
 
                             // Get the TBA address
                             const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
@@ -627,26 +628,64 @@ export function NFTDetailsModal({
                             const data = await response.json()
                             const bundledNFTs = data.nfts || []
 
-                            // Step 1: Approve BundleManager to transfer the bundle NFT
-                            console.log("📝 Step 1: Approving BundleManager...")
-                            const bundleNFTContract = getBundleNFTContract(client, apeChainCurtis)
-                            const bundleManagerContract = getBundleManagerContract(client, apeChainCurtis)
+                            if (bundledNFTs.length === 0) {
+                              toast({
+                                title: "No NFTs Found",
+                                description: "Bundle appears to be empty.",
+                                variant: "destructive"
+                              })
+                              return
+                            }
 
-                            const approveTransaction = prepareContractCall({
-                              contract: bundleNFTContract,
-                              method: "function approve(address to, uint256 tokenId)",
-                              params: [bundleManagerContract.address, BigInt(nft.tokenId)]
+                            console.log(`📝 Transferring ${bundledNFTs.length} NFTs out of TBA...`)
+
+                            // Get TBA contract
+                            const tbaContract = getContract({
+                              client,
+                              chain: apeChainCurtis,
+                              address: tbaAddress
                             })
 
-                            await sendTransaction({ transaction: approveTransaction, account })
+                            // Transfer each NFT from TBA to bundle owner
+                            for (let i = 0; i < bundledNFTs.length; i++) {
+                              const bundledNFT = bundledNFTs[i]
+                              console.log(`📤 Transferring ${bundledNFT.name || `Token #${bundledNFT.tokenId}`}...`)
+
+                              // Encode transferFrom call
+                              const transferCalldata = encodeFunctionData({
+                                abi: [{
+                                  name: 'transferFrom',
+                                  type: 'function',
+                                  inputs: [
+                                    { name: 'from', type: 'address' },
+                                    { name: 'to', type: 'address' },
+                                    { name: 'tokenId', type: 'uint256' }
+                                  ],
+                                  outputs: [],
+                                  stateMutability: 'nonpayable'
+                                }],
+                                functionName: 'transferFrom',
+                                args: [tbaAddress, account.address, BigInt(bundledNFT.tokenId)]
+                              })
+
+                              // Call TBA.executeCall to transfer NFT
+                              const executeTransaction = prepareContractCall({
+                                contract: tbaContract,
+                                method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
+                                params: [bundledNFT.contractAddress, BigInt(0), transferCalldata]
+                              })
+
+                              await sendTransaction({ transaction: executeTransaction, account })
+                              console.log(`✅ Transferred ${bundledNFT.name || `Token #${bundledNFT.tokenId}`}`)
+                            }
 
                             toast({
-                              title: "Approval Successful",
-                              description: "Bundle NFT approved. Now unwrapping...",
+                              title: "NFTs Transferred",
+                              description: `Extracted ${bundledNFTs.length} NFTs. Now burning bundle...`,
                             })
 
-                            // Step 2: Unwrap the bundle
-                            console.log("📝 Step 2: Unwrapping bundle...")
+                            // Step 2: Burn the bundle NFT
+                            console.log("📝 Burning bundle NFT...")
                             const unwrapParams = {
                               bundleId: nft.tokenId,
                               nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
@@ -658,7 +697,7 @@ export function NFTDetailsModal({
 
                             toast({
                               title: "Bundle Unwrapped!",
-                              description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
+                              description: `Successfully extracted ${bundledNFTs.length} NFTs from bundle.`,
                             })
                             setTimeout(() => window.location.reload(), 2000)
 

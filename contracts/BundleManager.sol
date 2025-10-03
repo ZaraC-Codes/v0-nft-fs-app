@@ -185,49 +185,25 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
     }
 
     /**
-     * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * The bundle owner must approve this contract to transfer the bundle NFT first.
-     * Then this contract temporarily takes ownership to control the TBA and transfer NFTs out.
-     * @param bundleId The ID of the bundle to unwrap
-     * @param nftContracts Array of NFT contract addresses in the bundle
-     * @param tokenIds Array of token IDs in the bundle
+     * @dev Unwrap a bundle - burns the bundle NFT
+     * User must transfer NFTs out of TBA via frontend BEFORE calling this.
+     * @param bundleId The ID of the bundle to burn after unwrapping
      */
     function unwrapBundle(
         uint256 bundleId,
         address[] calldata nftContracts,
         uint256[] calldata tokenIds
     ) external nonReentrant {
-        require(nftContracts.length > 0, "Must specify NFTs");
-        require(nftContracts.length == tokenIds.length, "Array length mismatch");
-
         // Verify caller owns the bundle
         address bundleOwner = bundleNFT.ownerOf(bundleId);
         require(msg.sender == bundleOwner, "Not bundle owner");
 
-        // Get the TBA address
-        address accountAddress = getBundleAccount(bundleId);
-        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
-
-        // Transfer bundle NFT to this contract temporarily
-        // This gives us control of the TBA so we can execute transfers
-        IBundleNFT(address(bundleNFT)).transferFrom(bundleOwner, address(this), bundleId);
-
-        // Now we control the TBA - transfer all NFTs to the original owner
-        for (uint256 i = 0; i < nftContracts.length; i++) {
-            bytes memory transferCalldata = abi.encodeWithSelector(
-                IERC721.transferFrom.selector,
-                accountAddress,  // from (TBA)
-                bundleOwner,     // to (original owner)
-                tokenIds[i]      // tokenId
-            );
-
-            // TBA executes the transfer (we control it now)
-            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
-        }
+        // User must have already transferred NFTs out via TBA.executeCall
+        // This function just burns the bundle NFT
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
 
-        // Burn the bundle NFT (we own it now)
+        // Burn the bundle NFT
         bundleNFT.burnBundle(bundleId);
     }
 
