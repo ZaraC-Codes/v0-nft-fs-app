@@ -7,7 +7,6 @@ import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC1155/IERC1155Receiver.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 /**
  * @title FortunaSquareBundleAccount
@@ -22,8 +21,7 @@ contract FortunaSquareBundleAccount is
     IERC165,
     IERC1271,
     IERC721Receiver,
-    IERC1155Receiver,
-    ReentrancyGuard
+    IERC1155Receiver
 {
     // Storage slot for owner data (ERC-6551 standard)
     bytes32 private constant OWNER_SLOT = bytes32(uint256(keccak256("erc6551.owner")) - 1);
@@ -33,19 +31,33 @@ contract FortunaSquareBundleAccount is
     address public immutable FACTORY; // Deployer address
     bool public initialized;
 
+    // Manual reentrancy guard
+    uint256 private _status;
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
     error NotAuthorized();
     error InvalidOperation();
     error AlreadyInitialized();
+    error ReentrancyGuardReentrantCall();
 
     modifier onlyAuthorized() {
         if (!_isAuthorized(msg.sender)) revert NotAuthorized();
         _;
     }
 
+    modifier nonReentrant() {
+        if (_status == _ENTERED) revert ReentrancyGuardReentrantCall();
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
+    }
+
     constructor() {
         FACTORY = msg.sender;
         bundleContract = address(0); // Start with zero address
         initialized = false;
+        _status = _NOT_ENTERED;
     }
 
     /**

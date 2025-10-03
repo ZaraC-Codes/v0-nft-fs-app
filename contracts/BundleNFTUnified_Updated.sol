@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 // ERC6551 Registry interface
 interface IERC6551Registry {
@@ -47,8 +46,22 @@ interface IERC6551Account {
  * @dev Unified contract that is both the ERC721 bundle NFT and the bundle manager
  * This eliminates permission issues by having one contract control everything
  */
-contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard, IERC721Receiver {
+contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, IERC721Receiver {
     uint256 private _tokenIdCounter;
+
+    // Manual reentrancy guard
+    uint256 private _status;
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    error ReentrancyGuardReentrantCall();
+
+    modifier nonReentrant() {
+        if (_status == _ENTERED) revert ReentrancyGuardReentrantCall();
+        _status = _ENTERED;
+        _;
+        _status = _NOT_ENTERED;
+    }
 
     // ERC6551 configuration
     IERC6551Registry public immutable registry;
@@ -98,6 +111,7 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
 
         registry = IERC6551Registry(_registry);
         accountImplementation = _accountImplementation;
+        _status = _NOT_ENTERED;
     }
 
     /**
