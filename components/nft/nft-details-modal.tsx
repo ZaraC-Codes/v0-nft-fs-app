@@ -602,119 +602,49 @@ export function NFTDetailsModal({
 
                     {/* Unwrap Bundle Button (only for bundles) */}
                     {nft.isBundle && (
-                      <Button
-                        onClick={async () => {
+                      <TransactionButton
+                        transaction={async () => {
                           console.log("📦 Unwrap Bundle clicked!")
 
-                          if (!account) {
-                            toast({
-                              title: "Wallet Not Connected",
-                              description: "Please connect your wallet to unwrap the bundle.",
-                              variant: "destructive"
-                            })
-                            return
+                          const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+
+                          // Get the TBA address to fetch bundled NFTs
+                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+
+                          // Fetch bundled NFTs
+                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                          const data = await response.json()
+                          const bundledNFTs = data.nfts || []
+
+                          const unwrapParams = {
+                            bundleId: nft.tokenId,
+                            nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
+                            tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
                           }
 
-                          try {
-                            const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
-                            const { prepareContractCall, sendTransaction, getContract } = await import("thirdweb")
-                            const { encodeFunctionData } = await import("viem")
+                          console.log("📝 Unwrapping with params:", unwrapParams)
 
-                            // Get the TBA address
-                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
-
-                            // Fetch bundled NFTs
-                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-                            const data = await response.json()
-                            const bundledNFTs = data.nfts || []
-
-                            if (bundledNFTs.length === 0) {
-                              toast({
-                                title: "No NFTs Found",
-                                description: "Bundle appears to be empty.",
-                                variant: "destructive"
-                              })
-                              return
-                            }
-
-                            console.log(`📝 Transferring ${bundledNFTs.length} NFTs out of TBA...`)
-
-                            // Get TBA contract
-                            const tbaContract = getContract({
-                              client,
-                              chain: apeChainCurtis,
-                              address: tbaAddress
-                            })
-
-                            // Transfer each NFT from TBA to bundle owner
-                            for (let i = 0; i < bundledNFTs.length; i++) {
-                              const bundledNFT = bundledNFTs[i]
-                              console.log(`📤 Transferring ${bundledNFT.name || `Token #${bundledNFT.tokenId}`}...`)
-
-                              // Encode transferFrom call
-                              const transferCalldata = encodeFunctionData({
-                                abi: [{
-                                  name: 'transferFrom',
-                                  type: 'function',
-                                  inputs: [
-                                    { name: 'from', type: 'address' },
-                                    { name: 'to', type: 'address' },
-                                    { name: 'tokenId', type: 'uint256' }
-                                  ],
-                                  outputs: [],
-                                  stateMutability: 'nonpayable'
-                                }],
-                                functionName: 'transferFrom',
-                                args: [tbaAddress, account.address, BigInt(bundledNFT.tokenId)]
-                              })
-
-                              // Call TBA.executeCall to transfer NFT
-                              const executeTransaction = prepareContractCall({
-                                contract: tbaContract,
-                                method: "function executeCall(address to, uint256 value, bytes calldata data) payable returns (bytes memory)",
-                                params: [bundledNFT.contractAddress, BigInt(0), transferCalldata]
-                              })
-
-                              await sendTransaction({ transaction: executeTransaction, account })
-                              console.log(`✅ Transferred ${bundledNFT.name || `Token #${bundledNFT.tokenId}`}`)
-                            }
-
-                            toast({
-                              title: "NFTs Transferred",
-                              description: `Extracted ${bundledNFTs.length} NFTs. Now burning bundle...`,
-                            })
-
-                            // Step 2: Burn the bundle NFT
-                            console.log("📝 Burning bundle NFT...")
-                            const unwrapParams = {
-                              bundleId: nft.tokenId,
-                              nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
-                              tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
-                            }
-
-                            const unwrapTransaction = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
-                            await sendTransaction({ transaction: unwrapTransaction, account })
-
-                            toast({
-                              title: "Bundle Unwrapped!",
-                              description: `Successfully extracted ${bundledNFTs.length} NFTs from bundle.`,
-                            })
-                            setTimeout(() => window.location.reload(), 2000)
-
-                          } catch (error: any) {
-                            console.error("Unwrap error:", error)
-                            toast({
-                              title: "Unwrap Failed",
-                              description: error.message,
-                              variant: "destructive"
-                            })
-                          }
+                          return prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
+                        }}
+                        onTransactionConfirmed={() => {
+                          toast({
+                            title: "Bundle Unwrapped!",
+                            description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
+                          })
+                          setTimeout(() => window.location.reload(), 2000)
+                        }}
+                        onError={(error) => {
+                          toast({
+                            title: "Unwrap Failed",
+                            description: error.message,
+                            variant: "destructive"
+                          })
                         }}
                         className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
                       >
                         <Package className="h-4 w-4 mr-2" />
                         Unwrap Bundle
-                      </Button>
+                      </TransactionButton>
                     )}
                   </div>
                 )}
