@@ -1,13 +1,19 @@
 import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
-import { apeChainCurtis, sepolia } from "./thirdweb";
+import { apeChain, apeChainCurtis, sepolia } from "./thirdweb";
 
 /**
  * Rental Contract Addresses
  * Update these after deploying the contracts
  */
 export const RENTAL_CONTRACT_ADDRESSES = {
+  [apeChain.id]: {
+    rentalWrapper: "0x...", // Deploy to mainnet when ready
+    rentalManager: "0x...",
+    erc6551Registry: "0x000000006551c19487814612e58FE06813775758",
+    accountImplementation: "0x2d25602551487c3f3354dd80d76d54383a243358", // Standard implementation
+  },
   [apeChainCurtis.id]: {
     rentalWrapper: "0xf6a12c5723350db10d0661d9636582728ab06dea",
     rentalManager: "0xb399203384aa1509d31688a93b8d8ec835bf7cb6",

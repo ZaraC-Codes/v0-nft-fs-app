@@ -1,10 +1,11 @@
 import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
-import { apeChainCurtis, sepolia } from "./thirdweb";
+import { apeChain, apeChainCurtis, sepolia } from "./thirdweb";
 
 // Contract addresses (update after deployment)
 export const SWAP_CONTRACT_ADDRESSES = {
+  [apeChain.id]: "0x...",        // Deploy to mainnet when ready
   [apeChainCurtis.id]: "0x36cf50b633b4095c19ac5677b24d9f9bb4c5c179",
   [sepolia.id]: "0x...",        // Deploy and update this
 } as const;
