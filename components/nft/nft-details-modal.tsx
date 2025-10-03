@@ -606,12 +606,18 @@ export function NFTDetailsModal({
                         onClick={async () => {
                           console.log("📦 Unwrap Bundle clicked!")
 
+                          if (!account) {
+                            toast({
+                              title: "Wallet Not Connected",
+                              description: "Please connect your wallet to unwrap the bundle.",
+                              variant: "destructive"
+                            })
+                            return
+                          }
+
                           try {
                             const { prepareUnwrapBundle, getBundleAccountAddress, getBundleNFTContract, getBundleManagerContract } = await import("@/lib/bundle")
-                            const { client } = await import("@/lib/thirdweb")
-                            const { apeChainCurtis } = await import("@/lib/thirdweb")
                             const { prepareContractCall, sendTransaction } = await import("thirdweb")
-                            const { useActiveAccount } = await import("thirdweb/react")
 
                             // Get the TBA address
                             const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
@@ -632,7 +638,6 @@ export function NFTDetailsModal({
                               params: [bundleManagerContract.address, BigInt(nft.tokenId)]
                             })
 
-                            const account = useActiveAccount()
                             await sendTransaction({ transaction: approveTransaction, account })
 
                             toast({
