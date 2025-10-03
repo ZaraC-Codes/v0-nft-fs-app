@@ -157,6 +157,25 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
             emit NFTDeposited(bundleId, nftContracts[i], tokenIds[i]);
         }
 
+        // Grant BundleManager approval from TBA for all NFT contracts
+        // This allows unwrapBundle to transfer NFTs out later
+        address[] memory uniqueContracts = _getUniqueAddresses(nftContracts);
+        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
+
+        for (uint256 i = 0; i < uniqueContracts.length; i++) {
+            // Encode setApprovalForAll(BundleManager, true)
+            bytes memory approvalCalldata = abi.encodeWithSelector(
+                IERC721.setApprovalForAll.selector,
+                address(this),  // Grant approval to BundleManager
+                true            // Approve
+            );
+
+            // Have TBA execute the approval
+            // At this point, msg.sender (bundle creator) owns the bundle NFT,
+            // so they control the TBA and can execute this call
+            tbaAccount.executeCall(uniqueContracts[i], 0, approvalCalldata);
+        }
+
         emit BundleCreated(
             bundleId,
             msg.sender,
@@ -182,7 +201,7 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * The bundle owner calls this directly, and BundleManager uses the TBA to transfer NFTs.
+     * BundleManager transfers NFTs directly using the approval granted during createBundle.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -201,22 +220,15 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
-        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
 
         // Transfer all NFTs from TBA to owner
-        // The TBA transfers its own NFTs via executeCall
+        // BundleManager can do this because TBA granted approval during createBundle
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            // Encode transferFrom call (TBA transfers to bundle owner)
-            bytes memory transferCalldata = abi.encodeWithSelector(
-                IERC721.transferFrom.selector,
-                accountAddress,  // from (TBA itself)
-                bundleOwner,     // to (bundle owner)
-                tokenIds[i]      // tokenId
-            );
+            IERC721 nft = IERC721(nftContracts[i]);
 
-            // Have the TBA execute the transfer
-            // Since bundle owner owns the bundle NFT, they control the TBA
-            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
+            // BundleManager transfers from TBA to bundle owner
+            // This works because TBA approved BundleManager during bundle creation
+            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
@@ -245,6 +257,49 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
         for (uint256 i = 0; i < nftContracts.length; i++) {
             IERC721(nftContracts[i]).setApprovalForAll(address(this), true);
         }
+    }
+
+    /**
+     * @dev Get unique addresses from an array (removes duplicates)
+     * @param addresses Array that may contain duplicate addresses
+     * @return Array of unique addresses
+     */
+    function _getUniqueAddresses(address[] memory addresses) private pure returns (address[] memory) {
+        if (addresses.length == 0) return addresses;
+
+        // Count unique addresses
+        uint256 uniqueCount = 0;
+        for (uint256 i = 0; i < addresses.length; i++) {
+            bool isDuplicate = false;
+            for (uint256 j = 0; j < i; j++) {
+                if (addresses[i] == addresses[j]) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                uniqueCount++;
+            }
+        }
+
+        // Build unique array
+        address[] memory unique = new address[](uniqueCount);
+        uint256 index = 0;
+        for (uint256 i = 0; i < addresses.length; i++) {
+            bool isDuplicate = false;
+            for (uint256 j = 0; j < i; j++) {
+                if (addresses[i] == addresses[j]) {
+                    isDuplicate = true;
+                    break;
+                }
+            }
+            if (!isDuplicate) {
+                unique[index] = addresses[i];
+                index++;
+            }
+        }
+
+        return unique;
     }
 
     /**

@@ -12,7 +12,7 @@ export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
     bundleNFT: "0xB4D6608abc304B0395BE12bFE2304954dD85B64C",
-    bundleManager: "0xE59ACD408f24Bb305ABbdD59798EAff251e633A8", // Bundle creation in reverse approach
+    bundleManager: "0x6Da979FF28Bc778ddD730CC8d4d57C010131379E", // TBA approval during creation
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
     accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Deployed on Curtis
   },
