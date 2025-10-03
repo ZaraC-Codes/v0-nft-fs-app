@@ -46,6 +46,10 @@ interface IBundleNFT {
     function burnBundle(uint256 tokenId) external;
 
     function ownerOf(uint256 tokenId) external view returns (address);
+
+    function transferFrom(address from, address to, uint256 tokenId) external;
+
+    function approve(address to, uint256 tokenId) external;
 }
 
 /**
@@ -157,25 +161,6 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
             emit NFTDeposited(bundleId, nftContracts[i], tokenIds[i]);
         }
 
-        // Grant BundleManager approval from TBA for all NFT contracts
-        // This allows unwrapBundle to transfer NFTs out later
-        address[] memory uniqueContracts = _getUniqueAddresses(nftContracts);
-        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
-
-        for (uint256 i = 0; i < uniqueContracts.length; i++) {
-            // Encode setApprovalForAll(BundleManager, true)
-            bytes memory approvalCalldata = abi.encodeWithSelector(
-                IERC721.setApprovalForAll.selector,
-                address(this),  // Grant approval to BundleManager
-                true            // Approve
-            );
-
-            // Have TBA execute the approval
-            // At this point, msg.sender (bundle creator) owns the bundle NFT,
-            // so they control the TBA and can execute this call
-            tbaAccount.executeCall(uniqueContracts[i], 0, approvalCalldata);
-        }
-
         emit BundleCreated(
             bundleId,
             msg.sender,
@@ -201,7 +186,8 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * BundleManager transfers NFTs directly using the approval granted during createBundle.
+     * The bundle owner must approve this contract to transfer the bundle NFT first.
+     * Then this contract temporarily takes ownership to control the TBA and transfer NFTs out.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -220,20 +206,28 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
+        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
 
-        // Transfer all NFTs from TBA to owner
-        // BundleManager can do this because TBA granted approval during createBundle
+        // Transfer bundle NFT to this contract temporarily
+        // This gives us control of the TBA so we can execute transfers
+        IBundleNFT(address(bundleNFT)).transferFrom(bundleOwner, address(this), bundleId);
+
+        // Now we control the TBA - transfer all NFTs to the original owner
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            IERC721 nft = IERC721(nftContracts[i]);
+            bytes memory transferCalldata = abi.encodeWithSelector(
+                IERC721.transferFrom.selector,
+                accountAddress,  // from (TBA)
+                bundleOwner,     // to (original owner)
+                tokenIds[i]      // tokenId
+            );
 
-            // BundleManager transfers from TBA to bundle owner
-            // This works because TBA approved BundleManager during bundle creation
-            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
+            // TBA executes the transfer (we control it now)
+            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
 
-        // Burn the bundle NFT
+        // Burn the bundle NFT (we own it now)
         bundleNFT.burnBundle(bundleId);
     }
 
