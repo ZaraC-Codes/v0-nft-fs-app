@@ -271,6 +271,12 @@ export function prepareCreateBundle(
 ) {
   const contract = getBundleManagerContract(client, chain);
 
+  console.log("🔍 Bundle Manager Contract:", contract.address);
+  console.log("🔍 NFT Contracts to bundle:", params.nftContracts);
+  console.log("🔍 Token IDs:", params.tokenIds);
+  console.log("🔍 Bundle name:", params.bundleName);
+  console.log("🔍 Metadata URI length:", params.bundleTokenURI.length);
+
   return prepareContractCall({
     contract,
     method: "function createBundle(address[] calldata nftContracts, uint256[] calldata tokenIds, string calldata bundleName, string calldata bundleTokenURI) returns (uint256 bundleId, address accountAddress)",
