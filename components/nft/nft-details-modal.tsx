@@ -617,8 +617,23 @@ export function NFTDetailsModal({
 
                           try {
                             const { getBundleAccountAddress, getBundleNFTContract } = await import("@/lib/bundle")
-                            const { prepareContractCall, sendTransaction, getContract } = await import("thirdweb")
+                            const { prepareContractCall, sendTransaction, getContract, readContract } = await import("thirdweb")
                             const { encodeFunctionData } = await import("viem")
+
+                            // Verify current wallet owns the bundle
+                            const bundleContract = getBundleNFTContract(client, apeChainCurtis)
+                            const bundleOwner = await readContract({
+                              contract: bundleContract,
+                              method: "function ownerOf(uint256 tokenId) view returns (address)",
+                              params: [BigInt(nft.tokenId)]
+                            })
+
+                            console.log("👤 Current wallet:", account.address)
+                            console.log("👤 Bundle owner:", bundleOwner)
+
+                            if (bundleOwner.toLowerCase() !== account.address.toLowerCase()) {
+                              throw new Error(`You must be connected with wallet ${bundleOwner.slice(0, 6)}...${bundleOwner.slice(-4)} to unwrap this bundle. Currently connected: ${account.address.slice(0, 6)}...${account.address.slice(-4)}`)
+                            }
 
                             // Get the TBA address
                             const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
