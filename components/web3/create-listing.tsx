@@ -171,8 +171,16 @@ export function CreateListing() {
                   reserved: false,
                 });
               }}
-              onTransactionConfirmed={() => {
+              onTransactionConfirmed={async () => {
                 console.log("Listing created successfully!");
+
+                // Clear portfolio cache to force immediate refresh
+                // Note: This component doesn't have access to useActiveAccount,
+                // so we'll clear cache for all profiles (edge case component)
+                const { portfolioCache } = require("@/lib/portfolio-cache")
+                portfolioCache.clearAll()
+                console.log("🗑️ Cleared portfolio cache after listing creation")
+
                 // Reset form
                 setFormData({
                   assetContract: "",

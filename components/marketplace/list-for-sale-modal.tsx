@@ -335,6 +335,16 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("✅ Transaction confirmed!")
                 console.log("📄 Transaction receipt:", receipt)
 
+                // Clear portfolio cache to force immediate refresh
+                if (account) {
+                  const { portfolioCache } = require("@/lib/portfolio-cache")
+                  const ProfileService = (await import("@/lib/profile-service")).default
+                  const currentProfile = ProfileService.getProfileByWallet(account.address)
+                  const allWallets = currentProfile?.wallets?.map(w => w.address) || [account.address]
+                  portfolioCache.clearForWallets(allWallets)
+                  console.log("🗑️ Cleared portfolio cache after listing creation")
+                }
+
                 // Wait a moment for blockchain state to update
                 await new Promise(resolve => setTimeout(resolve, 3000))
 

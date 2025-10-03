@@ -818,8 +818,16 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                   }}
                   onTransactionConfirmed={(receipt) => {
                     console.log("✅ Bundle created successfully!", receipt)
+
+                    // Clear portfolio cache to force immediate refresh
+                    if (account) {
+                      const { portfolioCache } = require("@/lib/portfolio-cache")
+                      const allWallets = userProfile?.wallets?.map(w => w.address) || [account.address]
+                      portfolioCache.clearForWallets(allWallets)
+                      console.log("🗑️ Cleared portfolio cache after bundle creation")
+                    }
+
                     onClose()
-                    // TODO: Refresh user's NFTs and show success message
                   }}
                   onError={(error) => {
                     console.error("❌ Bundle creation error:", error)

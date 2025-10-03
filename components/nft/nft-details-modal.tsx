@@ -623,6 +623,20 @@ export function NFTDetailsModal({
                             const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
                             console.log("📍 TBA Address:", tbaAddress)
 
+                            // ⚠️ CRITICAL: Check if TBA contract is actually deployed
+                            const { eth_getCode } = await import("thirdweb")
+                            const { getRpcClient } = await import("thirdweb/rpc")
+                            const rpcRequest = getRpcClient({ client, chain: apeChainCurtis })
+                            const tbaCode = await eth_getCode(rpcRequest, { address: tbaAddress })
+
+                            console.log("🔍 TBA Code Length:", tbaCode.length)
+                            console.log("🔍 TBA Code:", tbaCode.substring(0, 100) + "...")
+                            console.log("🔍 TBA Deployed:", tbaCode !== "0x")
+
+                            if (tbaCode === "0x") {
+                              throw new Error("❌ TBA NOT DEPLOYED! The Token Bound Account was never created during bundle creation. This bundle cannot be unwrapped. Please contact support.")
+                            }
+
                             // Fetch bundled NFTs (bypass cache with timestamp)
                             const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}&t=${Date.now()}`)
                             const data = await response.json()
