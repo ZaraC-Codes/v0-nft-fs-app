@@ -1,17 +1,22 @@
 const { config: dotenvConfig } = require("dotenv");
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-verify");
+require("ts-node").register({
+  project: "./tsconfig.hardhat.json"
+});
 
 dotenvConfig({ path: ".env.local" });
 
 const config = {
   solidity: {
-    version: "0.8.20",
+    version: "0.8.24",
     settings: {
       optimizer: {
         enabled: true,
         runs: 200,
       },
+      viaIR: true, // Enable IR compiler for stack too deep issues
+      evmVersion: "cancun", // Required for OpenZeppelin v5 (mcopy opcode)
     },
   },
   networks: {
@@ -46,6 +51,7 @@ const config = {
     cache: "./cache",
     artifacts: "./artifacts"
   },
+  defaultNetwork: "apechain", // Default to ApeChain mainnet
 };
 
 module.exports = config;

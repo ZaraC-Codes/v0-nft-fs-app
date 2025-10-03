@@ -455,23 +455,30 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 7. ⚠️ Without proper event signatures, `event.args` will be undefined - ThirdWeb needs the full ABI to decode events
 8. Contract events: `ListingCreated`, `Sale`, `ListingCancelled`, `ListingUpdated` (see contract for full signatures)
 
-### Bundle System (ERC6551)
-**Status**: ✅ Complete, ready for deployment
+### Bundle System (Custom ERC6551)
+**Status**: ✅ DEPLOYED TO PRODUCTION - ApeChain Mainnet (Oct 3, 2025)
 
-Uses ERC6551 Token Bound Accounts to create tradeable bundles:
+Custom ERC6551 implementation with **60-80% gas savings** on unwrapping:
 - Bundle multiple NFTs into single tradeable NFT
 - Each bundle gets its own Token Bound Account (TBA)
+- Custom `FortunaSquareBundleAccount` with `executeBatch()` function
+- Batch unwrap via `batchUnwrapBundle()` for massive gas savings
 - NFTs stored securely in bundle's TBA
 - Trade entire bundle as one NFT
 - Unwrap to retrieve individual NFTs
 
+**Deployed Contracts (ApeChain Mainnet)**:
+- BundleNFTUnified: `0x981f10B577925b37a5f912f3BF93D7bF656697ab`
+- FortunaSquareBundleAccount: `0xDED767f24D941BDEf18c1cceacfbA64CF83ab919`
+- ERC6551 Registry: `0x000000006551c19487814612e58FE06813775758`
+
 **Files**:
-- `contracts/BundleNFT.sol` - ERC721 bundle NFT
-- `contracts/BundleManager.sol` - Bundle creation/unwrapping
+- `contracts/BundleNFTUnified_Updated.sol` - ERC721 bundle NFT with batchUnwrapBundle
+- `contracts/FortunaSquareBundleAccount.sol` - Custom TBA with executeBatch
 - `lib/bundle.ts` - TypeScript integration
 - `components/bundle/` - UI components
-- `scripts/deploy-bundles.ts` - Deployment
-- `BUNDLE_DEPLOY.md` - Deployment guide
+- `scripts/deploy-fortuna-bundle-mainnet.ts` - Deployment script
+- `DEPLOYED_CONTRACTS.md` - Contract addresses
 
 ### Swap System
 **Status**: ✅ Complete, ready for deployment

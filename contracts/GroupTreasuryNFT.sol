@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
 
 /**
  * @title GroupTreasuryNFT
@@ -11,9 +10,7 @@ import "@openzeppelin/contracts/utils/Counters.sol";
  * Each group gets one NFT with a Token Bound Account (ERC6551)
  */
 contract GroupTreasuryNFT is ERC721, Ownable {
-    using Counters for Counters.Counter;
-
-    Counters.Counter private _tokenIdCounter;
+    uint256 private _tokenIdCounter;
 
     // Group metadata
     struct GroupMetadata {
@@ -40,7 +37,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
         uint256 requiredDeposit
     );
 
-    constructor() ERC721("Fortuna Square Group Treasury", "FSGT") {}
+    constructor() ERC721("Fortuna Square Group Treasury", "FSGT") Ownable(msg.sender) {}
 
     /**
      * @dev Mint a new group treasury NFT
@@ -58,8 +55,8 @@ contract GroupTreasuryNFT is ERC721, Ownable {
     ) external returns (uint256) {
         require(bytes(name).length > 0, "Name cannot be empty");
 
-        uint256 tokenId = _tokenIdCounter.current();
-        _tokenIdCounter.increment();
+        uint256 tokenId = _tokenIdCounter;
+        _tokenIdCounter++;
 
         _safeMint(to, tokenId);
 
@@ -82,7 +79,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
      * @param tbaAddress The Token Bound Account address
      */
     function setTokenBoundAccount(uint256 tokenId, address tbaAddress) external onlyOwner {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         tokenBoundAccounts[tokenId] = tbaAddress;
 
         emit GroupCreated(
@@ -100,7 +97,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
      * @param memberCount New member count
      */
     function updateMemberCount(uint256 tokenId, uint256 memberCount) external {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         require(
             msg.sender == owner() ||
             tokenBoundAccounts[tokenId] == msg.sender,
@@ -115,7 +112,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
      * @param tokenId The token ID
      */
     function getGroupMetadata(uint256 tokenId) external view returns (GroupMetadata memory) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         return groupMetadata[tokenId];
     }
 
@@ -124,7 +121,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
      * @param tokenId The token ID
      */
     function getTokenBoundAccount(uint256 tokenId) external view returns (address) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         return tokenBoundAccounts[tokenId];
     }
 
@@ -132,7 +129,7 @@ contract GroupTreasuryNFT is ERC721, Ownable {
      * @dev Override tokenURI to return metadata
      */
     function tokenURI(uint256 tokenId) public view virtual override returns (string memory) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         // In production, this would return a proper URI pointing to metadata
         // For now, return a placeholder
         return string(abi.encodePacked("https://fortuna-square.com/api/group/", toString(tokenId)));

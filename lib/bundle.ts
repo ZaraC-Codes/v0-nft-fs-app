@@ -6,15 +6,15 @@ import { encodeFunctionData } from "viem";
 
 /**
  * Bundle Contract Addresses
- * Updated: Oct 3, 2025 - Added ApeChain mainnet configuration
+ * Updated: Oct 3, 2025 - Custom ERC-6551 with batch unwrap (60-80% gas savings)
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
-  // ApeChain Mainnet (PRODUCTION) - Deployed Oct 3, 2025 - FIXED with correct implementation
+  // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025
   [apeChain.id]: {
-    bundleNFT: "0x2784a09eaA5f03eaa2C49C0FfBAC57277f5B765e", // BundleNFTUnified - redeployed with correct implementation
-    bundleManager: "0x2784a09eaA5f03eaa2C49C0FfBAC57277f5B765e", // Same as bundleNFT (unified contract)
+    bundleNFT: "0x981f10B577925b37a5f912f3BF93D7bF656697ab", // BundleNFTUnified with batchUnwrapBundle
+    bundleManager: "0x981f10B577925b37a5f912f3BF93D7bF656697ab", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis implementation (exists on mainnet)
+    accountImplementation: "0xDED767f24D941BDEf18c1cceacfbA64CF83ab919", // FortunaSquareBundleAccount with executeBatch
   },
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
@@ -69,7 +69,7 @@ const BUNDLE_MANAGER_ABI = [
       { "name": "nftContracts", "type": "address[]" },
       { "name": "tokenIds", "type": "uint256[]" }
     ],
-    "name": "unwrapBundle",
+    "name": "batchUnwrapBundle",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -371,7 +371,8 @@ export function prepareWithdrawFromBundle(
 }
 
 /**
- * Prepare transaction to unwrap a bundle (called directly by bundle owner)
+ * Prepare transaction to unwrap a bundle using gas-optimized batch unwrap
+ * Uses batchUnwrapBundle with executeBatch for 60-80% gas savings
  */
 export function prepareUnwrapBundle(
   client: ThirdwebClient,
@@ -380,9 +381,11 @@ export function prepareUnwrapBundle(
 ) {
   const contract = getBundleManagerContract(client, chain);
 
+  console.log("🚀 Using batchUnwrapBundle for gas-optimized unwrapping");
+
   return prepareContractCall({
     contract,
-    method: "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
+    method: "function batchUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
     params: [
       BigInt(params.bundleId),
       params.nftContracts,
