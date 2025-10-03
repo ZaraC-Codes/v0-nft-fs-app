@@ -655,14 +655,10 @@ export function NFTDetailsModal({
                               throw new Error("No NFTs found in bundle")
                             }
 
-                            // Mainnet: Use emergencyUnwrapBundle (bypasses executeCall, tries direct transfer)
-                            // Curtis testnet: Use demoUnwrapBundle (broken executeCall)
-                            const isMainnet = nftChain.id === apeChain.id
-                            const unwrapMethod = isMainnet
-                              ? "function emergencyUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)"
-                              : "function demoUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)"
+                            // Use batchUnwrapBundle for gas-optimized unwrapping (60-80% savings)
+                            const unwrapMethod = "function batchUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)"
 
-                            console.log(isMainnet ? "🚨 Emergency unwrap - bypassing executeCall, attempting direct transfer..." : "🎬 Demo unwrap - verifying NFTs and burning bundle...")
+                            console.log("🚀 Using batchUnwrapBundle for gas-optimized unwrapping...")
                             const bundleContract = getBundleNFTContract(client, nftChain)
 
                             const unwrapTransaction = prepareContractCall({
