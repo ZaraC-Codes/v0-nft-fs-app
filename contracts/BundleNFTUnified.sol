@@ -163,9 +163,39 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
     }
 
     /**
-     * @dev Unwrap a bundle - burns the bundle NFT
-     * User must transfer NFTs out of TBA themselves via frontend BEFORE calling this
-     * This function only verifies ownership and burns the empty bundle
+     * @dev Withdraw specific NFTs from a bundle without unwrapping
+     */
+    function withdrawFromBundle(
+        uint256 bundleId,
+        address[] calldata nftContracts,
+        uint256[] calldata tokenIds,
+        address recipient
+    ) external nonReentrant {
+        require(bundles[bundleId].exists, "Bundle does not exist");
+        require(ownerOf(bundleId) == msg.sender, "Not bundle owner");
+        require(nftContracts.length == tokenIds.length, "Array length mismatch");
+
+        address tbaAddress = getBundleAccount(bundleId);
+        IERC6551Account tba = IERC6551Account(tbaAddress);
+
+        // Transfer each NFT out of the TBA
+        for (uint256 i = 0; i < nftContracts.length; i++) {
+            bytes memory transferData = abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                tbaAddress,
+                recipient,
+                tokenIds[i]
+            );
+
+            tba.executeCall(nftContracts[i], 0, transferData);
+        }
+
+        // Update bundle metadata
+        bundles[bundleId].itemCount -= nftContracts.length;
+    }
+
+    /**
+     * @dev Unwrap a bundle - transfers all NFTs to owner and burns bundle
      */
     function unwrapBundle(
         uint256 bundleId,
@@ -177,9 +207,22 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
         // Verify caller owns the bundle
         address bundleOwner = ownerOf(bundleId);
         require(msg.sender == bundleOwner, "Not bundle owner");
+        require(nftContracts.length == tokenIds.length, "Array length mismatch");
 
-        // User must have already transferred NFTs out via TBA.executeCall in frontend
-        // This function just burns the empty bundle NFT
+        address tbaAddress = getBundleAccount(bundleId);
+        IERC6551Account tba = IERC6551Account(tbaAddress);
+
+        // Transfer all NFTs from TBA to bundle owner
+        for (uint256 i = 0; i < nftContracts.length; i++) {
+            bytes memory transferData = abi.encodeWithSignature(
+                "safeTransferFrom(address,address,uint256)",
+                tbaAddress,
+                bundleOwner,
+                tokenIds[i]
+            );
+
+            tba.executeCall(nftContracts[i], 0, transferData);
+        }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
 
