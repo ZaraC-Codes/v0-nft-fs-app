@@ -163,41 +163,23 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, ReentrancyGuard,
     }
 
     /**
-     * @dev Unwrap a bundle - user must approve contract first, then we transfer bundle, extract NFTs, burn
+     * @dev Unwrap a bundle - burns the bundle NFT
+     * User must transfer NFTs out of TBA themselves via frontend BEFORE calling this
+     * This function only verifies ownership and burns the empty bundle
      */
     function unwrapBundle(
         uint256 bundleId,
         address[] calldata nftContracts,
         uint256[] calldata tokenIds
     ) external nonReentrant {
-        require(nftContracts.length > 0, "Must specify NFTs");
-        require(nftContracts.length == tokenIds.length, "Array length mismatch");
         require(bundles[bundleId].exists, "Bundle does not exist");
 
         // Verify caller owns the bundle
         address bundleOwner = ownerOf(bundleId);
         require(msg.sender == bundleOwner, "Not bundle owner");
 
-        // Transfer bundle NFT from owner to this contract
-        // User must have approved this contract first via approve() or setApprovalForAll()
-        transferFrom(bundleOwner, address(this), bundleId);
-
-        // Get the TBA address
-        address accountAddress = getBundleAccount(bundleId);
-        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
-
-        // Now we control the TBA - transfer all NFTs to the original owner
-        for (uint256 i = 0; i < nftContracts.length; i++) {
-            bytes memory transferCalldata = abi.encodeWithSelector(
-                IERC721.transferFrom.selector,
-                accountAddress,  // from (TBA)
-                bundleOwner,     // to (original owner)
-                tokenIds[i]      // tokenId
-            );
-
-            // TBA executes the transfer (we control it now)
-            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
-        }
+        // User must have already transferred NFTs out via TBA.executeCall in frontend
+        // This function just burns the empty bundle NFT
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);
 
