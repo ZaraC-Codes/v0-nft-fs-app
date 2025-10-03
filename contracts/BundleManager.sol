@@ -182,7 +182,8 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
     /**
      * @dev Unwrap a bundle, returning all NFTs to the owner and burning the bundle
-     * Bundle owner calls this directly. BundleManager uses TBA's executeCall to transfer each NFT.
+     * IMPORTANT: Before calling this, bundle owner must first call approveBundleManagerForUnwrap
+     * via TBA.executeCall to grant this contract approval to transfer the NFTs.
      * @param bundleId The ID of the bundle to unwrap
      * @param nftContracts Array of NFT contract addresses in the bundle
      * @param tokenIds Array of token IDs in the bundle
@@ -201,23 +202,15 @@ contract BundleManager is Ownable, ReentrancyGuard, IERC721Receiver {
 
         // Get the TBA address
         address accountAddress = getBundleAccount(bundleId);
-        IERC6551Account tbaAccount = IERC6551Account(accountAddress);
 
-        // Transfer all NFTs from TBA to owner using TBA's executeCall
-        // Since the bundle owner owns the bundle NFT, they control the TBA
-        // and can execute calls through it
+        // Transfer all NFTs from TBA to owner
+        // This requires that the TBA has approved this contract via approveBundleManagerForUnwrap
         for (uint256 i = 0; i < nftContracts.length; i++) {
-            // Encode the transferFrom call
-            bytes memory transferCalldata = abi.encodeWithSelector(
-                IERC721.transferFrom.selector,
-                accountAddress,  // from (TBA)
-                bundleOwner,     // to (bundle owner)
-                tokenIds[i]      // tokenId
-            );
+            IERC721 nft = IERC721(nftContracts[i]);
 
-            // Execute the transfer through the TBA
-            // The TBA owns the NFT, so this transfer will succeed
-            tbaAccount.executeCall(nftContracts[i], 0, transferCalldata);
+            // Transfer NFT from TBA to bundle owner
+            // This will revert if this contract is not approved by the TBA
+            nft.transferFrom(accountAddress, bundleOwner, tokenIds[i]);
         }
 
         emit BundleUnwrapped(bundleId, bundleOwner, nftContracts, tokenIds);

@@ -600,93 +600,108 @@ export function NFTDetailsModal({
                       </Button>
                     </div>
 
-                    {/* Unwrap Bundle Button (only for bundles) */}
+                    {/* Two-Step Unwrap Bundle (only for bundles) */}
                     {nft.isBundle && (
-                      <TransactionButton
-                        transaction={async () => {
-                          console.log("🎯 Unwrap Bundle button clicked!")
-                          console.log("  - Bundle token ID:", nft.tokenId)
-                          console.log("  - Bundle contract:", nft.contractAddress)
+                      <div className="space-y-2">
+                        <div className="text-sm text-muted-foreground">
+                          Unwrapping requires 2 transactions:
+                        </div>
 
-                          // Import bundle utilities
-                          const { prepareUnwrapBundle, getBundleAccountAddress, getBundleNFTContract } = await import("@/lib/bundle")
-                          const { client } = await import("@/lib/thirdweb")
-                          const { apeChainCurtis } = await import("@/lib/thirdweb")
-                          const { readContract } = await import("thirdweb")
+                        {/* Step 1: Approve */}
+                        <TransactionButton
+                          transaction={async () => {
+                            console.log("🔓 Step 1: Approve BundleManager")
 
-                          // First, verify the current owner of the bundle
-                          const bundleContract = getBundleNFTContract(client, apeChainCurtis)
-                          const currentOwner = await readContract({
-                            contract: bundleContract,
-                            method: "function ownerOf(uint256 tokenId) view returns (address)",
-                            params: [BigInt(nft.tokenId)]
-                          })
-                          console.log("👤 Current bundle owner:", currentOwner)
-                          console.log("👤 Your wallet address:", account?.address)
+                            const { prepareApproveBundleManagerForUnwrap, getBundleAccountAddress } = await import("@/lib/bundle")
+                            const { client } = await import("@/lib/thirdweb")
+                            const { apeChainCurtis } = await import("@/lib/thirdweb")
 
-                          // Check if you actually own the bundle
-                          if (currentOwner.toLowerCase() !== account?.address?.toLowerCase()) {
-                            throw new Error(`You don't own this bundle. Current owner: ${currentOwner.slice(0, 6)}...${currentOwner.slice(-4)}`)
-                          }
+                            // Get the TBA address
+                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
 
-                          // Get the TBA address to fetch bundled NFTs
-                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
-                          console.log("📍 Bundle TBA address:", tbaAddress)
+                            // Fetch bundled NFTs to get their contract addresses
+                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                            const data = await response.json()
+                            const bundledNFTs = data.nfts || []
 
-                          // Fetch the bundled NFTs from TBA
-                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
-                          if (!response.ok) {
-                            throw new Error(`Failed to fetch bundle contents: ${response.status}`)
-                          }
+                            // Get unique contract addresses
+                            const nftContracts = [...new Set(bundledNFTs.map((nft: any) => nft.contractAddress))]
 
-                          const data = await response.json()
-                          const bundledNFTs = data.nfts || []
+                            console.log("📝 Approving contracts:", nftContracts)
 
-                          if (bundledNFTs.length === 0) {
-                            throw new Error("No NFTs found in bundle")
-                          }
+                            return prepareApproveBundleManagerForUnwrap(
+                              client,
+                              apeChainCurtis,
+                              nft.tokenId,
+                              nftContracts,
+                              tbaAddress
+                            )
+                          }}
+                          onTransactionConfirmed={() => {
+                            toast({
+                              title: "Step 1 Complete!",
+                              description: "Now click 'Unwrap Bundle' to extract your NFTs.",
+                            })
+                          }}
+                          onError={(error) => {
+                            toast({
+                              title: "Approval Failed",
+                              description: error.message,
+                              variant: "destructive"
+                            })
+                          }}
+                          className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 border-0"
+                        >
+                          <span className="mr-2">1️⃣</span>
+                          Approve Unwrap
+                        </TransactionButton>
 
-                          console.log(`📦 Found ${bundledNFTs.length} NFTs in bundle:`, bundledNFTs)
+                        {/* Step 2: Unwrap */}
+                        <TransactionButton
+                          transaction={async () => {
+                            console.log("📦 Step 2: Unwrap Bundle")
 
-                          // Prepare unwrap params
-                          const unwrapParams = {
-                            bundleId: nft.tokenId,
-                            nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
-                            tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
-                          }
+                            const { prepareUnwrapBundle, getBundleAccountAddress } = await import("@/lib/bundle")
+                            const { client } = await import("@/lib/thirdweb")
+                            const { apeChainCurtis } = await import("@/lib/thirdweb")
 
-                          console.log("📝 Unwrap params:", unwrapParams)
+                            // Get the TBA address
+                            const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
 
-                          // NEW APPROACH: Call unwrapBundle directly (bundle owner calls it)
-                          // The bundle owner controls the TBA, so TBA will automatically approve transfer
-                          const tx = prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
-                          console.log("✅ Transaction prepared (calling BundleManager.unwrapBundle directly):", tx)
-                          return tx
-                        }}
-                        onTransactionConfirmed={(receipt) => {
-                          console.log("✅ Bundle unwrapped successfully!", receipt)
-                          toast({
-                            title: "Bundle Unwrapped!",
-                            description: `Successfully extracted ${nft.bundleCount} NFTs from bundle. The bundle NFT has been burned.`,
-                          })
-                          // Refresh the page to show updated NFTs
-                          setTimeout(() => {
-                            window.location.reload()
-                          }, 2000)
-                        }}
-                        onError={(error) => {
-                          console.error("❌ Unwrap bundle error:", error)
-                          toast({
-                            title: "Unwrap Failed",
-                            description: error.message,
-                            variant: "destructive"
-                          })
-                        }}
-                        className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
-                      >
-                        <Package className="h-4 w-4 mr-2" />
-                        Unwrap Bundle
-                      </TransactionButton>
+                            // Fetch bundled NFTs
+                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                            const data = await response.json()
+                            const bundledNFTs = data.nfts || []
+
+                            const unwrapParams = {
+                              bundleId: nft.tokenId,
+                              nftContracts: bundledNFTs.map((nft: any) => nft.contractAddress),
+                              tokenIds: bundledNFTs.map((nft: any) => nft.tokenId)
+                            }
+
+                            return prepareUnwrapBundle(client, apeChainCurtis, unwrapParams)
+                          }}
+                          onTransactionConfirmed={() => {
+                            toast({
+                              title: "Bundle Unwrapped!",
+                              description: `Successfully extracted ${nft.bundleCount} NFTs from bundle.`,
+                            })
+                            setTimeout(() => window.location.reload(), 2000)
+                          }}
+                          onError={(error) => {
+                            toast({
+                              title: "Unwrap Failed",
+                              description: error.message,
+                              variant: "destructive"
+                            })
+                          }}
+                          className="w-full bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 border-0 neon-glow"
+                        >
+                          <Package className="h-4 w-4 mr-2" />
+                          <span className="mr-2">2️⃣</span>
+                          Unwrap Bundle
+                        </TransactionButton>
+                      </div>
                     )}
                   </div>
                 )}
