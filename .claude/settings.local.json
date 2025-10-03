@@ -41,7 +41,11 @@
       "Bash(npm pkg delete:*)",
       "Bash(source:*)",
       "Bash(if exist hardhat.config.js move hardhat.config.js hardhat.config.cjs)",
-      "Bash(npm pkg get:*)"
+      "Bash(npm pkg get:*)",
+      "Bash(cmd.exe:*)",
+      "Bash(del hardhat.config.cjs)",
+      "Bash(if exist node_modules.cache rmdir /s /q node_modules.cache)",
+      "Bash(copy contractsBundleNFTUnified_Updated.sol contractsBundleNFTMainnet.sol)"
     ],
     "deny": [],
     "ask": []
