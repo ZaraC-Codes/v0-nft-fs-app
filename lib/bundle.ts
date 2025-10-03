@@ -9,12 +9,12 @@ import { encodeFunctionData } from "viem";
  * Updated: Oct 3, 2025 - Custom ERC-6551 with batch unwrap (60-80% gas savings)
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
-  // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025
+  // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025 (FIXED: context-based auth)
   [apeChain.id]: {
-    bundleNFT: "0x981f10B577925b37a5f912f3BF93D7bF656697ab", // BundleNFTUnified with batchUnwrapBundle
-    bundleManager: "0x981f10B577925b37a5f912f3BF93D7bF656697ab", // Same as bundleNFT (unified contract)
+    bundleNFT: "0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779", // BundleNFTUnified with batchUnwrapBundle
+    bundleManager: "0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0xDED767f24D941BDEf18c1cceacfbA64CF83ab919", // FortunaSquareBundleAccount with executeBatch
+    accountImplementation: "0x6F71009f0100Eb85aF10D4A3968D3fbA16069553", // FortunaSquareBundleAccount with context-based auth
   },
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {

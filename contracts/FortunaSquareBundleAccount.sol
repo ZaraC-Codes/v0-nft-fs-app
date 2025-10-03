@@ -75,14 +75,14 @@ contract FortunaSquareBundleAccount is
      * @dev Enhanced authorization - allows both owner and bundle contract
      */
     function _isAuthorized(address caller) internal view returns (bool) {
-        // During deployment phase, factory can call
-        if (!initialized && caller == FACTORY) return true;
+        // Get the bundle contract address from ERC6551 context
+        (, address tokenContract, ) = context();
 
-        // After initialization, bundle contract and owner can call
-        if (initialized) {
-            if (caller == bundleContract) return true;
-            if (caller == owner()) return true;
-        }
+        // Bundle contract (token contract) can always call
+        if (caller == tokenContract) return true;
+
+        // Owner can always call
+        if (caller == owner()) return true;
 
         return false;
     }
