@@ -655,13 +655,19 @@ export function NFTDetailsModal({
                               throw new Error("No NFTs found in bundle")
                             }
 
-                            // Demo mode: Verify NFTs and burn bundle (Curtis TBA implementation limitation)
-                            console.log("🎬 Demo unwrap - verifying NFTs and burning bundle...")
+                            // Mainnet: Use standard unwrapBundle (ERC-6551 executeCall works!)
+                            // Curtis testnet: Use demoUnwrapBundle (broken executeCall)
+                            const isMainnet = nftChain.id === apeChain.id
+                            const unwrapMethod = isMainnet
+                              ? "function unwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)"
+                              : "function demoUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)"
+
+                            console.log(isMainnet ? "🌐 Mainnet unwrap - extracting NFTs from TBA..." : "🎬 Demo unwrap - verifying NFTs and burning bundle...")
                             const bundleContract = getBundleNFTContract(client, nftChain)
 
                             const unwrapTransaction = prepareContractCall({
                               contract: bundleContract,
-                              method: "function demoUnwrapBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds)",
+                              method: unwrapMethod,
                               params: [
                                 BigInt(nft.tokenId),
                                 bundledNFTs.map((nft: any) => nft.contractAddress),
@@ -674,11 +680,13 @@ export function NFTDetailsModal({
                             // Clear portfolio cache to force refresh
                             const cacheKey = `portfolio_cache_${account.address}`
                             localStorage.removeItem(cacheKey)
-                            console.log("🗑️ Cleared portfolio cache after demo unwrap")
+                            console.log("🗑️ Cleared portfolio cache after unwrap")
 
                             toast({
-                              title: "Bundle Unwrapped (Demo Mode)!",
-                              description: `Verified ${bundledNFTs.length} NFTs in TBA and burned bundle NFT. On mainnet with proper ERC-6551, NFTs would be extracted.`,
+                              title: isMainnet ? "Bundle Unwrapped!" : "Bundle Unwrapped (Demo Mode)!",
+                              description: isMainnet
+                                ? `Successfully extracted ${bundledNFTs.length} NFTs from bundle and returned them to your wallet!`
+                                : `Verified ${bundledNFTs.length} NFTs in TBA and burned bundle NFT. On mainnet, NFTs would be extracted.`,
                             })
                             setTimeout(() => window.location.reload(), 2000)
 
