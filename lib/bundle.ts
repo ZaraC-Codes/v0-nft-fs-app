@@ -11,8 +11,8 @@ import { encodeFunctionData } from "viem";
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
-    bundleNFT: "0xd41094845999Ca79619547285af4A88cC5e16c20", // BundleNFTUnified (single contract)
-    bundleManager: "0xd41094845999Ca79619547285af4A88cC5e16c20", // Same as bundleNFT (unified contract)
+    bundleNFT: "0xf6B386D5262a338c51BAAb09B97896B6de492F26", // BundleNFTUnified (single contract)
+    bundleManager: "0xf6B386D5262a338c51BAAb09B97896B6de492F26", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
     accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Deployed on Curtis
   },
@@ -41,6 +41,18 @@ const BUNDLE_MANAGER_ABI = [
       { "name": "bundleId", "type": "uint256" },
       { "name": "accountAddress", "type": "address" }
     ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      { "name": "bundleId", "type": "uint256" },
+      { "name": "nftContracts", "type": "address[]" },
+      { "name": "tokenIds", "type": "uint256[]" },
+      { "name": "recipient", "type": "address" }
+    ],
+    "name": "withdrawFromBundle",
+    "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
   },
@@ -155,6 +167,13 @@ export interface UnwrapBundleParams {
   bundleId: string;
   nftContracts: string[];
   tokenIds: string[];
+}
+
+export interface WithdrawFromBundleParams {
+  bundleId: string;
+  nftContracts: string[];
+  tokenIds: string[];
+  recipient: string;
 }
 
 /**
@@ -299,6 +318,28 @@ export function prepareApproveBundleManagerForUnwrap(
       bundleManagerAddress,
       0n,
       approveCalldata
+    ],
+  });
+}
+
+/**
+ * Prepare transaction to withdraw specific NFTs from bundle
+ */
+export function prepareWithdrawFromBundle(
+  client: ThirdwebClient,
+  chain: Chain,
+  params: WithdrawFromBundleParams
+) {
+  const contract = getBundleManagerContract(client, chain);
+
+  return prepareContractCall({
+    contract,
+    method: "function withdrawFromBundle(uint256 bundleId, address[] calldata nftContracts, uint256[] calldata tokenIds, address recipient)",
+    params: [
+      BigInt(params.bundleId),
+      params.nftContracts,
+      params.tokenIds.map(id => BigInt(id)),
+      params.recipient
     ],
   });
 }
