@@ -18,6 +18,7 @@ import { Package, Plus, X, Check, AlertCircle, Image as ImageIcon } from "lucide
 import Image from "next/image"
 import { useProfile } from "@/components/profile/profile-provider"
 import { NFTWithTraits } from "@/lib/nft-matching"
+import { useToast } from "@/components/ui/use-toast"
 
 interface CreateBundleModalProps {
   isOpen: boolean
@@ -28,6 +29,7 @@ interface CreateBundleModalProps {
 export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleModalProps) {
   const account = useActiveAccount()
   const { userProfile } = useProfile()
+  const { toast } = useToast()
   const { mutateAsync: sendTransaction } = useSendTransaction()
   const [selectedNFTs, setSelectedNFTs] = useState<NFTWithTraits[]>([])
   const [bundleName, setBundleName] = useState("")
@@ -831,6 +833,11 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                   }}
                   onError={(error) => {
                     console.error("❌ Bundle creation error:", error)
+                    toast({
+                      title: "Bundle Creation Failed",
+                      description: error.message || "Failed to create bundle. Please check console for details.",
+                      variant: "destructive"
+                    })
                   }}
                   className="flex-1 bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
                 >
