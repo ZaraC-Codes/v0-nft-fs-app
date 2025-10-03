@@ -1,20 +1,27 @@
 import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
-import { apeChainCurtis, sepolia } from "./thirdweb";
+import { apeChain, apeChainCurtis, sepolia } from "./thirdweb";
 import { encodeFunctionData } from "viem";
 
 /**
  * Bundle Contract Addresses
- * Updated: Oct 2, 2025 - New BundleManager deployment
+ * Updated: Oct 3, 2025 - Added ApeChain mainnet configuration
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
+  // ApeChain Mainnet (PRODUCTION) - Deployed Oct 3, 2025
+  [apeChain.id]: {
+    bundleNFT: "0x4c1E579711A9a8f9ba66aaa924fBf134F4cf107c", // BundleNFTUnified with emergency/demo unwrap
+    bundleManager: "0x4c1E579711A9a8f9ba66aaa924fBf134F4cf107c", // Same as bundleNFT (unified contract)
+    erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
+    accountImplementation: "0x2d25602551487c3f3354dd80d76d54383a243358", // Standard implementation
+  },
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {
     bundleNFT: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // BundleNFTUnified with emergency unwrap - Oct 3, 2025
     bundleManager: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis-specific implementation
+    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis-specific implementation (broken executeCall)
   },
   // Sepolia (testnet)
   [sepolia.id]: {

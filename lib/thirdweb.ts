@@ -28,14 +28,40 @@ export const apeChainCurtis = defineChain({
   testnet: true,
 });
 
+// Define ApeChain Mainnet
+export const apeChain = defineChain({
+  id: 33139,
+  name: "ApeChain",
+  nativeCurrency: {
+    name: "ApeCoin",
+    symbol: "APE",
+    decimals: 18,
+  },
+  rpc: "https://apechain.calderachain.xyz/http",
+  blockExplorers: [
+    {
+      name: "ApeChain Explorer",
+      url: "https://apechain.calderachain.xyz",
+    },
+  ],
+  testnet: false,
+});
+
 // Export Sepolia testnet (imported from thirdweb/chains)
 export { sepolia };
 
 // Supported chains for the marketplace
-export const SUPPORTED_CHAINS = [apeChainCurtis, sepolia] as const;
+export const SUPPORTED_CHAINS = [apeChain, apeChainCurtis, sepolia] as const;
 
 // Chain metadata for display
 export const CHAIN_METADATA = {
+  [apeChain.id]: {
+    name: "ApeChain",
+    shortName: "ApeChain",
+    icon: "🦍",
+    color: "from-purple-500 to-pink-600",
+    nativeToken: "APE",
+  },
   [apeChainCurtis.id]: {
     name: "ApeChain Curtis",
     shortName: "Curtis",

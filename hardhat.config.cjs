@@ -15,6 +15,12 @@ const config = {
     },
   },
   networks: {
+    // ApeChain Mainnet
+    apechain: {
+      url: "https://apechain.calderachain.xyz/http",
+      chainId: 33139,
+      accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
+    },
     // ApeChain Curtis Testnet
     apechain_curtis: {
       url: "https://curtis.rpc.caldera.xyz/http",
