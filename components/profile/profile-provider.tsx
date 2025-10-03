@@ -2,7 +2,8 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { UserProfile, NFTWatchlistItem, UserFollow, ProfileTabData, PortfolioNFT, Treasury } from "@/types/profile"
-import { apeChainCurtis, sepolia } from "@/lib/thirdweb"
+import { apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
+import { useActiveWalletChain } from "thirdweb/react"
 
 interface ProfileContextType {
   userProfile: UserProfile | null
@@ -482,6 +483,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [treasuries, setTreasuries] = useState<Treasury[]>([])
   const [loading, setLoading] = useState(false)
 
+  // Get the active wallet chain (supports mainnet and testnet)
+  const activeChain = useActiveWalletChain()
+  const chainId = activeChain?.id || apeChain.id // Default to mainnet
+
   // Determine if this is the demo profile
   const isDemoProfile = userProfile?.username === "crypto_collector"
 
@@ -710,7 +715,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         // Fetch NFTs from all wallets in parallel
         const fetchPromises = allWallets.map(async (walletAddress) => {
           try {
-            const response = await fetch(`/api/wallet-nfts?address=${walletAddress}&chainId=33111`)
+            const response = await fetch(`/api/wallet-nfts?address=${walletAddress}&chainId=${chainId}`)
 
             if (!response.ok) {
               console.warn(`Failed to fetch NFTs for ${walletAddress}:`, response.statusText)
@@ -725,11 +730,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               // Import bundle utilities dynamically
               const { BUNDLE_CONTRACT_ADDRESSES, getBundleMetadata, getBundleAccountAddress } = await import("@/lib/bundle")
               const { bundlePreviewCache } = await import("@/lib/bundle-preview-cache")
-              const { client } = await import("@/lib/thirdweb")
-              const { apeChainCurtis } = await import("@/lib/thirdweb")
+              const { client, apeChain, apeChainCurtis } = await import("@/lib/thirdweb")
+
+              // Determine which chain to use (mainnet or testnet)
+              const nftChain = chainId === apeChain.id ? apeChain : apeChainCurtis
 
               // Check if this is a bundle NFT
-              const bundleNFTAddress = BUNDLE_CONTRACT_ADDRESSES[33111]?.bundleNFT?.toLowerCase()
+              const bundleNFTAddress = BUNDLE_CONTRACT_ADDRESSES[chainId]?.bundleNFT?.toLowerCase()
               const isBundleNFT = nft.contractAddress.toLowerCase() === bundleNFTAddress
 
               // Base NFT data
@@ -739,7 +746,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 name: nft.name || `Token #${nft.tokenId}`,
                 image: nft.image,
                 collection: nft.collectionName || 'Unknown Collection',
-                chainId: nft.chainId || 33111,
+                chainId: nft.chainId || chainId,
                 acquiredAt: new Date(),
                 estimatedValue: 0,
                 rarity: undefined,
@@ -755,7 +762,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   console.log(`📦 Detected bundle NFT: ${nft.tokenId}`)
 
                   // Fetch bundle metadata
-                  const bundleMetadata = await getBundleMetadata(client, apeChainCurtis, nft.tokenId)
+                  const bundleMetadata = await getBundleMetadata(client, nftChain, nft.tokenId)
 
                   if (bundleMetadata) {
                     console.log(`✅ Bundle metadata fetched:`, bundleMetadata)
@@ -785,10 +792,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       // Last resort: fetch from TBA (only if no cache)
                       if (previewImages.length === 0) {
                         try {
-                          const tbaAddress = await getBundleAccountAddress(client, apeChainCurtis, nft.tokenId)
+                          const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
                           console.log(`📍 Fetching preview images from TBA as fallback: ${tbaAddress}`)
 
-                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+                          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || chainId}`)
 
                           if (response.ok) {
                             const data = await response.json()
