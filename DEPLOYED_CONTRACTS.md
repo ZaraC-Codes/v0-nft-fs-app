@@ -9,14 +9,14 @@
 Custom ERC-6551 implementation with **60-80% gas savings** on bundle unwrapping!
 
 **BundleNFTUnified:**
-- Contract: `0x981f10B577925b37a5f912f3BF93D7bF656697ab`
+- Contract: `0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779`
 - Features: Create bundles, batch unwrap, unified NFT + Manager
-- Explorer: https://apechain.calderachain.xyz/address/0x981f10B577925b37a5f912f3BF93D7bF656697ab
+- Explorer: https://apechain.calderachain.xyz/address/0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
 
 **FortunaSquareBundleAccount (TBA Implementation):**
-- Contract: `0xDED767f24D941BDEf18c1cceacfbA64CF83ab919`
-- Features: Custom ERC-6551 with executeBatch for gas optimization
-- Explorer: https://apechain.calderachain.xyz/address/0xDED767f24D941BDEf18c1cceacfbA64CF83ab919
+- Contract: `0x6F71009f0100Eb85aF10D4A3968D3fbA16069553`
+- Features: Custom ERC-6551 with executeBatch for gas optimization, fixed authorization using context()
+- Explorer: https://apechain.calderachain.xyz/address/0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
 
 **ERC6551 Registry:**
 - Contract: `0x000000006551c19487814612e58FE06813775758`
@@ -24,11 +24,11 @@ Custom ERC-6551 implementation with **60-80% gas savings** on bundle unwrapping!
 
 **Environment Variables:**
 ```bash
-NEXT_PUBLIC_BUNDLE_NFT_ADDRESS=0x981f10B577925b37a5f912f3BF93D7bF656697ab
-NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS=0x981f10B577925b37a5f912f3BF93D7bF656697ab
-NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT=0xDED767f24D941BDEf18c1cceacfbA64CF83ab919
+NEXT_PUBLIC_BUNDLE_NFT_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
+NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
+NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
 NEXT_PUBLIC_ERC6551_REGISTRY_ADDRESS=0x000000006551c19487814612e58FE06813775758
-NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0xDED767f24D941BDEf18c1cceacfbA64CF83ab919
+NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
 ```
 
 ---
