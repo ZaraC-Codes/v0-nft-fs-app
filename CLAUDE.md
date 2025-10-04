@@ -456,7 +456,7 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 8. Contract events: `ListingCreated`, `Sale`, `ListingCancelled`, `ListingUpdated` (see contract for full signatures)
 
 ### Bundle System (Custom ERC6551)
-**Status**: ✅ DEPLOYED TO PRODUCTION - ApeChain Mainnet (Oct 3, 2025)
+**Status**: ✅ DEPLOYED TO PRODUCTION - Fully Functional on ApeChain Mainnet (Oct 3, 2025)
 
 Custom ERC6551 implementation with **60-80% gas savings** on unwrapping:
 - Bundle multiple NFTs into single tradeable NFT
@@ -467,18 +467,40 @@ Custom ERC6551 implementation with **60-80% gas savings** on unwrapping:
 - Trade entire bundle as one NFT
 - Unwrap to retrieve individual NFTs
 
-**Deployed Contracts (ApeChain Mainnet)**:
-- BundleNFTUnified: `0x981f10B577925b37a5f912f3BF93D7bF656697ab`
-- FortunaSquareBundleAccount: `0xDED767f24D941BDEf18c1cceacfbA64CF83ab919`
+**Deployed Contracts (ApeChain Mainnet - Chain ID: 33139)**:
+- BundleNFTUnified: `0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779`
+- FortunaSquareBundleAccount: `0x6F71009f0100Eb85aF10D4A3968D3fbA16069553`
 - ERC6551 Registry: `0x000000006551c19487814612e58FE06813775758`
+
+**Environment Variables**:
+```bash
+NEXT_PUBLIC_BUNDLE_NFT_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
+NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
+NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
+NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
+```
+
+**Critical Technical Notes**:
+1. **Authorization Fix**: Uses ERC6551 `context()` function to get bundle contract address from TBA's immutable bytecode instead of storage
+2. **Why This Matters**: ERC6551 minimal proxies don't support initialization - they're deployed via registry as simple delegatecall proxies
+3. **The Solution**: `context()` returns `(chainId, tokenContract, tokenId)` where `tokenContract` IS the bundle contract
+4. **Gas Optimization**: `batchUnwrapBundle()` uses `executeBatch()` for 60-80% gas savings vs individual transfers
+5. **User Experience**: Unwrap button works seamlessly from NFT detail modals and bundle listings
+
+**Integration Status**: ✅ Fully Working
+- Bundle creation: Working on mainnet
+- Bundle unwrapping: Working with batchUnwrapBundle
+- Authorization: Fixed using context() function
+- Frontend: All components updated and deployed
 
 **Files**:
 - `contracts/BundleNFTUnified_Updated.sol` - ERC721 bundle NFT with batchUnwrapBundle
-- `contracts/FortunaSquareBundleAccount.sol` - Custom TBA with executeBatch
-- `lib/bundle.ts` - TypeScript integration
-- `components/bundle/` - UI components
-- `scripts/deploy-fortuna-bundle-mainnet.ts` - Deployment script
-- `DEPLOYED_CONTRACTS.md` - Contract addresses
+- `contracts/FortunaSquareBundleAccount.sol` - Custom TBA with executeBatch and context-based authorization
+- `lib/bundle.ts` - TypeScript integration with mainnet addresses
+- `components/bundle/unwrap-bundle-button.tsx` - Unwrap UI with mainnet support
+- `components/nft/nft-details-modal.tsx` - NFT modal with batchUnwrapBundle
+- `scripts/deploy-fortuna-bundle-mainnet.ts` - Mainnet deployment script
+- `DEPLOYED_CONTRACTS.md` - Contract address registry
 
 ### Swap System
 **Status**: ✅ Complete, ready for deployment
