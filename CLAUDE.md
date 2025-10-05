@@ -568,7 +568,15 @@ NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
 - Smart contracts deployed and tested
 - Frontend components complete
 - Browse rentals page: `/rentals`
-- Full user flow functional
+- NFT modal integration: Owners can wrap/list directly from profile
+- Full user flow functional from both profile and rentals page
+
+**User Flow from Profile**:
+1. Owner clicks on their NFT → Opens NFT details modal
+2. Modal shows "Wrap for Rental" button (for regular NFTs)
+3. After wrapping, refresh and click wrapper NFT → Shows "Create Rental Listing" form
+4. Owner sets custom price per day + min/max duration → Creates listing
+5. Listing appears on `/rentals` page for renters to browse
 
 **Files**:
 - `contracts/IERC4907.sol` - ERC4907 interface
@@ -581,6 +589,7 @@ NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
 - `components/rental/create-rental-listing.tsx` - Create listing with custom price/duration
 - `components/rental/rent-nft-button.tsx` - Rent NFT with payment
 - `components/rental/unwrap-nft-button.tsx` - Unwrap NFT to get original back
+- `components/nft/nft-details-modal.tsx` - Integrated wrap/listing buttons for owners
 - `app/rentals/page.tsx` - Browse active rental listings
 - `scripts/deploy-fortuna-rental.ts` - Deployment script
 - `DEPLOYED_CONTRACTS.md` - Contract address registry
