@@ -205,7 +205,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No NFTs in portfolio</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
                 {profileTabData.portfolio.map((nft) => (
                   <Card
                     key={`${nft.contractAddress}-${nft.tokenId}`}
@@ -647,7 +647,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No items in watchlist</p>
               </div>
             ) : (
-              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
                 {profileTabData.watchlist.map((item) => {
                   // Convert watchlist item to portfolio-style format
                   const nftData = {
