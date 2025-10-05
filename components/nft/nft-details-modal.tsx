@@ -595,12 +595,10 @@ export function NFTDetailsModal({
                         <WrapNFTButton
                           nftContract={nft.contractAddress}
                           tokenId={nft.tokenId}
-                          onSuccess={(wrapResult: any) => {
-                            console.log("🎉 Wrap successful, showing rental form. Result:", wrapResult)
-                            // Extract wrapper ID from transaction receipt or events
-                            // For now, we'll need to parse the transaction result
+                          onSuccess={(wrapperId: string) => {
+                            console.log("🎉 Wrap successful! Wrapper ID:", wrapperId)
                             setShowRentalForm(true)
-                            setWrappedNFTId(nft.tokenId) // This will need to be the wrapper ID, not original
+                            setWrappedNFTId(wrapperId)
                           }}
                           buttonText="List for Rent"
                         />

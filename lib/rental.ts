@@ -92,6 +92,48 @@ export async function wrapNFT(
 }
 
 /**
+ * Extract wrapper ID from NFTWrappedForRental event
+ * @param txHash Transaction hash from wrapNFT call
+ * @returns Wrapper token ID
+ */
+export async function getWrapperIdFromTransaction(txHash: string): Promise<bigint> {
+  const { getContractEvents, prepareEvent } = await import("thirdweb");
+  const { waitForReceipt } = await import("thirdweb/transaction");
+  const { getRpcClient } = await import("thirdweb/rpc");
+
+  const contract = getRentalManagerContract();
+
+  // Wait for transaction receipt
+  const rpcRequest = getRpcClient({ client, chain: apeChainCurtis });
+  const receipt = await waitForReceipt({
+    client,
+    chain: apeChainCurtis,
+    transactionHash: txHash as `0x${string}`,
+  });
+
+  // Get NFTWrappedForRental event
+  const wrappedEvent = prepareEvent({
+    signature: "event NFTWrappedForRental(uint256 indexed wrapperId, address indexed owner, address indexed originalContract, uint256 originalTokenId)"
+  });
+
+  const events = await getContractEvents({
+    contract,
+    events: [wrappedEvent],
+    fromBlock: receipt.blockNumber,
+    toBlock: receipt.blockNumber,
+  });
+
+  // Find the event from this transaction
+  const event = events.find((e: any) => e.transactionHash === txHash);
+
+  if (!event || !event.args || !event.args.wrapperId) {
+    throw new Error("Could not find wrapper ID in transaction events");
+  }
+
+  return event.args.wrapperId;
+}
+
+/**
  * Create a rental listing for a wrapped NFT
  * @param account Wrapper owner's wallet account
  * @param wrapperId Wrapper token ID

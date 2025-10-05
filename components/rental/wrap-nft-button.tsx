@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { wrapNFT } from "@/lib/rental";
+import { wrapNFT, getWrapperIdFromTransaction } from "@/lib/rental";
 import { useToast } from "@/components/ui/use-toast";
 import { Package } from "lucide-react";
 import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
@@ -12,7 +12,7 @@ import { apeChainCurtis, client } from "@/lib/thirdweb";
 interface WrapNFTButtonProps {
   nftContract: string;
   tokenId: string;
-  onSuccess?: (result?: any) => void;
+  onSuccess?: (wrapperId: string) => void;
   buttonText?: string;
 }
 
@@ -59,20 +59,25 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
 
       // Step 2: Wrap the NFT
       console.log("📦 Wrapping NFT for rental...");
-      const result = await wrapNFT(account, nftContract, BigInt(tokenId));
+      const txResult = await wrapNFT(account, nftContract, BigInt(tokenId));
 
-      console.log("✅ NFT wrapped successfully:", result);
+      console.log("✅ NFT wrapped successfully. TX Hash:", txResult.transactionHash);
+
+      // Step 3: Extract wrapper ID from transaction event
+      console.log("🔍 Extracting wrapper ID from transaction...");
+      const wrapperId = await getWrapperIdFromTransaction(txResult.transactionHash);
+      console.log("🎁 Wrapper ID:", wrapperId.toString());
 
       // Don't show toast if buttonText is "List for Rent" (modal will show form instead)
       if (buttonText === "Wrap for Rental") {
         toast({
           title: "NFT Wrapped Successfully!",
-          description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
+          description: `Wrapper NFT #${wrapperId} created. Your NFT is now ready for rental.`,
         });
       }
 
       if (onSuccess) {
-        onSuccess(result);
+        onSuccess(wrapperId.toString());
       }
     } catch (error: any) {
       console.error("Error wrapping NFT:", error);

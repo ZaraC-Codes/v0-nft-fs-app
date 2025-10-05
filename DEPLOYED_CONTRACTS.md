@@ -85,6 +85,7 @@ https://curtis.explorer.caldera.xyz/address/0x3109db997d454625af2f7678238c75dc6f
 - ✅ Custom pricing and rental duration
 - ✅ Works with OpenSea, Premint, Guild.xyz, and more
 - ✅ ERC4907 standard compliance
+- ✅ Seamless UX: Single "List for Rent" button auto-wraps NFT and shows listing form inline
 
 **Environment Variables:**
 ```bash
