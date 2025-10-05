@@ -12,7 +12,7 @@ import { Switch } from "@/components/ui/switch"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/components/ui/use-toast"
-import { Camera, Save, User, Shield, Eye } from "lucide-react"
+import { Camera, Save, User, Shield, Eye, Link as LinkIcon, Twitter, Globe, MessageCircle } from "lucide-react"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
 import { LinkExternalWallet } from "@/components/wallet/link-external-wallet"
@@ -30,6 +30,14 @@ export default function SettingsPage() {
     showWalletAddress: userProfile?.showWalletAddress || false,
     showEmail: userProfile?.showEmail || false,
     isPublic: userProfile?.isPublic || true,
+    socialLinks: {
+      twitter: userProfile?.socialLinks?.twitter || "",
+      discord: userProfile?.socialLinks?.discord || "",
+      website: userProfile?.socialLinks?.website || "",
+      instagram: userProfile?.socialLinks?.instagram || "",
+      telegram: userProfile?.socialLinks?.telegram || "",
+      github: userProfile?.socialLinks?.github || "",
+    }
   })
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
@@ -39,6 +47,16 @@ export default function SettingsPage() {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }))
+  }
+
+  const handleSocialLinkChange = (platform: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      socialLinks: {
+        ...prev.socialLinks,
+        [platform]: value
+      }
     }))
   }
 
@@ -62,6 +80,7 @@ export default function SettingsPage() {
         showWalletAddress: formData.showWalletAddress,
         showEmail: formData.showEmail,
         isPublic: formData.isPublic,
+        socialLinks: formData.socialLinks,
       }
 
       // Mock file upload - in reality you'd upload to cloud storage
@@ -244,6 +263,118 @@ export default function SettingsPage() {
                   </p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Social Links */}
+          <Card className="border-border/50 bg-card/50 backdrop-blur-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <LinkIcon className="h-5 w-5" />
+                Social Links
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Connect your social profiles so others can find you
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Twitter/X */}
+                <div>
+                  <Label htmlFor="twitter" className="flex items-center gap-2">
+                    <Twitter className="h-4 w-4" />
+                    Twitter / X
+                  </Label>
+                  <div className="flex items-center mt-1">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="twitter"
+                      value={formData.socialLinks.twitter}
+                      onChange={(e) => handleSocialLinkChange("twitter", e.target.value)}
+                      placeholder="username"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Discord */}
+                <div>
+                  <Label htmlFor="discord" className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Discord
+                  </Label>
+                  <Input
+                    id="discord"
+                    value={formData.socialLinks.discord}
+                    onChange={(e) => handleSocialLinkChange("discord", e.target.value)}
+                    placeholder="username#1234"
+                  />
+                </div>
+
+                {/* Website */}
+                <div>
+                  <Label htmlFor="website" className="flex items-center gap-2">
+                    <Globe className="h-4 w-4" />
+                    Website
+                  </Label>
+                  <Input
+                    id="website"
+                    value={formData.socialLinks.website}
+                    onChange={(e) => handleSocialLinkChange("website", e.target.value)}
+                    placeholder="https://yourwebsite.com"
+                  />
+                </div>
+
+                {/* Instagram */}
+                <div>
+                  <Label htmlFor="instagram" className="flex items-center gap-2">
+                    <Camera className="h-4 w-4" />
+                    Instagram
+                  </Label>
+                  <div className="flex items-center mt-1">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="instagram"
+                      value={formData.socialLinks.instagram}
+                      onChange={(e) => handleSocialLinkChange("instagram", e.target.value)}
+                      placeholder="username"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                {/* Telegram */}
+                <div>
+                  <Label htmlFor="telegram" className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4" />
+                    Telegram
+                  </Label>
+                  <div className="flex items-center mt-1">
+                    <span className="text-sm text-muted-foreground mr-2">@</span>
+                    <Input
+                      id="telegram"
+                      value={formData.socialLinks.telegram}
+                      onChange={(e) => handleSocialLinkChange("telegram", e.target.value)}
+                      placeholder="username"
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+
+                {/* GitHub */}
+                <div>
+                  <Label htmlFor="github" className="flex items-center gap-2">
+                    <LinkIcon className="h-4 w-4" />
+                    GitHub
+                  </Label>
+                  <Input
+                    id="github"
+                    value={formData.socialLinks.github}
+                    onChange={(e) => handleSocialLinkChange("github", e.target.value)}
+                    placeholder="username"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 

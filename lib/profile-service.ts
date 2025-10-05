@@ -234,21 +234,64 @@ export class ProfileService {
   /**
    * Create profile from wallet connection (embedded wallet from email/social signup)
    */
-  static async createProfileFromWallet(walletAddress: string, walletType: WalletType = 'embedded'): Promise<UserProfile> {
-    const username = this.generateUsernameFromWallet(walletAddress)
+  static async createProfileFromWallet(
+    walletAddress: string,
+    oauthData?: {
+      provider?: string
+      profilePicture?: string
+      email?: string
+      name?: string
+    }
+  ): Promise<UserProfile> {
+    // Generate username from OAuth name or wallet address
+    let username: string
+    if (oauthData?.name) {
+      // Use OAuth name as base username
+      const baseName = oauthData.name.toLowerCase().replace(/\s+/g, '_')
+      username = this.isUsernameAvailable(baseName) ? baseName : `${baseName}_${Date.now().toString().slice(-4)}`
+    } else if (oauthData?.email) {
+      username = this.generateUsernameFromEmail(oauthData.email)
+    } else {
+      username = this.generateUsernameFromWallet(walletAddress)
+    }
 
     const walletMetadata: WalletMetadata = {
       address: walletAddress,
-      type: walletType,
+      type: 'embedded',
       addedAt: new Date()
     }
 
-    return this.createProfile({
-      id: walletAddress, // Use wallet address as ID for wallet-only users
+    const now = new Date()
+    const profile: UserProfile = {
+      id: walletAddress,
       username,
+      email: oauthData?.email,
+      avatar: oauthData?.profilePicture, // Auto-populate from OAuth
       walletAddress,
-      wallets: [walletMetadata]
-    })
+      wallets: [walletMetadata],
+      activeWallet: walletAddress,
+      oauthProvider: oauthData?.provider as any,
+      oauthProfilePicture: oauthData?.profilePicture, // Store original OAuth avatar
+      createdAt: now,
+      updatedAt: now,
+      verified: true,
+      followersCount: 0,
+      followingCount: 0,
+      isPublic: true,
+      showWalletAddress: true,
+      showEmail: false,
+      bio: oauthData?.provider
+        ? `Connected via ${oauthData.provider.charAt(0).toUpperCase() + oauthData.provider.slice(1)} 🚀`
+        : `Welcome to Fortuna Square! Connected with ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+    }
+
+    // Save the new profile
+    const profiles = this.getProfiles()
+    profiles.push(profile)
+    this.saveProfiles(profiles)
+
+    console.log("✅ Created new profile with OAuth data:", profile.username, "Provider:", oauthData?.provider)
+    return profile
   }
 
   /**

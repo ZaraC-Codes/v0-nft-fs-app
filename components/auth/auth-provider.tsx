@@ -161,21 +161,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
           if (shouldAutoCreate) {
             console.log("✅ Creating profile automatically for connected wallet")
-            ProfileService.createProfileFromWallet(account.address).then(profile => {
-              const walletUser: User = {
-                id: profile.id,
-                username: profile.username,
-                email: "",
-                avatar: profile.avatar,
-                walletAddress: account.address,
-                isVerified: true,
+
+            // Try to get OAuth profile data from embedded wallet
+            ;(async () => {
+              try {
+                let oauthData = null
+
+                // Check if this is an embedded wallet with OAuth
+                const wallet = (account as any).wallet
+                if (wallet && typeof wallet.getUserInfo === 'function') {
+                  try {
+                    const userInfo = await wallet.getUserInfo()
+                    console.log("📸 OAuth user info retrieved:", userInfo)
+                    oauthData = {
+                      provider: userInfo?.provider,
+                      profilePicture: userInfo?.profilePicture,
+                      email: userInfo?.email,
+                      name: userInfo?.name,
+                    }
+                  } catch (e) {
+                    console.log("ℹ️ No OAuth data available (might be email/passkey login)")
+                  }
+                }
+
+                // Create profile with OAuth data if available
+                const profile = await ProfileService.createProfileFromWallet(
+                  account.address,
+                  oauthData
+                )
+
+                const walletUser: User = {
+                  id: profile.id,
+                  username: profile.username,
+                  email: oauthData?.email || "",
+                  avatar: profile.avatar,
+                  walletAddress: account.address,
+                  isVerified: true,
+                }
+                setUser(walletUser)
+                localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+                console.log("✅ Created wallet user:", profile.username)
+              } catch (error) {
+                console.error("Failed to create wallet profile:", error)
               }
-              setUser(walletUser)
-              localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-              console.log("✅ Created wallet user:", profile.username)
-            }).catch(error => {
-              console.error("Failed to create wallet profile:", error)
-            })
+            })()
           } else {
             console.log("⚠️ External wallet detected. Please signup with email/social first, then link your external wallet in Settings.")
           }

@@ -7,6 +7,15 @@ export interface WalletMetadata {
   addedAt: Date
 }
 
+export interface SocialLinks {
+  twitter?: string // Twitter/X handle (without @)
+  discord?: string // Discord username
+  website?: string // Personal website URL
+  instagram?: string // Instagram handle (without @)
+  telegram?: string // Telegram username (without @)
+  github?: string // GitHub username
+}
+
 export interface UserProfile {
   id: string
   username: string
@@ -21,6 +30,13 @@ export interface UserProfile {
   createdAt: Date
   updatedAt: Date
   verified: boolean
+
+  // Social links
+  socialLinks?: SocialLinks
+
+  // OAuth metadata (auto-populated from social login)
+  oauthProvider?: 'google' | 'discord' | 'twitter' | 'facebook' | 'apple'
+  oauthProfilePicture?: string // Original OAuth profile picture URL
 
   // Social stats
   followersCount: number

@@ -17,7 +17,12 @@ import {
   ExternalLink,
   Plus,
   Package,
-  Vault
+  Vault,
+  Twitter,
+  Globe,
+  MessageCircle,
+  Camera,
+  Github
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -155,6 +160,79 @@ export function ProfileHeader({ profile: profileProp }: ProfileHeaderProps) {
                     year: 'numeric'
                   })}
                 </p>
+
+                {/* Social Links */}
+                {profile.socialLinks && (
+                  <div className="flex items-center gap-3 mt-2">
+                    {profile.socialLinks.twitter && (
+                      <a
+                        href={`https://twitter.com/${profile.socialLinks.twitter}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Twitter/X"
+                      >
+                        <Twitter className="h-5 w-5" />
+                      </a>
+                    )}
+                    {profile.socialLinks.discord && (
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(profile.socialLinks?.discord || '')
+                          alert('Discord username copied to clipboard!')
+                        }}
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title={`Discord: ${profile.socialLinks.discord}`}
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                      </button>
+                    )}
+                    {profile.socialLinks.website && (
+                      <a
+                        href={profile.socialLinks.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Website"
+                      >
+                        <Globe className="h-5 w-5" />
+                      </a>
+                    )}
+                    {profile.socialLinks.instagram && (
+                      <a
+                        href={`https://instagram.com/${profile.socialLinks.instagram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Instagram"
+                      >
+                        <Camera className="h-5 w-5" />
+                      </a>
+                    )}
+                    {profile.socialLinks.telegram && (
+                      <a
+                        href={`https://t.me/${profile.socialLinks.telegram}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="Telegram"
+                      >
+                        <MessageCircle className="h-5 w-5" />
+                      </a>
+                    )}
+                    {profile.socialLinks.github && (
+                      <a
+                        href={`https://github.com/${profile.socialLinks.github}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-muted-foreground hover:text-primary transition-colors"
+                        title="GitHub"
+                      >
+                        <Github className="h-5 w-5" />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
