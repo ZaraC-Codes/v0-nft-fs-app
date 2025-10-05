@@ -205,7 +205,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No NFTs in portfolio</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
                 {profileTabData.portfolio.map((nft) => (
                   <Card
                     key={`${nft.contractAddress}-${nft.tokenId}`}
@@ -214,7 +214,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                   >
                     {/* Bundle NFT Layout */}
                     {nft.isBundle ? (
-                      <div className="relative h-48 overflow-hidden ">
+                      <div className="relative h-32 overflow-hidden ">
                         <img
                           src={nft.image || "/placeholder.svg"}
                           alt={nft.name}
@@ -327,25 +327,25 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         <img
                           src={nft.image || "/placeholder.svg"}
                           alt={nft.name}
-                          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105 "
+                          className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105 "
                         />
 
                         {/* Chain Badge */}
                         {nft.chainId && CHAIN_METADATA[nft.chainId] && (
-                          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0 `}>
+                          <Badge className={`absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0 `}>
                             {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
                           </Badge>
                         )}
 
                         {/* Rarity Badge */}
                         {nft.rarity && (
-                          <Badge className={`absolute top-12 left-3 bg-gradient-to-r ${getRarityColor(nft.rarity)} text-white border-0 neon-glow `}>
+                          <Badge className={`absolute top-7 left-1.5 text-[10px] px-1.5 py-0.5 bg-gradient-to-r ${getRarityColor(nft.rarity)} text-white border-0 neon-glow `}>
                             {nft.rarity}
                           </Badge>
                         )}
 
                         {/* Watchlist Button */}
-                        <div className="absolute top-3 right-3 z-50 ">
+                        <div className="absolute top-1.5 right-1.5 z-50 ">
                           <WatchlistToggle
                             contractAddress={nft.contractAddress}
                             tokenId={nft.tokenId}
@@ -412,80 +412,55 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                       </div>
                     )}
 
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
+                    <CardContent className="p-2">
+                      <div className="flex items-start justify-between mb-1">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                          <h3 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
                             {nft.name}
                           </h3>
-                          <p className="text-sm text-muted-foreground">
+                          <p className="text-[10px] text-muted-foreground truncate">
                             {nft.collection}
                             {nft.isBundle && (
-                              <span className="ml-2 text-orange-400">
-                                • {nft.bundleCount} items
+                              <span className="ml-1 text-orange-400">
+                                • {nft.bundleCount}
                               </span>
                             )}
                           </p>
-                          {/* Owner Wallet Badge - show if multi-wallet and has ownerWallet */}
-                          {nft.ownerWallet && (
-                            <div className="mt-1">
-                              <Badge variant="outline" className="text-xs font-mono">
-                                <Wallet className="h-3 w-3 mr-1" />
-                                {nft.ownerWallet.slice(0, 6)}...{nft.ownerWallet.slice(-4)}
-                              </Badge>
-                            </div>
-                          )}
                         </div>
                         <div className="text-right">
                           {/* Listing Status Badge */}
                           {nft.listing && nft.listing.type !== "none" && (
                             <Badge
-                              className={`mb-1 text-xs ${
+                              className={`text-[9px] px-1 py-0 ${
                                 nft.listing.type === "sale" ? "bg-green-500/20 text-green-400 border-green-500/30" :
                                 nft.listing.type === "rent" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
                                 "bg-purple-500/20 text-purple-400 border-purple-500/30"
                               }`}
                             >
-                              {nft.listing.type === "sale" ? "For Sale" :
-                               nft.listing.type === "rent" ? "For Rent" : "For Swap"}
+                              {nft.listing.type === "sale" ? "Sale" :
+                               nft.listing.type === "rent" ? "Rent" : "Swap"}
                             </Badge>
                           )}
                         </div>
                       </div>
 
                       {/* Price Information */}
-                      <div className="space-y-1">
+                      <div className="space-y-0.5">
                         {/* Sale Listing */}
                         {nft.listing?.type === "sale" && nft.listing.sale && (
                           <div>
-                            <p className="font-bold text-primary neon-text text-lg">
+                            <p className="font-bold text-primary neon-text text-xs">
                               {nft.listing.sale.price} APE
                             </p>
-                            {nft.listing.sale.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground">
-                                Last: {nft.listing.sale.lastSalePrice} APE
-                              </p>
-                            )}
                           </div>
                         )}
 
                         {/* Rent Listing */}
                         {nft.listing?.type === "rent" && nft.listing.rent && (
                           <div>
-                            <p className="font-bold text-blue-400 text-lg">
+                            <p className="font-bold text-blue-400 text-xs">
                               {nft.listing.rent.pricePerDay} APE/Day
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              Min: {nft.listing.rent.minDays} Day{nft.listing.rent.minDays !== 1 ? 's' : ''}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Max: {nft.listing.rent.maxDays} Day{nft.listing.rent.maxDays !== 1 ? 's' : ''}
-                            </p>
-                            {nft.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            )}
                           </div>
                         )}
 
@@ -672,7 +647,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No items in watchlist</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
                 {profileTabData.watchlist.map((item) => {
                   // Convert watchlist item to portfolio-style format
                   const nftData = {

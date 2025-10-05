@@ -351,7 +351,7 @@ export default function BundlesPage() {
                 </Card>
 
                 {/* NFT Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
                   {searchedNFTs.map((nft) => {
                     const nftId = `${nft.contractAddress}-${nft.tokenId}`
                     const isSelected = selectedNFTs.has(nftId)
