@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { RentNFTButton } from "@/components/rental/rent-nft-button";
 import { getActiveRentalListings, getOriginalNFT, type RentalListing, type WrappedNFT } from "@/lib/rental";
-import { fromWei } from "thirdweb";
+import { toEther } from "thirdweb";
 import { Calendar, DollarSign, Package } from "lucide-react";
 
 interface RentalListingWithNFT {
@@ -107,7 +107,7 @@ export default function RentalsPage() {
                         Price per day
                       </span>
                       <span className="text-lg font-bold text-purple-400">
-                        {fromWei(listing.pricePerDay)} APE
+                        {toEther(listing.pricePerDay)} APE
                       </span>
                     </div>
                   </div>

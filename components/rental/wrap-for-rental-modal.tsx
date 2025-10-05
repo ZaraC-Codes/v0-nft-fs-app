@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
 import { client } from "@/lib/thirdweb"
-import { prepareWrapForRental } from "@/lib/rental"
+// import { prepareWrapForRental } from "@/lib/rental" // TODO: Fix this - function doesn't exist
 import { Package, Calendar, DollarSign, Zap } from "lucide-react"
 import Image from "next/image"
 import { NFTWithTraits } from "@/lib/nft-matching"
@@ -182,13 +182,9 @@ export function WrapForRentalModal({ isOpen, onClose, nft }: WrapForRentalModalP
                 throw new Error("Invalid rental terms")
               }
 
-              return prepareWrapForRental(client, chain, {
-                nftContract: nft.contractAddress,
-                tokenId: nft.tokenId,
-                pricePerDay: toWei(pricePerDay).toString(),
-                minDays: parseInt(minDays),
-                maxDays: parseInt(maxDays),
-              })
+              // TODO: Fix this - prepareWrapForRental doesn't exist
+              // Use WrapNFTButton component on profile page instead
+              throw new Error("This feature is temporarily disabled. Please use the Wrap NFT button on your profile page.")
             }}
             onTransactionConfirmed={() => {
               onClose()

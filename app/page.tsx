@@ -32,6 +32,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [sortBy, setSortBy] = useState("nfts")
+  const [selectedChain, setSelectedChain] = useState<"all" | number>("all")
   const [activeUsers, setActiveUsers] = useState<any[]>([])
 
   const featuredCollections = [

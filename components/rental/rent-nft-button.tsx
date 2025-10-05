@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { rentNFT, calculateRentalCost, type RentalListing } from "@/lib/rental";
 import { toast } from "sonner";
 import { Calendar, DollarSign } from "lucide-react";
-import { fromWei } from "thirdweb";
+import { toEther } from "thirdweb";
 
 interface RentNFTButtonProps {
   listing: RentalListing;
@@ -52,9 +52,9 @@ export function RentNFTButton({ listing, onSuccess }: RentNFTButtonProps) {
       console.log({
         wrapperId: listing.wrapperId.toString(),
         days,
-        rentalCost: fromWei(costs.rentalCost),
-        platformFee: fromWei(costs.platformFee),
-        totalCost: fromWei(costs.totalCost),
+        rentalCost: toEther(costs.rentalCost),
+        platformFee: toEther(costs.platformFee),
+        totalCost: toEther(costs.totalCost),
       });
 
       const result = await rentNFT(
@@ -112,7 +112,7 @@ export function RentNFTButton({ listing, onSuccess }: RentNFTButtonProps) {
             <div className="text-xs space-y-1">
               <div className="flex justify-between">
                 <span className="text-gray-400">Price per day:</span>
-                <span className="text-white">{fromWei(listing.pricePerDay)} APE</span>
+                <span className="text-white">{toEther(listing.pricePerDay)} APE</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">Duration range:</span>
@@ -151,16 +151,16 @@ export function RentNFTButton({ listing, onSuccess }: RentNFTButtonProps) {
               <div className="text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-gray-400">Rental cost:</span>
-                  <span className="text-white">{fromWei(costs.rentalCost)} APE</span>
+                  <span className="text-white">{toEther(costs.rentalCost)} APE</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-400">Platform fee (2.5%):</span>
-                  <span className="text-white">{fromWei(costs.platformFee)} APE</span>
+                  <span className="text-white">{toEther(costs.platformFee)} APE</span>
                 </div>
                 <div className="h-px bg-gray-700 my-2" />
                 <div className="flex justify-between font-medium">
                   <span className="text-purple-400">Total:</span>
-                  <span className="text-purple-400">{fromWei(costs.totalCost)} APE</span>
+                  <span className="text-purple-400">{toEther(costs.totalCost)} APE</span>
                 </div>
               </div>
             </div>
