@@ -91,15 +91,10 @@ export default function SettingsPage() {
         showEmail: formData.showEmail,
         isPublic: formData.isPublic,
         socialLinks: formData.socialLinks,
+        avatar: avatarPreview || userProfile.avatar,
+        coverImage: coverPreview || userProfile.coverImage,
       }
 
-      // Use base64 data from previews for localStorage persistence
-      if (avatarPreview) {
-        updates.avatar = avatarPreview
-      }
-      if (coverPreview) {
-        updates.coverImage = coverPreview
-      }
 
       await updateProfile(updates)
 
