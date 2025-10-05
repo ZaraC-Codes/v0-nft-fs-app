@@ -9,8 +9,9 @@
     "skipLibCheck": true,
     "strict": true,
     "allowJs": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "noEmit": false
   },
   "include": ["scripts/**/*.ts", "hardhat.config.ts"],
-  "exclude": ["node_modules"]
+  "exclude": ["node_modules", "app", "components", "lib"]
 }

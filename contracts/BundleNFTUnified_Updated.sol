@@ -105,7 +105,7 @@ contract BundleNFTUnified is ERC721, ERC721URIStorage, Ownable, IERC721Receiver 
     constructor(
         address _registry,
         address _accountImplementation
-    ) ERC721("Fortuna Square Bundle", "FSB") Ownable(msg.sender) {
+    ) ERC721("Fortuna Square Bundle NFTs", "FSB") Ownable(msg.sender) {
         require(_registry != address(0), "Invalid registry");
         require(_accountImplementation != address(0), "Invalid implementation");
 

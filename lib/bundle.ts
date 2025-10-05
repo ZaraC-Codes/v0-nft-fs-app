@@ -11,10 +11,10 @@ import { encodeFunctionData } from "viem";
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025 (FIXED: context-based auth)
   [apeChain.id]: {
-    bundleNFT: "0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779", // BundleNFTUnified with batchUnwrapBundle
-    bundleManager: "0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779", // Same as bundleNFT (unified contract)
+    bundleNFT: "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017", // BundleNFTUnified with batchUnwrapBundle
+    bundleManager: "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x6F71009f0100Eb85aF10D4A3968D3fbA16069553", // FortunaSquareBundleAccount with context-based auth
+    accountImplementation: "0x76591D246caC5DFB0D31c65d0052a15f6A887e7f", // FortunaSquareBundleAccount with context-based auth
   },
   // ApeChain Curtis (testnet)
   [apeChainCurtis.id]: {

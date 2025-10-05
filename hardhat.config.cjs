@@ -2,7 +2,12 @@ const { config: dotenvConfig } = require("dotenv");
 require("@nomicfoundation/hardhat-toolbox");
 require("@nomicfoundation/hardhat-verify");
 require("ts-node").register({
-  project: "./tsconfig.hardhat.json"
+  project: "./tsconfig.hardhat.json",
+  transpileOnly: true,
+  compilerOptions: {
+    module: "commonjs",
+    moduleResolution: "node"
+  }
 });
 
 dotenvConfig({ path: ".env.local" });

@@ -458,6 +458,11 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 ### Bundle System (Custom ERC6551)
 **Status**: ✅ DEPLOYED TO PRODUCTION - Fully Functional on ApeChain Mainnet (Oct 3, 2025)
 
+**Collection Name**: "Fortuna Square Bundle NFTs"
+**Collection Description**: "Fortuna Square Bundle NFTs - ERC6551-powered NFT bundles on ApeChain. Bundle multiple NFTs into a single tradeable NFT, then unwrap anytime to retrieve the original individual assets."
+**Bundle Thumbnail**: FS logo on cyber grid background (consistent branding for all bundles on external platforms)
+
+
 Custom ERC6551 implementation with **60-80% gas savings** on unwrapping:
 - Bundle multiple NFTs into single tradeable NFT
 - Each bundle gets its own Token Bound Account (TBA)
@@ -718,6 +723,20 @@ npx hardhat run scripts/deploy-rentals.ts --network apechain_curtis
 ```
 grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10
 ```
+### Bundle NFT Modal Improvements ✅
+**What**: Enhanced bundle NFT modals to match individual NFT functionality and improve UX.
+
+**Changes Made** (October 5, 2025):
+- Bundle collection name changed from "Unknown Collection" to "Fortuna Square Bundle NFTs" in app UI
+- Removed duplicate Contract Address from Bundle Information section (already shown in Bundle Details)
+- Added Activity tab to bundle NFT modals (previously only available for individual NFTs)
+- All NFT modals (bundles and individual) default to Traits tab
+- Shortened "List for Rent" button text to "Rent" to prevent overflow in 2-column grid layout
+
+**Files Modified**:
+- `components/profile/profile-provider.tsx` - Bundle collection name detection
+- `components/nft/nft-details-modal.tsx` - Activity tab, duplicate removal, button text
+
 
 ## All Deployed Contracts (Mainnet - Chain ID: 33139)
 

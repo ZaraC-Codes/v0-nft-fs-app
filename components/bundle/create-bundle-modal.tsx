@@ -213,9 +213,8 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const handleCreateBundle = () => {
     if (!selectedNFTs.length || !bundleName.trim()) return
 
-    // Use selected cover image
-    const coverNFT = selectedNFTs[coverImageIndex]
-    const bundleImageUrl = coverNFT?.image || "/placeholder-nft.png"
+    // Always use FS logo for consistent branding on external platforms
+    const bundleImageUrl = "/fs-temp-logo.png"
 
     // Get selected thumbnails
     const thumbnailData = thumbnailIndices
@@ -229,7 +228,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
     // Generate metadata URI with cover image and thumbnails
     const metadataURI = generateBundleMetadataURI(
       bundleName,
-      bundleDescription || `A bundle of ${selectedNFTs.length} NFTs`,
+      "Fortuna Square Bundle NFTs - ERC6551-powered NFT bundles on ApeChain. Bundle multiple NFTs into a single tradeable NFT, then unwrap anytime to retrieve the original individual assets.",
       bundleImageUrl,
       selectedNFTs.map(nft => ({
         name: nft.name,

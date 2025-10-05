@@ -4,19 +4,20 @@
 
 ### FortunaSquare Bundle System ✅
 
-**Deployment Date:** October 3, 2025
+**Deployment Date:** October 5, 2025 (Updated with "Fortuna Square Bundle NFTs" collection name)
 
 Custom ERC-6551 implementation with **60-80% gas savings** on bundle unwrapping!
 
 **BundleNFTUnified:**
-- Contract: `0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779`
-- Features: Create bundles, batch unwrap, unified NFT + Manager
-- Explorer: https://apechain.calderachain.xyz/address/0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
+- Contract: `0x8051dECcEa3105f4a6993391d2A36F1E9D96b017`
+- Collection Name: "Fortuna Square Bundle NFTs"
+- Features: Create bundles, batch unwrap, unified NFT + Manager, FS logo metadata
+- Explorer: https://apechain.calderachain.xyz/address/0x8051dECcEa3105f4a6993391d2A36F1E9D96b017
 
 **FortunaSquareBundleAccount (TBA Implementation):**
-- Contract: `0x6F71009f0100Eb85aF10D4A3968D3fbA16069553`
+- Contract: `0x76591D246caC5DFB0D31c65d0052a15f6A887e7f`
 - Features: Custom ERC-6551 with executeBatch for gas optimization, fixed authorization using context()
-- Explorer: https://apechain.calderachain.xyz/address/0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
+- Explorer: https://apechain.calderachain.xyz/address/0x76591D246caC5DFB0D31c65d0052a15f6A887e7f
 
 **ERC6551 Registry:**
 - Contract: `0x000000006551c19487814612e58FE06813775758`
@@ -24,11 +25,11 @@ Custom ERC-6551 implementation with **60-80% gas savings** on bundle unwrapping!
 
 **Environment Variables:**
 ```bash
-NEXT_PUBLIC_BUNDLE_NFT_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
-NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS=0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779
-NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
+NEXT_PUBLIC_BUNDLE_NFT_ADDRESS=0x8051dECcEa3105f4a6993391d2A36F1E9D96b017
+NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS=0x8051dECcEa3105f4a6993391d2A36F1E9D96b017
+NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT=0x76591D246caC5DFB0D31c65d0052a15f6A887e7f
 NEXT_PUBLIC_ERC6551_REGISTRY_ADDRESS=0x000000006551c19487814612e58FE06813775758
-NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0x6F71009f0100Eb85aF10D4A3968D3fbA16069553
+NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0x76591D246caC5DFB0D31c65d0052a15f6A887e7f
 ```
 
 ---
