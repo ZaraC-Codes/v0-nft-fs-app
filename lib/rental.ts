@@ -108,27 +108,29 @@ export async function getWrapperIdFromTransaction(txHash: string): Promise<bigin
 
   console.log("📋 Transaction receipt:", receipt);
   console.log("📋 Total logs:", receipt.logs?.length);
-  console.log("📋 Looking for RentalManager address:", RENTAL_MANAGER_ADDRESS.toLowerCase());
+  console.log("📋 Looking for RentalWrapper address:", RENTAL_WRAPPER_ADDRESS.toLowerCase());
+  console.log("📋 (NOT RentalManager - the wrapper emits NFTWrapped event)");
 
-  // NFTWrappedForRental event signature (indexed parameters become topics)
-  // event NFTWrappedForRental(uint256 indexed wrapperId, address indexed owner, address originalContract, uint256 originalTokenId)
+  // NFTWrapped event from RentalWrapper contract
+  // event NFTWrapped(uint256 indexed wrapperId, address indexed originalContract, uint256 indexed originalTokenId, address owner, address tba)
   // topic[0] = event signature hash
   // topic[1] = wrapperId (indexed)
-  // topic[2] = owner (indexed)
+  // topic[2] = originalContract (indexed)
+  // topic[3] = originalTokenId (indexed)
 
   for (const log of receipt.logs || []) {
     console.log("🔍 Log:", {
       address: log.address,
       addressLower: log.address?.toLowerCase(),
-      matchesRentalManager: log.address?.toLowerCase() === RENTAL_MANAGER_ADDRESS.toLowerCase(),
+      matchesRentalWrapper: log.address?.toLowerCase() === RENTAL_WRAPPER_ADDRESS.toLowerCase(),
       topics: log.topics,
       topicsLength: log.topics?.length,
       data: log.data
     });
 
-    // Check if this log is from the RentalManager contract
-    if (log.address?.toLowerCase() === RENTAL_MANAGER_ADDRESS.toLowerCase()) {
-      console.log("✅ Found log from RentalManager contract");
+    // Check if this log is from the RentalWrapper contract (NOT RentalManager!)
+    if (log.address?.toLowerCase() === RENTAL_WRAPPER_ADDRESS.toLowerCase()) {
+      console.log("✅ Found log from RentalWrapper contract");
 
       // The wrapperId is in topic[1] (first indexed parameter)
       if (log.topics && log.topics.length >= 2) {
