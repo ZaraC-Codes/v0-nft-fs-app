@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
 import { wrapNFT } from "@/lib/rental";
-import { toast } from "sonner";
+import { useToast } from "@/components/ui/use-toast";
 import { Package } from "lucide-react";
 import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
 import { apeChainCurtis, client } from "@/lib/thirdweb";
@@ -17,11 +17,16 @@ interface WrapNFTButtonProps {
 
 export function WrapNFTButton({ nftContract, tokenId, onSuccess }: WrapNFTButtonProps) {
   const account = useActiveAccount();
+  const { toast } = useToast();
   const [isWrapping, setIsWrapping] = useState(false);
 
   const handleWrap = async () => {
     if (!account) {
-      toast.error("Please connect your wallet");
+      toast({
+        title: "Wallet Not Connected",
+        description: "Please connect your wallet to wrap NFTs for rental.",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -57,14 +62,21 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess }: WrapNFTButton
 
       console.log("✅ NFT wrapped successfully:", result);
 
-      toast.success("NFT wrapped successfully! You can now create a rental listing.");
+      toast({
+        title: "NFT Wrapped Successfully!",
+        description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
+      });
 
       if (onSuccess) {
         onSuccess();
       }
     } catch (error: any) {
       console.error("Error wrapping NFT:", error);
-      toast.error(error.message || "Failed to wrap NFT");
+      toast({
+        title: "Wrap Failed",
+        description: error.message || "Failed to wrap NFT for rental.",
+        variant: "destructive"
+      });
     } finally {
       setIsWrapping(false);
     }
