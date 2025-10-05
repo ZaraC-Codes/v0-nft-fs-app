@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ClearStorageButton } from "@/components/debug/clear-storage"
-import { apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import {
   ArrowRight,
   TrendingUp,
@@ -41,43 +41,43 @@ export default function HomePage() {
   const featuredCollections = [
     {
       name: "Gs on Ape",
-      image: "https://picsum.photos/800/400?random=gsonape",
+      image: "https://img.reservoir.tools/images/v2/apechain/khnv7QtJSsXhx7z5lxeoZ%2BmzCCQGhdyVqrJE1owET60HbyBkWWTaY21CXMSoiGCmcgYw%2Bcd%2BAar2SvDz%2FjghdmVXHZIkRerllKXYROZFSzfoSIPVzVfZUAkUJQ66rEUW8Y4ZiC%2Bejmjp%2BPbbJ8Tei8xYX%2Fk4H5r9OPp8lBsN8iGA51FqLezPvR3u%2BYyogGpzUT03ggnVTyz2BQkvEALHyQ%3D%3D",
       description: "Top ApeChain collection with strong community and high trading volume.",
       floorPrice: "933 APE",
       volume24h: "High volume",
       totalSupply: "Unknown",
       verified: true,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       name: "Gobs on Ape",
-      image: "https://picsum.photos/800/400?random=gobsonape",
+      image: "https://img.reservoir.tools/images/v2/apechain/DncmTLTvq%2BRfs1SNWS7xb3W80HdqFd%2BoYMeOUwTra2ye%2BUwz1y9U8W5XFAoxDsUlPLNNkWoEVMZnAoBlOkC5LxSYrDbzN2R1xVehQq1ycL5EK9FRylVwRFKnGPxGwW25",
       description: "2,222 unique PFP avatars released January 2025. Part of ApeChain's Spotlight Loyalty Program.",
       floorPrice: "878 APE",
       volume24h: "5M APE Total Volume",
       totalSupply: "2,222",
       verified: true,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       name: "NightGlyders",
-      image: "https://picsum.photos/800/400?random=nightglyders",
+      image: "https://img.reservoir.tools/images/v2/apechain/PZM0PawAvg1wACQh74OVUNpeZ1BHv09aPUzMjOBb0BiV674czOLfcFGFDOovprNYhSo%2BvA8WRGvg2PgniGTqKA%3D%3D",
       description: "3,333 NFTs rooted in the magic of the Notca Fruit's rupture. Unique traits and mystical powers.",
       floorPrice: "170 APE",
       volume24h: "4,422 APE (24h)",
       totalSupply: "3,333",
       verified: true,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       name: "Zards",
-      image: "https://picsum.photos/800/400?random=zards",
+      image: "https://img.reservoir.tools/images/v2/apechain/WOC71RNEaE4WFlvhixBQzuChqBni4cdl%2BREGqHDpEpJ%2B59gK6eLhYwtBlJyqxC8ug%2BAnh6nQzlQYitiXWtDo0g%3D%3D",
       description: "5,000 pixelated wizards with magical powers. Soft stake to earn Magic Points and boost rarity!",
       floorPrice: "66 APE",
       volume24h: "349K APE Total Volume",
       totalSupply: "4,999",
       verified: true,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       name: "BALLOONS",
@@ -87,7 +87,7 @@ export default function HomePage() {
       volume24h: "Active Trading",
       totalSupply: "Unknown",
       verified: true,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     }
   ]
 
