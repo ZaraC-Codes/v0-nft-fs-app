@@ -99,11 +99,23 @@ NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
 - Contract: `0x00000000000000447e69651d841bD8D104Bed493`
 - Same address on all EVM chains (including ApeChain mainnet)
 
-### Other Curtis Testnet Contracts
+## Swap System (ApeChain Mainnet)
 
-**Swap System:**
-- SwapManager: `0x36cf50b633b4095c19ac5677b24d9f9bb4c5c179`
+**Status:** ✅ DEPLOYED TO MAINNET - October 5, 2025
+
+**SwapManager:**
+- Contract: `0x732984EC859f4597502B9336FD3B1fCCBCD57C91`
+- Network: ApeChain Mainnet (Chain ID: 33139)
+- Explorer: https://apechain.calderaexplorer.xyz/address/0x732984EC859f4597502B9336FD3B1fCCBCD57C91
+- Features: P2P NFT swaps, flexible matching criteria, trait-based matching
+
+**Environment Variables:**
+```bash
+NEXT_PUBLIC_SWAP_MANAGER_ADDRESS=0x732984EC859f4597502B9336FD3B1fCCBCD57C91
+```
 
 ---
+
+**🚀 ALL SYSTEMS NOW ON MAINNET - PRODUCTION READY**
 
 *Last updated: October 5, 2025*

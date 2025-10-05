@@ -1,7 +1,7 @@
 import { getContract, prepareContractCall, readContract, getContractEvents, prepareEvent } from "thirdweb";
 import { approve as approveERC721, isApprovedForAll as isApprovedForAllERC721 } from "thirdweb/extensions/erc721";
 import { setApprovalForAll as setApprovalForAllERC1155, isApprovedForAll as isApprovedForAllERC1155 } from "thirdweb/extensions/erc1155";
-import { client, apeChainCurtis, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
+import { client, apeChain, MARKETPLACE_CONTRACT_ADDRESS } from "./thirdweb";
 import { calculateTotalWithFee, PLATFORM_FEE_RECIPIENT } from "./platform-fees";
 
 // Get the marketplace contract instance
@@ -16,7 +16,7 @@ export function getMarketplaceContract() {
 
   return getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: MARKETPLACE_CONTRACT_ADDRESS,
   });
 }
