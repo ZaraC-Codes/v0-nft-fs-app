@@ -97,40 +97,45 @@ export async function wrapNFT(
  * @returns Wrapper token ID
  */
 export async function getWrapperIdFromTransaction(txHash: string): Promise<bigint> {
-  const { getContractEvents, prepareEvent } = await import("thirdweb");
   const { waitForReceipt } = await import("thirdweb/transaction");
-  const { getRpcClient } = await import("thirdweb/rpc");
-
-  const contract = getRentalManagerContract();
 
   // Wait for transaction receipt
-  const rpcRequest = getRpcClient({ client, chain: apeChainCurtis });
   const receipt = await waitForReceipt({
     client,
     chain: apeChainCurtis,
     transactionHash: txHash as `0x${string}`,
   });
 
-  // Get NFTWrappedForRental event
-  const wrappedEvent = prepareEvent({
-    signature: "event NFTWrappedForRental(uint256 indexed wrapperId, address indexed owner, address indexed originalContract, uint256 originalTokenId)"
-  });
+  console.log("📋 Transaction receipt:", receipt);
+  console.log("📋 Total logs:", receipt.logs?.length);
 
-  const events = await getContractEvents({
-    contract,
-    events: [wrappedEvent],
-    fromBlock: receipt.blockNumber,
-    toBlock: receipt.blockNumber,
-  });
+  // NFTWrappedForRental event signature (indexed parameters become topics)
+  // event NFTWrappedForRental(uint256 indexed wrapperId, address indexed owner, address originalContract, uint256 originalTokenId)
+  // topic[0] = event signature hash
+  // topic[1] = wrapperId (indexed)
+  // topic[2] = owner (indexed)
 
-  // Find the event from this transaction
-  const event = events.find((e: any) => e.transactionHash === txHash);
+  for (const log of receipt.logs || []) {
+    console.log("🔍 Log:", {
+      address: log.address,
+      topics: log.topics,
+      topicsLength: log.topics?.length
+    });
 
-  if (!event || !event.args || !event.args.wrapperId) {
-    throw new Error("Could not find wrapper ID in transaction events");
+    // Check if this log is from the RentalManager contract
+    if (log.address?.toLowerCase() === RENTAL_MANAGER_ADDRESS.toLowerCase()) {
+      console.log("✅ Found log from RentalManager contract");
+
+      // The wrapperId is in topic[1] (first indexed parameter)
+      if (log.topics && log.topics.length >= 2) {
+        const wrapperId = BigInt(log.topics[1]);
+        console.log("🎁 Extracted wrapper ID:", wrapperId.toString());
+        return wrapperId;
+      }
+    }
   }
 
-  return event.args.wrapperId;
+  throw new Error("Could not find NFTWrappedForRental event in transaction logs");
 }
 
 /**
