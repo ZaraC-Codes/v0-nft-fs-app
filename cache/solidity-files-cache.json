@@ -2035,6 +2035,171 @@
       "artifacts": [
         "GroupChatRelay"
       ]
+    },
+    "C:\\Users\\zarac\\v0-nft-fs-app\\contracts\\FortunaSquareRentalAccount.sol": {
+      "lastModificationDate": 1759636437649,
+      "contentHash": "88caa24bdcb8b22b78a5a79b54d71956",
+      "sourceName": "contracts/FortunaSquareRentalAccount.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "cancun",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol",
+        "@openzeppelin/contracts/utils/introspection/IERC165.sol",
+        "@openzeppelin/contracts/interfaces/IERC1271.sol",
+        "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol",
+        "./IDelegateRegistry.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "FortunaSquareRentalAccount"
+      ]
+    },
+    "C:\\Users\\zarac\\v0-nft-fs-app\\contracts\\IDelegateRegistry.sol": {
+      "lastModificationDate": 1759636399560,
+      "contentHash": "7711194b7ec0db68e7d71b4d92eb0704",
+      "sourceName": "contracts/IDelegateRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "cancun",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "IDelegateRegistry"
+      ]
+    },
+    "C:\\Users\\zarac\\v0-nft-fs-app\\contracts\\RentalWrapperDelegated.sol": {
+      "lastModificationDate": 1759636535577,
+      "contentHash": "36b975cc0948c2e190b24b52688ba45d",
+      "sourceName": "contracts/RentalWrapperDelegated.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "cancun",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/ERC721.sol",
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "./IERC4907.sol",
+        "./FortunaSquareRentalAccount.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "RentalWrapperDelegated"
+      ]
+    },
+    "C:\\Users\\zarac\\v0-nft-fs-app\\contracts\\RentalManagerDelegated.sol": {
+      "lastModificationDate": 1759636583002,
+      "contentHash": "1e218a1c7ed1a0636cca194a2fcbe9a8",
+      "sourceName": "contracts/RentalManagerDelegated.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "viaIR": true,
+          "evmVersion": "cancun",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [
+        "@openzeppelin/contracts/token/ERC721/IERC721.sol",
+        "@openzeppelin/contracts/access/Ownable.sol",
+        "./RentalWrapperDelegated.sol"
+      ],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "RentalManagerDelegated"
+      ]
     }
   }
 }

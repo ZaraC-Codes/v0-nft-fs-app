@@ -48,7 +48,10 @@
       "Bash(copy contractsBundleNFTUnified_Updated.sol contractsBundleNFTMainnet.sol)",
       "Bash(del nul)",
       "Bash(copy contractsBundleNFTUnified_Updated.sol contractsBundleNFTUnified.sol)",
-      "Bash(del hardhat.config.js)"
+      "Bash(del hardhat.config.js)",
+      "Bash(del librental.ts)",
+      "Bash(git checkout:*)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []
