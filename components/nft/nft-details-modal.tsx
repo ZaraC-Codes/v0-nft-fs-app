@@ -599,7 +599,7 @@ export function NFTDetailsModal({
                             setShowRentalForm(true)
                             setWrappedNFTId(wrapperId)
                           }}
-                          buttonText="List for Rent"
+                          buttonText="Rent"
                         />
                       )}
                     </div>
