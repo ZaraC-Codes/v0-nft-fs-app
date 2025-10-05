@@ -34,6 +34,7 @@ import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
 import { CreateRentalListing } from "@/components/rental/create-rental-listing"
+import { ChainBadge } from "@/components/ui/chain-badge"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -179,10 +180,10 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
                         alt={item.name || `Token #${item.tokenId}`}
                         className="w-full aspect-square object-cover rounded-lg border border-border/30"
                       />
-                      {item.chainId && getChainMetadata(item.chainId) && (
-                        <Badge className={`absolute top-2 left-2 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 text-xs`}>
-                          {getChainMetadata(item.chainId)!.icon} {getChainMetadata(item.chainId)!.shortName}
-                        </Badge>
+                      {item.chainId && (
+                        <div className="absolute top-2 left-2">
+                          <ChainBadge chainId={item.chainId} size="sm" />
+                        </div>
                       )}
                     </div>
                     <div className="space-y-1">
@@ -336,10 +337,8 @@ export function NFTDetailsModal({
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
               <span>{nft.name}</span>
               <div className="flex items-center gap-2">
-                {getChainMetadata(nft.chainId) && (
-                  <Badge className={`bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0`}>
-                    {getChainMetadata(nft.chainId)!.icon} {getChainMetadata(nft.chainId)!.shortName}
-                  </Badge>
+                {nft.chainId && (
+                  <ChainBadge chainId={nft.chainId} size="md" />
                 )}
                 {nft.rarity && !nft.isBundle && (
                   <Badge className={`bg-gradient-to-r ${getRarityColor(nft.rarity)} text-white border-0 neon-glow`}>
