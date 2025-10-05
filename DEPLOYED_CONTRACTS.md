@@ -64,19 +64,19 @@ https://curtis.explorer.caldera.xyz/address/0x3109db997d454625af2f7678238c75dc6f
 **Revolutionary rental system with zero collateral and token-gating support!**
 
 **FortunaSquareRentalAccount (TBA Implementation):**
-- Contract: `0xF3435A43471123933AEE2E871C3530761a085502`
+- Contract: `0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f`
 - Features: Custom ERC-6551 TBA with Delegate.cash integration
-- Explorer: https://curtis.explorer.caldera.xyz/address/0xF3435A43471123933AEE2E871C3530761a085502
+- Explorer: https://apechain.calderaexplorer.xyz/address/0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f
 
 **RentalWrapperDelegated (ERC721 + ERC4907):**
-- Contract: `0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6`
+- Contract: `0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672`
 - Features: Wrap any NFT for rental, ERC4907 compliance, delegation on rent
-- Explorer: https://curtis.explorer.caldera.xyz/address/0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6
+- Explorer: https://apechain.calderaexplorer.xyz/address/0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672
 
 **RentalManagerDelegated (Rental Marketplace):**
-- Contract: `0x6c45305a90427cAF108108Af2f44D5b1dA9809F5`
+- Contract: `0x04e6658323e423729bfA0cE90706Ab1a5e5151a0`
 - Features: Custom pricing/duration, 2.5% platform fee, marketplace
-- Explorer: https://curtis.explorer.caldera.xyz/address/0x6c45305a90427cAF108108Af2f44D5b1dA9809F5
+- Explorer: https://apechain.calderaexplorer.xyz/address/0x04e6658323e423729bfA0cE90706Ab1a5e5151a0
 
 **Key Features:**
 - ✅ Zero collateral rentals
@@ -89,9 +89,9 @@ https://curtis.explorer.caldera.xyz/address/0x3109db997d454625af2f7678238c75dc6f
 
 **Environment Variables:**
 ```bash
-NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0xF3435A43471123933AEE2E871C3530761a085502
-NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6
-NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x6c45305a90427cAF108108Af2f44D5b1dA9809F5
+NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f
+NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672
+NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x04e6658323e423729bfA0cE90706Ab1a5e5151a0
 NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
 ```
 
