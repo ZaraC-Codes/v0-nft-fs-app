@@ -42,6 +42,8 @@ export default function SettingsPage() {
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
@@ -61,18 +63,26 @@ export default function SettingsPage() {
   }
 
   const handleFileChange = (type: 'avatar' | 'cover', file: File | null) => {
-    if (type === 'avatar') {
-      setAvatarFile(file)
-    } else {
-      setCoverFile(file)
+    if (!file) return
+
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (type === 'avatar') {
+        setAvatarPreview(reader.result as string)
+        setAvatarFile(file)
+      } else {
+        setCoverPreview(reader.result as string)
+        setCoverFile(file)
+      }
     }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
     if (!userProfile) return
 
     try {
-      // In a real app, you'd upload the files first and get URLs
       const updates: any = {
         username: formData.username,
         bio: formData.bio,
@@ -83,15 +93,21 @@ export default function SettingsPage() {
         socialLinks: formData.socialLinks,
       }
 
-      // Mock file upload - in reality you'd upload to cloud storage
-      if (avatarFile) {
-        updates.avatar = URL.createObjectURL(avatarFile)
+      // Use base64 data from previews for localStorage persistence
+      if (avatarPreview) {
+        updates.avatar = avatarPreview
       }
-      if (coverFile) {
-        updates.coverImage = URL.createObjectURL(coverFile)
+      if (coverPreview) {
+        updates.coverImage = coverPreview
       }
 
       await updateProfile(updates)
+
+      // Clear file states after successful save
+      setAvatarFile(null)
+      setCoverFile(null)
+      setAvatarPreview(null)
+      setCoverPreview(null)
 
       toast({
         title: "Profile Updated",
@@ -148,9 +164,9 @@ export default function SettingsPage() {
                 <Label className="text-sm font-medium">Cover Image</Label>
                 <div className="mt-2">
                   <div className="relative h-32 w-full rounded-lg border-2 border-dashed border-border bg-muted/50 flex items-center justify-center">
-                    {(coverFile || userProfile.coverImage) ? (
+                    {(coverPreview || userProfile.coverImage) ? (
                       <img
-                        src={coverFile ? URL.createObjectURL(coverFile) : userProfile.coverImage}
+                        src={coverPreview || userProfile.coverImage}
                         alt="Cover"
                         className="w-full h-full object-cover rounded-lg"
                       />
@@ -177,7 +193,7 @@ export default function SettingsPage() {
                   <div className="relative">
                     <Avatar className="h-20 w-20">
                       <AvatarImage
-                        src={avatarFile ? URL.createObjectURL(avatarFile) : userProfile.avatar}
+                        src={avatarPreview || userProfile.avatar}
                         alt={userProfile.username}
                       />
                       <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xl">
