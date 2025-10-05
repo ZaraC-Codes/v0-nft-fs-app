@@ -27,6 +27,7 @@ import { WatchlistToggle } from "./add-to-watchlist"
 import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import Link from "next/link"
 import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { ChainBadge } from "@/components/ui/chain-badge"
 import { useAuth } from "@/components/auth/auth-provider"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -223,10 +224,10 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent " />
 
                         {/* Chain Badge */}
-                        {nft.chainId && CHAIN_METADATA[nft.chainId] && (
-                          <Badge className={`absolute top-4 left-4 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0 `}>
-                            {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
-                          </Badge>
+                        {nft.chainId && (
+                          <div className="absolute top-4 left-4">
+                            <ChainBadge chainId={nft.chainId} size="md" />
+                          </div>
                         )}
 
                         {/* Bundle Badge */}
@@ -331,10 +332,10 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         />
 
                         {/* Chain Badge */}
-                        {nft.chainId && CHAIN_METADATA[nft.chainId] && (
-                          <Badge className={`absolute top-1.5 left-1.5 text-[10px] px-1.5 py-0.5 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0 `}>
-                            {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
-                          </Badge>
+                        {nft.chainId && (
+                          <div className="absolute top-1.5 left-1.5">
+                            <ChainBadge chainId={nft.chainId} size="sm" />
+                          </div>
                         )}
 
                         {/* Rarity Badge */}

@@ -25,6 +25,7 @@ import {
 import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
 import { apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { ChainBadge } from "@/components/ui/chain-badge"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 
 // Rarity color system
@@ -375,9 +376,9 @@ export default function BundlesPage() {
                           />
 
                           {/* Chain Badge */}
-                          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0`}>
-                            {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
-                          </Badge>
+                          <div className="absolute top-3 left-3">
+                            <ChainBadge chainId={nft.chainId} size="md" />
+                          </div>
 
                           {/* Rarity Badge */}
                           {nft.rarity && (
@@ -611,9 +612,9 @@ export default function BundlesPage() {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                       {/* Chain Badge */}
-                      <Badge className={`absolute top-4 left-4 bg-gradient-to-r ${CHAIN_METADATA[bundle.chainId].color} text-white border-0`}>
-                        {CHAIN_METADATA[bundle.chainId].icon} {CHAIN_METADATA[bundle.chainId].shortName}
-                      </Badge>
+                      <div className="absolute top-4 left-4">
+                        <ChainBadge chainId={bundle.chainId} size="md" />
+                      </div>
 
                       {/* Bundle Badge */}
                       <Badge className="absolute top-13 left-4 bg-gradient-to-r from-orange-400 to-red-500 text-white border-0 neon-glow">
