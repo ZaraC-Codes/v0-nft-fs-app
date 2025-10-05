@@ -9,6 +9,7 @@ import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ClearStorageButton } from "@/components/debug/clear-storage"
 import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { ChainBadge } from "@/components/ui/chain-badge"
 import {
   ArrowRight,
   TrendingUp,
@@ -284,9 +285,7 @@ export default function HomePage() {
                         {collection.verified && (
                           <CheckCircle className="h-8 w-8 text-primary fill-primary/20" />
                         )}
-                        <Badge className={`bg-gradient-to-r ${CHAIN_METADATA[collection.chainId].color} text-white border-0 text-sm`}>
-                          {CHAIN_METADATA[collection.chainId].icon} {CHAIN_METADATA[collection.chainId].shortName}
-                        </Badge>
+                        <ChainBadge chainId={collection.chainId} size="lg" />
                       </div>
                       <p className="text-lg md:text-xl text-gray-200 mb-6 max-w-2xl">
                         {collection.description}
