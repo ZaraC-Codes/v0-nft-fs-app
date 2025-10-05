@@ -92,56 +92,56 @@ export async function wrapNFT(
 }
 
 /**
- * Extract wrapper ID from NFTWrappedForRental event
- * @param txHash Transaction hash from wrapNFT call
- * @returns Wrapper token ID
+ * Extract wrapper ID by querying user's wallet balance
+ * Workaround for Curtis testnet not returning logs in receipts
+ * @param userAddress User's wallet address
+ * @returns Latest wrapper token ID owned by user
  */
-export async function getWrapperIdFromTransaction(txHash: string): Promise<bigint> {
-  const { waitForReceipt } = await import("thirdweb/transaction");
+export async function getLatestWrapperIdForUser(userAddress: string): Promise<bigint> {
+  const { balanceOf, ownerOf } = await import("thirdweb/extensions/erc721");
 
-  // Wait for transaction receipt
-  const receipt = await waitForReceipt({
-    client,
-    chain: apeChainCurtis,
-    transactionHash: txHash as `0x${string}`,
+  const wrapperContract = getRentalWrapperContract();
+
+  console.log("🔍 Querying wrapper balance for user:", userAddress);
+
+  // Get total number of wrapper NFTs owned by user
+  const balance = await balanceOf({
+    contract: wrapperContract,
+    owner: userAddress,
   });
 
-  console.log("📋 Transaction receipt:", receipt);
-  console.log("📋 Total logs:", receipt.logs?.length);
-  console.log("📋 Looking for RentalWrapper address:", RENTAL_WRAPPER_ADDRESS.toLowerCase());
-  console.log("📋 (NOT RentalManager - the wrapper emits NFTWrapped event)");
+  console.log("📊 User owns", balance.toString(), "wrapper NFTs");
 
-  // NFTWrapped event from RentalWrapper contract
-  // event NFTWrapped(uint256 indexed wrapperId, address indexed originalContract, uint256 indexed originalTokenId, address owner, address tba)
-  // topic[0] = event signature hash
-  // topic[1] = wrapperId (indexed)
-  // topic[2] = originalContract (indexed)
-  // topic[3] = originalTokenId (indexed)
+  if (balance === 0n) {
+    throw new Error("User doesn't own any wrapper NFTs");
+  }
 
-  for (const log of receipt.logs || []) {
-    console.log("🔍 Log:", {
-      address: log.address,
-      addressLower: log.address?.toLowerCase(),
-      matchesRentalWrapper: log.address?.toLowerCase() === RENTAL_WRAPPER_ADDRESS.toLowerCase(),
-      topics: log.topics,
-      topicsLength: log.topics?.length,
-      data: log.data
-    });
+  // Find the highest wrapper ID owned by this user
+  // Start from a reasonable max (1000) and work backwards
+  let latestWrapperId: bigint | null = null;
 
-    // Check if this log is from the RentalWrapper contract (NOT RentalManager!)
-    if (log.address?.toLowerCase() === RENTAL_WRAPPER_ADDRESS.toLowerCase()) {
-      console.log("✅ Found log from RentalWrapper contract");
+  for (let i = 1000; i >= 0; i--) {
+    try {
+      const owner = await ownerOf({
+        contract: wrapperContract,
+        tokenId: BigInt(i),
+      });
 
-      // The wrapperId is in topic[1] (first indexed parameter)
-      if (log.topics && log.topics.length >= 2) {
-        const wrapperId = BigInt(log.topics[1]);
-        console.log("🎁 Extracted wrapper ID:", wrapperId.toString());
-        return wrapperId;
+      if (owner.toLowerCase() === userAddress.toLowerCase()) {
+        latestWrapperId = BigInt(i);
+        console.log("🎁 Found latest wrapper ID:", latestWrapperId.toString());
+        break;
       }
+    } catch {
+      // Token doesn't exist or not owned by user, continue
     }
   }
 
-  throw new Error("Could not find NFTWrappedForRental event in transaction logs");
+  if (!latestWrapperId) {
+    throw new Error("Could not find wrapper ID for user");
+  }
+
+  return latestWrapperId;
 }
 
 /**

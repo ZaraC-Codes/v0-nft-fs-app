@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useActiveAccount } from "thirdweb/react";
 import { Button } from "@/components/ui/button";
-import { wrapNFT, getWrapperIdFromTransaction } from "@/lib/rental";
+import { wrapNFT, getLatestWrapperIdForUser } from "@/lib/rental";
 import { useToast } from "@/components/ui/use-toast";
 import { Package } from "lucide-react";
 import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
@@ -63,9 +63,9 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
 
       console.log("✅ NFT wrapped successfully. TX Hash:", txResult.transactionHash);
 
-      // Step 3: Extract wrapper ID from transaction event
-      console.log("🔍 Extracting wrapper ID from transaction...");
-      const wrapperId = await getWrapperIdFromTransaction(txResult.transactionHash);
+      // Step 3: Get latest wrapper ID owned by user (workaround for Curtis testnet)
+      console.log("🔍 Finding latest wrapper ID for user...");
+      const wrapperId = await getLatestWrapperIdForUser(account.address);
       console.log("🎁 Wrapper ID:", wrapperId.toString());
 
       // Don't show toast if buttonText is "List for Rent" (modal will show form instead)
