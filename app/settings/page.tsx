@@ -117,6 +117,11 @@ export default function SettingsPage() {
         coverImage: coverPreview || userProfile.coverImage,
       }
 
+      console.log("📸 Avatar being saved:", updates.avatar ?
+        (updates.avatar.startsWith('data:') ? `Base64 data URL (${updates.avatar.substring(0, 50)}... length: ${updates.avatar.length})` :
+         updates.avatar.startsWith('blob:') ? `❌ BLOB URL (will fail on refresh): ${updates.avatar}` :
+         `URL: ${updates.avatar}`) :
+        "null/undefined")
 
       await updateProfile(updates)
 
