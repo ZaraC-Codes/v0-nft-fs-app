@@ -358,41 +358,50 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Platform Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
-            <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-all">
+          {/* Platform Activity Stats */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-8">
+            <Card className="bg-card/50 border-border/50 hover:border-orange-500/30 transition-all">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary neon-text mb-1">{totalBundles}</div>
+                <div className="text-3xl font-bold text-orange-400 neon-text mb-1">0</div>
                 <div className="text-sm text-muted-foreground flex items-center justify-center">
                   <Package className="mr-1 h-4 w-4" />
-                  Total Bundles
+                  Bundles Created
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-card/50 border-border/50 hover:border-secondary/30 transition-all">
+            <Card className="bg-card/50 border-border/50 hover:border-red-500/30 transition-all">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-secondary neon-text mb-1">{totalTreasuries}</div>
+                <div className="text-3xl font-bold text-red-400 neon-text mb-1">0</div>
+                <div className="text-sm text-muted-foreground flex items-center justify-center">
+                  <Package className="mr-1 h-4 w-4 rotate-180" />
+                  Bundles Unwrapped
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="bg-card/50 border-border/50 hover:border-yellow-500/30 transition-all">
+              <CardContent className="p-6 text-center">
+                <div className="text-3xl font-bold text-yellow-400 neon-text mb-1">0</div>
                 <div className="text-sm text-muted-foreground flex items-center justify-center">
                   <Crown className="mr-1 h-4 w-4" />
-                  Treasuries
+                  Treasuries Created
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-card/50 border-border/50 hover:border-accent/30 transition-all">
+            <Card className="bg-card/50 border-border/50 hover:border-purple-500/30 transition-all">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-accent neon-text mb-1">{collections.length}</div>
+                <div className="text-3xl font-bold text-purple-400 neon-text mb-1">0</div>
                 <div className="text-sm text-muted-foreground flex items-center justify-center">
-                  <Globe className="mr-1 h-4 w-4" />
-                  Collections
+                  <ArrowLeftRight className="mr-1 h-4 w-4" />
+                  Swaps Completed
                 </div>
               </CardContent>
             </Card>
-            <Card className="bg-card/50 border-border/50 hover:border-primary/30 transition-all">
+            <Card className="bg-card/50 border-border/50 hover:border-cyan-500/30 transition-all">
               <CardContent className="p-6 text-center">
-                <div className="text-3xl font-bold text-primary neon-text mb-1">2.3M</div>
+                <div className="text-3xl font-bold text-cyan-400 neon-text mb-1">0</div>
                 <div className="text-sm text-muted-foreground flex items-center justify-center">
-                  <TrendingUp className="mr-1 h-4 w-4" />
-                  Volume (APE)
+                  <Calendar className="mr-1 h-4 w-4" />
+                  Active Rentals
                 </div>
               </CardContent>
             </Card>
