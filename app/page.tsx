@@ -31,8 +31,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0)
-  const [sortBy, setSortBy] = useState("volume")
-  const [selectedChain, setSelectedChain] = useState<"all" | number>("all")
+  const [sortBy, setSortBy] = useState("nfts")
+  const [activeUsers, setActiveUsers] = useState<any[]>([])
 
   const featuredCollections = [
     {
@@ -72,6 +72,15 @@ export default function HomePage() {
       chainId: sepolia.id
     }
   ]
+
+  // Load active users from localStorage
+  useEffect(() => {
+    const profiles = localStorage.getItem("fortuna_square_profiles")
+    if (profiles) {
+      const allProfiles = JSON.parse(profiles)
+      setActiveUsers(Object.values(allProfiles))
+    }
+  }, [])
 
   // Auto-advance slideshow every 5 seconds
   useEffect(() => {
@@ -371,16 +380,28 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* All Collections List */}
+      {/* Testing Mode Banner */}
+      <div className="container mx-auto px-4 mb-8">
+        <Card className="bg-gradient-to-r from-yellow-500/10 via-orange-500/10 to-red-500/10 border-yellow-500/30">
+          <CardContent className="p-4 flex items-center justify-center gap-3">
+            <div className="animate-pulse h-3 w-3 bg-yellow-500 rounded-full" />
+            <p className="text-center font-medium">
+              🧪 <span className="text-yellow-400">TESTING MODE</span> - Find and follow other testers below to explore the platform together!
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Active Users / Testers List */}
       <section className="py-12">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
-                All Collections
+                Active Testers
               </h2>
               <p className="text-muted-foreground">
-                Explore {filteredCollections.length} verified collections on the marketplace
+                {activeUsers.length} {activeUsers.length === 1 ? 'tester' : 'testers'} on the platform - Connect and explore together!
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -390,114 +411,130 @@ export default function HomePage() {
                   <SelectValue placeholder="Sort by" />
                 </SelectTrigger>
                 <SelectContent className="bg-card/95 backdrop-blur-xl border-border/50">
-                  <SelectItem value="volume">Volume (24h)</SelectItem>
-                  <SelectItem value="floor">Floor Price</SelectItem>
-                  <SelectItem value="bundles">Bundles Created</SelectItem>
-                  <SelectItem value="holders">Holder Count</SelectItem>
+                  <SelectItem value="recent">Recently Joined</SelectItem>
+                  <SelectItem value="nfts">Most NFTs</SelectItem>
+                  <SelectItem value="followers">Most Followers</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {/* Chain Filter Tabs */}
-          <Tabs value={selectedChain.toString()} onValueChange={(value) => setSelectedChain(value === "all" ? "all" : Number(value))} className="mb-6">
-            <TabsList className="grid w-full max-w-md grid-cols-3 bg-card/50 border border-border/50">
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <Globe className="h-4 w-4" />
-                All ({collections.length})
-              </TabsTrigger>
-              <TabsTrigger value={apeChainCurtis.id.toString()} className="flex items-center gap-2">
-                <span>{CHAIN_METADATA[apeChainCurtis.id].icon}</span>
-                Curtis ({curtisCollections})
-              </TabsTrigger>
-              <TabsTrigger value={sepolia.id.toString()} className="flex items-center gap-2">
-                <span>{CHAIN_METADATA[sepolia.id].icon}</span>
-                Sepolia ({sepoliaCollections})
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="space-y-3">
-            {sortedCollections.map((collection, index) => (
-              <Card
-                key={index}
-                className="bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 cursor-pointer"
-              >
-                <CardContent className="p-4 md:p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
-                    {/* Collection Info */}
-                    <div className="md:col-span-4 flex items-center gap-4">
-                      <div className="text-xl font-bold text-muted-foreground/50 w-8">
-                        #{index + 1}
-                      </div>
-                      <img
-                        src={collection.image}
-                        alt={collection.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h3 className="font-bold text-lg">{collection.name}</h3>
-                          {collection.verified && (
-                            <CheckCircle className="h-5 w-5 text-primary fill-primary/20" />
+          {activeUsers.length === 0 ? (
+            <Card className="bg-card/50 border-border/50">
+              <CardContent className="p-12 text-center">
+                <div className="text-6xl mb-4">👥</div>
+                <h3 className="text-xl font-bold mb-2">No Testers Yet</h3>
+                <p className="text-muted-foreground mb-6">
+                  Be the first to create an account and start testing!
+                </p>
+                <Button className="bg-gradient-to-r from-primary to-secondary" asChild>
+                  <Link href="/auth/signup">Create Account</Link>
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {activeUsers.map((user, index) => (
+                <Link href={`/profile/${user.username}`} key={user.id}>
+                  <Card className="bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 cursor-pointer h-full">
+                    <CardContent className="p-6">
+                      <div className="flex items-start gap-4">
+                        {/* Avatar */}
+                        <div className="relative">
+                          {user.avatar ? (
+                            <img
+                              src={user.avatar}
+                              alt={user.username}
+                              className="w-16 h-16 rounded-full object-cover border-2 border-primary/50"
+                            />
+                          ) : (
+                            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white">
+                              {user.username[0].toUpperCase()}
+                            </div>
                           )}
-                          <Badge className={`bg-gradient-to-r ${CHAIN_METADATA[collection.chainId].color} text-white border-0 text-xs`}>
-                            {CHAIN_METADATA[collection.chainId].icon}
-                          </Badge>
+                          {user.verified && (
+                            <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
+                              <CheckCircle className="h-4 w-4 text-white fill-primary" />
+                            </div>
+                          )}
                         </div>
-                        <p className="text-sm text-muted-foreground">
-                          {collection.totalSupply.toLocaleString()} items
-                        </p>
-                      </div>
-                    </div>
 
-                    {/* Stats Grid */}
-                    <div className="md:col-span-8 grid grid-cols-2 md:grid-cols-6 gap-4 text-center">
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Floor Price</p>
-                        <p className="font-bold text-primary neon-text">{collection.floorPrice} {collection.currency}</p>
+                        {/* User Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-bold text-lg truncate">{user.username}</h3>
+                          </div>
+                          {user.bio && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                              {user.bio}
+                            </p>
+                          )}
+
+                          {/* Stats */}
+                          <div className="flex gap-4 text-sm">
+                            <div>
+                              <span className="font-bold text-primary">{user.followersCount || 0}</span>
+                              <span className="text-muted-foreground ml-1">Followers</span>
+                            </div>
+                            <div>
+                              <span className="font-bold text-secondary">{user.followingCount || 0}</span>
+                              <span className="text-muted-foreground ml-1">Following</span>
+                            </div>
+                          </div>
+
+                          {user.walletAddress && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
+                              <span className="text-xs text-muted-foreground font-mono">
+                                {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">24h Volume</p>
-                        <p className="font-bold">{collection.volume24h} {collection.currency}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">24h Change</p>
-                        <p
-                          className={`font-bold ${
-                            collection.change24h.startsWith("+") ? "text-green-400" : "text-red-400"
-                          }`}
+
+                      {/* Quick Actions */}
+                      <div className="mt-4 pt-4 border-t border-border/50 flex gap-2">
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-gradient-to-r from-primary to-secondary"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            window.location.href = `/profile/${user.username}`
+                          }}
                         >
-                          {collection.change24h}%
-                        </p>
+                          View Profile
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="border-primary/50"
+                          onClick={(e) => {
+                            e.preventDefault()
+                            // TODO: Implement follow functionality
+                            alert("Follow feature coming soon!")
+                          }}
+                        >
+                          Follow
+                        </Button>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Bundles</p>
-                        <p className="font-bold text-secondary">{collection.bundlesCreated}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Holders</p>
-                        <p className="font-bold">{collection.holders.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground mb-1">Listed</p>
-                        <p className="font-bold">{collection.itemsListed}</p>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          )}
 
-          <div className="mt-8 text-center">
-            <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" asChild>
-              <Link href="/collections">
-                View All Collections
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </Button>
-          </div>
+          {activeUsers.length > 0 && (
+            <div className="mt-8 text-center">
+              <Button variant="outline" className="border-primary/50 text-primary hover:bg-primary/10" asChild>
+                <Link href="/profiles">
+                  View All Testers
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </section>
 
