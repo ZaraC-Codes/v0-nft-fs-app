@@ -209,6 +209,7 @@ export default function BundlesPage() {
   const [activeTab, setActiveTab] = useState("create")
   const [selectedCollection, setSelectedCollection] = useState<string>("all")
   const [selectedNFTs, setSelectedNFTs] = useState<Set<string>>(new Set())
+  const [thumbnailNFTs, setThumbnailNFTs] = useState<Set<string>>(new Set()) // 3 featured thumbnails
   const [searchQuery, setSearchQuery] = useState("")
   const [bundleName, setBundleName] = useState("")
   const [bundleDescription, setBundleDescription] = useState("")
@@ -231,12 +232,35 @@ export default function BundlesPage() {
 
   const handleNFTSelect = (nftId: string) => {
     const newSelected = new Set(selectedNFTs)
+    const newThumbnails = new Set(thumbnailNFTs)
+
     if (newSelected.has(nftId)) {
       newSelected.delete(nftId)
+      newThumbnails.delete(nftId) // Remove from thumbnails if removed from selection
     } else {
       newSelected.add(nftId)
     }
     setSelectedNFTs(newSelected)
+    setThumbnailNFTs(newThumbnails)
+  }
+
+  const handleThumbnailToggle = (nftId: string) => {
+    const newThumbnails = new Set(thumbnailNFTs)
+
+    if (newThumbnails.has(nftId)) {
+      newThumbnails.delete(nftId)
+    } else {
+      if (newThumbnails.size >= 3) {
+        toast({
+          title: "Maximum Thumbnails Reached",
+          description: "You can only select 3 thumbnails for your bundle.",
+          variant: "destructive"
+        })
+        return
+      }
+      newThumbnails.add(nftId)
+    }
+    setThumbnailNFTs(newThumbnails)
   }
 
   const selectedNFTsList = searchedNFTs.filter(nft =>
@@ -407,7 +431,7 @@ export default function BundlesPage() {
 
                           {/* Action Buttons Overlay */}
                           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                            <div className="p-4 w-full">
+                            <div className="p-4 w-full flex flex-col gap-2">
                               <Button
                                 className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow"
                                 onClick={(e) => {
@@ -427,6 +451,28 @@ export default function BundlesPage() {
                                   </>
                                 )}
                               </Button>
+                              {isSelected && (
+                                <Button
+                                  variant={thumbnailNFTs.has(nftId) ? "default" : "outline"}
+                                  className="w-full"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleThumbnailToggle(nftId)
+                                  }}
+                                >
+                                  {thumbnailNFTs.has(nftId) ? (
+                                    <>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Featured Thumbnail
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Set as Thumbnail ({thumbnailNFTs.size}/3)
+                                    </>
+                                  )}
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -603,12 +649,15 @@ export default function BundlesPage() {
                     className="group bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 overflow-hidden cursor-pointer"
                   >
                     {/* Bundle NFT Layout */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={bundle.items[0]?.image || "/placeholder.svg"}
-                        alt={bundle.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
+                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-900 via-black to-blue-900">
+                      {/* FS Logo Background */}
+                      <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                        <img
+                          src="/fs-temp-logo.png"
+                          alt="Fortuna Square"
+                          className="w-32 h-32 object-contain"
+                        />
+                      </div>
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
                       {/* Chain Badge */}
@@ -635,22 +684,17 @@ export default function BundlesPage() {
                         />
                       </div>
 
-                      {/* Preview Images for Bundle */}
+                      {/* Preview Images for Bundle - 3 Featured Thumbnails */}
                       <div className="absolute bottom-4 left-4 flex space-x-2">
-                        {[1, 2, 3].slice(0, bundle.bundleCount).map((_, idx) => (
-                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
+                        {bundle.items.slice(0, 3).map((item, idx) => (
+                          <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
                             <img
-                              src={bundle.items[idx]?.image || `https://picsum.photos/100/100?random=${bundle.id}-${idx}`}
+                              src={item?.image || `https://picsum.photos/100/100?random=${bundle.id}-${idx}`}
                               alt=""
                               className="w-full h-full object-cover"
                             />
                           </div>
                         ))}
-                        {bundle.bundleCount && bundle.bundleCount > 3 && (
-                          <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
-                            <span className="text-white text-xs font-medium">+{bundle.bundleCount - 3}</span>
-                          </div>
-                        )}
                       </div>
 
                       {/* Action Buttons Overlay */}

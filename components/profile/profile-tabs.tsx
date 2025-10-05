@@ -215,12 +215,15 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                   >
                     {/* Bundle NFT Layout */}
                     {nft.isBundle ? (
-                      <div className="relative h-48 overflow-hidden ">
-                        <img
-                          src={nft.image || "/placeholder.svg"}
-                          alt={nft.name}
-                          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 "
-                        />
+                      <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-900 via-black to-blue-900">
+                        {/* FS Logo Background */}
+                        <div className="absolute inset-0 flex items-center justify-center opacity-20">
+                          <img
+                            src="/fs-temp-logo.png"
+                            alt="Fortuna Square"
+                            className="w-32 h-32 object-contain"
+                          />
+                        </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent " />
 
                         {/* Chain Badge */}
@@ -236,41 +239,27 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                           Bundle ({nft.bundleCount})
                         </Badge>
 
-                        {/* Preview Images for Bundle */}
+                        {/* Preview Images for Bundle - 3 Featured Thumbnails */}
                         <div className="absolute bottom-4 left-4 flex space-x-2 ">
                           {nft.bundlePreviewImages && nft.bundlePreviewImages.length > 0 ? (
-                            <>
-                              {nft.bundlePreviewImages.slice(0, 3).map((previewItem, idx) => (
-                                <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
-                                  <img
-                                    src={previewItem.image}
-                                    alt={previewItem.name}
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                              ))}
-                              {nft.bundleCount && nft.bundleCount > 3 && (
-                                <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
-                                </div>
-                              )}
-                            </>
+                            nft.bundlePreviewImages.slice(0, 3).map((previewItem, idx) => (
+                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
+                                <img
+                                  src={previewItem.image}
+                                  alt={previewItem.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            ))
                           ) : (
                             // Fallback to placeholder if preview images not loaded
-                            <>
-                              {[...Array(Math.min(3, nft.bundleCount || 0))].map((_, idx) => (
-                                <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20 bg-gray-800">
-                                  <div className="w-full h-full flex items-center justify-center text-gray-500">
-                                    <span className="text-xs">#{idx + 1}</span>
-                                  </div>
+                            [...Array(Math.min(3, nft.bundleCount || 0))].map((_, idx) => (
+                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg bg-gray-800">
+                                <div className="w-full h-full flex items-center justify-center text-gray-500">
+                                  <span className="text-xs">#{idx + 1}</span>
                                 </div>
-                              ))}
-                              {nft.bundleCount && nft.bundleCount > 3 && (
-                                <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
-                                  <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
-                                </div>
-                              )}
-                            </>
+                              </div>
+                            ))
                           )}
                         </div>
 
