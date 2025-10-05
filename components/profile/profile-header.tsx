@@ -102,7 +102,10 @@ export function ProfileHeader({ profile: profileProp }: ProfileHeaderProps) {
           {/* Avatar */}
           <div className={`relative ${profile.coverImage ? '-mt-16 md:-mt-20' : ''}`}>
             <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-xl">
-              <AvatarImage src={profile.avatar} alt={profile.username} />
+              <AvatarImage
+                src={profile.avatar || profile.oauthProfilePicture}
+                alt={profile.username}
+              />
               <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-2xl md:text-3xl">
                 {profile.username[0]?.toUpperCase()}
               </AvatarFallback>

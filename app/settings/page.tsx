@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -44,6 +44,28 @@ export default function SettingsPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null)
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
   const [coverPreview, setCoverPreview] = useState<string | null>(null)
+
+  // Sync formData when userProfile changes (preserves values after save)
+  useEffect(() => {
+    if (userProfile) {
+      setFormData({
+        username: userProfile.username || "",
+        bio: userProfile.bio || "",
+        email: userProfile.email || "",
+        showWalletAddress: userProfile.showWalletAddress || false,
+        showEmail: userProfile.showEmail || false,
+        isPublic: userProfile.isPublic !== undefined ? userProfile.isPublic : true,
+        socialLinks: {
+          twitter: userProfile.socialLinks?.twitter || "",
+          discord: userProfile.socialLinks?.discord || "",
+          website: userProfile.socialLinks?.website || "",
+          instagram: userProfile.socialLinks?.instagram || "",
+          telegram: userProfile.socialLinks?.telegram || "",
+          github: userProfile.socialLinks?.github || "",
+        }
+      })
+    }
+  }, [userProfile])
 
   const handleInputChange = (field: string, value: string | boolean) => {
     setFormData(prev => ({
