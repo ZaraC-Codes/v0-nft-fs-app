@@ -619,21 +619,47 @@ Consistent fee structure across all features:
 3. Ensure ERC6551 infrastructure addresses are set
 
 ### Deploy Contracts
-```bash
-# Deploy bundles
-npx hardhat run scripts/deploy-bundles.ts --network apechain_curtis
 
-# Deploy swaps
-npx hardhat run scripts/deploy-swap.ts --network apechain_curtis
+**⚠️ CRITICAL: Always Use `npx tsx` for Deployment Scripts**
 
-# Deploy rentals
-npx hardhat run scripts/deploy-rentals.ts --network apechain_curtis
+The main `tsconfig.json` uses `"moduleResolution": "bundler"` which conflicts with Hardhat's TypeScript compilation (requires CommonJS). This causes errors like:
+```
+TSError: ⨯ Unable to compile TypeScript:
+error TS5095: Option 'bundler' can only be used when 'module' is set to 'es2015' or later.
 ```
 
+**✅ CORRECT WAY - Use `npx tsx`:**
+```bash
+# Deploy bundles to mainnet
+npx tsx scripts/deploy-fortuna-bundle-mainnet.ts
+
+# Deploy to testnet
+npx tsx scripts/deploy-bundles.ts
+npx tsx scripts/deploy-swap.ts
+npx tsx scripts/deploy-rentals.ts
+```
+
+**❌ INCORRECT - Don't use `npx hardhat run`:**
+```bash
+# This will fail with TypeScript compilation errors
+npx hardhat run scripts/deploy-bundles.ts --network apechain
+```
+
+**Why `npx tsx` works:**
+- tsx bypasses Hardhat's TypeScript compilation
+- Reads Hardhat config directly via CommonJS require
+- Uses the network specified in `hardhat.config.cjs` (default: apechain mainnet)
+- Avoids all tsconfig conflicts
+
 ### After Deployment
-1. Update contract addresses in respective `lib/*.ts` files
-2. Restart dev server: `pnpm run dev`
-3. Test features on testnet before mainnet deployment
+1. Update contract addresses in:
+   - `.env.local` (environment variables)
+   - `DEPLOYED_CONTRACTS.md` (documentation)
+   - `lib/bundle.ts` or relevant contract integration file
+   - Use PowerShell replace for bulk updates: `(Get-Content file.ts) -replace 'old', 'new' | Set-Content file.ts`
+2. Commit and push changes to trigger Vercel deployment
+3. Update environment variables in Vercel dashboard
+4. Test features on deployed site
 
 ## Future Development
 
