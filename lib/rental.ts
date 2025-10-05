@@ -108,6 +108,7 @@ export async function getWrapperIdFromTransaction(txHash: string): Promise<bigin
 
   console.log("📋 Transaction receipt:", receipt);
   console.log("📋 Total logs:", receipt.logs?.length);
+  console.log("📋 Looking for RentalManager address:", RENTAL_MANAGER_ADDRESS.toLowerCase());
 
   // NFTWrappedForRental event signature (indexed parameters become topics)
   // event NFTWrappedForRental(uint256 indexed wrapperId, address indexed owner, address originalContract, uint256 originalTokenId)
@@ -118,8 +119,11 @@ export async function getWrapperIdFromTransaction(txHash: string): Promise<bigin
   for (const log of receipt.logs || []) {
     console.log("🔍 Log:", {
       address: log.address,
+      addressLower: log.address?.toLowerCase(),
+      matchesRentalManager: log.address?.toLowerCase() === RENTAL_MANAGER_ADDRESS.toLowerCase(),
       topics: log.topics,
-      topicsLength: log.topics?.length
+      topicsLength: log.topics?.length,
+      data: log.data
     });
 
     // Check if this log is from the RentalManager contract
