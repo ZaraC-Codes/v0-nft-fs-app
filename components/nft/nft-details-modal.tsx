@@ -32,6 +32,8 @@ import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice, getNFTActivity } from "@/lib/marketplace"
 import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
+import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
+import { CreateRentalListing } from "@/components/rental/create-rental-listing"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -586,23 +588,35 @@ export function NFTDetailsModal({
                         Swap
                       </Button>
 
-                      <Button
-                        className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                        onClick={() => {
-                          if (onWrapForRental) {
-                            onWrapForRental(nft)
-                          } else {
-                            toast({
-                              title: "Wrap for Rental",
-                              description: "This feature is coming soon!",
-                            })
-                          }
+                      <WrapNFTButton
+                        nftContract={nft.contractAddress}
+                        tokenId={nft.tokenId}
+                        onSuccess={() => {
+                          toast({
+                            title: "NFT Wrapped!",
+                            description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
+                          })
+                          onClose()
                         }}
-                      >
-                        <Calendar className="h-4 w-4 mr-2" />
-                        Rent
-                      </Button>
+                      />
                     </div>
+
+                    {/* Create Rental Listing Section (for wrapped rental NFTs) */}
+                    {nft.collection === "Fortuna Square Rental Wrapper" && (
+                      <div className="mt-4 p-4 border border-cyan-500/30 rounded-lg">
+                        <p className="text-sm text-cyan-400 mb-3 font-medium">This is a Rental Wrapper NFT</p>
+                        <CreateRentalListing
+                          wrapperId={nft.tokenId}
+                          onSuccess={() => {
+                            toast({
+                              title: "Rental Listing Created!",
+                              description: "Your NFT is now available for rent.",
+                            })
+                            onClose()
+                          }}
+                        />
+                      </div>
+                    )}
 
                     {/* Unwrap Bundle Button (only for bundles) */}
                     {nft.isBundle && (
