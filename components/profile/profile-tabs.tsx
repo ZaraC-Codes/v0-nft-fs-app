@@ -205,7 +205,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No NFTs in portfolio</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {profileTabData.portfolio.map((nft) => (
                   <Card
                     key={`${nft.contractAddress}-${nft.tokenId}`}
@@ -214,11 +214,11 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                   >
                     {/* Bundle NFT Layout */}
                     {nft.isBundle ? (
-                      <div className="relative h-32 overflow-hidden ">
+                      <div className="relative h-48 overflow-hidden ">
                         <img
                           src={nft.image || "/placeholder.svg"}
                           alt={nft.name}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 "
+                          className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105 "
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent " />
 
@@ -412,13 +412,13 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                       </div>
                     )}
 
-                    <CardContent className="p-2">
+                    <CardContent className="p-4">
                       <div className="flex items-start justify-between mb-1">
                         <div className="flex-1 min-w-0">
-                          <h3 className="font-semibold text-xs text-foreground group-hover:text-primary transition-colors truncate">
+                          <h3 className="font-semibold text-sm text-foreground group-hover:text-primary transition-colors truncate">
                             {nft.name}
                           </h3>
-                          <p className="text-[10px] text-muted-foreground truncate">
+                          <p className="text-xs text-muted-foreground truncate">
                             {nft.collection}
                             {nft.isBundle && (
                               <span className="ml-1 text-orange-400">
@@ -431,7 +431,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                           {/* Listing Status Badge */}
                           {nft.listing && nft.listing.type !== "none" && (
                             <Badge
-                              className={`text-[9px] px-1 py-0 ${
+                              className={`text-xs px-2 py-0.5 ${
                                 nft.listing.type === "sale" ? "bg-green-500/20 text-green-400 border-green-500/30" :
                                 nft.listing.type === "rent" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
                                 "bg-purple-500/20 text-purple-400 border-purple-500/30"
@@ -449,7 +449,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         {/* Sale Listing */}
                         {nft.listing?.type === "sale" && nft.listing.sale && (
                           <div>
-                            <p className="font-bold text-primary neon-text text-xs">
+                            <p className="font-bold text-primary neon-text text-sm">
                               {nft.listing.sale.price} APE
                             </p>
                           </div>
@@ -647,7 +647,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No items in watchlist</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {profileTabData.watchlist.map((item) => {
                   // Convert watchlist item to portfolio-style format
                   const nftData = {

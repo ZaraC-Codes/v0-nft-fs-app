@@ -83,7 +83,7 @@ export default function RentalsPage() {
 
         {/* Rental Listings Grid */}
         {!isLoading && listings.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
             {listings.map(({ listing, nft }) => (
               <Card key={listing.wrapperId.toString()} className="glass-card border-cyan-500/30 hover:border-cyan-500/60 transition-all">
                 <CardHeader>
