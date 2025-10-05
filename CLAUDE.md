@@ -519,25 +519,71 @@ Peer-to-peer NFT swaps with flexible matching:
 - `scripts/deploy-swap.ts` - Deployment
 - `SWAP_DEPLOY.md` - Deployment guide
 
-### Rental System (ERC4907 + ERC6551)
-**Status**: ✅ Complete, ready for deployment
+### Rental System with Delegate.cash (ERC4907 + ERC6551 + Delegation)
+**Status**: ✅ DEPLOYED TO CURTIS TESTNET - Fully Functional (Oct 5, 2025)
 
-Innovative rental system combining ERC4907 and ERC6551:
+Revolutionary rental system with **zero collateral** and **token-gating support** via Delegate.cash:
 - Works with ANY ERC721 NFT (not just ERC4907)
 - Wrap NFTs in ERC4907-compatible wrapper
 - Original NFT stored in wrapper's TBA
-- Owner retains ownership, renter gets temporary `userOf()` rights
+- Owner retains ownership, renter gets delegation rights
+- Token-gating compatible (OpenSea, Premint, Guild.xyz, Snapshot, etc.)
+- Zero collateral required
 - Automatic expiration, no manual intervention
 - Re-rentable without unwrapping
+- Custom pricing and duration (owner sets per-day rate and min/max days)
+
+**Deployed Contracts (ApeChain Curtis Testnet - Chain ID: 33111)**:
+- FortunaSquareRentalAccount: `0xF3435A43471123933AEE2E871C3530761a085502`
+- RentalWrapperDelegated: `0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6`
+- RentalManagerDelegated: `0x6c45305a90427cAF108108Af2f44D5b1dA9809F5`
+- Delegate.cash Registry: `0x00000000000000447e69651d841bD8D104Bed493`
+
+**Environment Variables**:
+```bash
+NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0xF3435A43471123933AEE2E871C3530761a085502
+NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6
+NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x6c45305a90427cAF108108Af2f44D5b1dA9809F5
+NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
+```
+
+**Critical Technical Notes**:
+1. **Delegate.cash Integration**: When rental starts, TBA delegates original NFT to renter via `delegateERC721()`
+2. **Token-Gating**: Renters can access token-gated content because delegation is recognized by Delegate.cash-enabled platforms
+3. **Authorization**: Uses same `context()` pattern as bundle system for TBA authorization
+4. **Custom Pricing**: Owners set their own price per day (in APE)
+5. **Custom Duration**: Owners set min/max rental days, renters choose within that range
+6. **No Early End**: Rentals run for full duration (as specified)
+7. **Platform Fee**: 2.5% on all rental payments
+
+**How It Works**:
+1. Owner wraps NFT → Creates wrapper NFT with TBA → Original NFT stored in TBA
+2. Owner creates rental listing → Sets price per day, min/max duration
+3. Renter pays rental fee → TBA delegates original NFT to renter via Delegate.cash
+4. Renter gains delegation rights → Can access token-gated content
+5. Rental expires → `userOf()` returns address(0), delegation can be manually revoked
+6. Owner can unwrap (if not rented) → Returns original NFT, burns wrapper
+
+**Integration Status**: ✅ Fully Working
+- Smart contracts deployed and tested
+- Frontend components complete
+- Browse rentals page: `/rentals`
+- Full user flow functional
 
 **Files**:
 - `contracts/IERC4907.sol` - ERC4907 interface
-- `contracts/RentalWrapper.sol` - ERC721 + ERC4907 wrapper
-- `contracts/RentalManager.sol` - Rental management
-- `lib/rental.ts` - TypeScript integration
-- `components/rental/` - UI components
-- `scripts/deploy-rentals.ts` - Deployment
-- `RENTAL_DEPLOY.md` - Deployment guide
+- `contracts/IDelegateRegistry.sol` - Delegate.cash v2 interface
+- `contracts/FortunaSquareRentalAccount.sol` - Custom TBA with delegation support
+- `contracts/RentalWrapperDelegated.sol` - ERC721 + ERC4907 wrapper with delegation
+- `contracts/RentalManagerDelegated.sol` - Rental marketplace with custom pricing
+- `lib/rental.ts` - TypeScript integration with all rental functions
+- `components/rental/wrap-nft-button.tsx` - Wrap NFT for rental
+- `components/rental/create-rental-listing.tsx` - Create listing with custom price/duration
+- `components/rental/rent-nft-button.tsx` - Rent NFT with payment
+- `components/rental/unwrap-nft-button.tsx` - Unwrap NFT to get original back
+- `app/rentals/page.tsx` - Browse active rental listings
+- `scripts/deploy-fortuna-rental.ts` - Deployment script
+- `DEPLOYED_CONTRACTS.md` - Contract address registry
 
 ### Platform Fees
 **Status**: ✅ Configured, integrated
