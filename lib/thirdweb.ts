@@ -58,19 +58,19 @@ export const CHAIN_METADATA = {
   [apeChain.id]: {
     name: "ApeChain",
     shortName: "ApeChain",
-    icon: "🦍",
-    color: "from-[#030a21] to-[#e2f0ff]", // Official ApeChain Dark Blue to GM Blue
-    bgColor: "#030a21", // Official Dark Blue
-    textColor: "#e2f0ff", // Official GM Blue
+    icon: "https://apescan.io/assets/ape/images/svg/brandassets/logo-symbol-light.svg", // Official ApeChain logo
+    color: "from-[#e2f0ff] via-[#e2f0ff] to-[#e2f0ff]", // Official GM Blue
+    bgColor: "#e2f0ff", // Official GM Blue background
+    textColor: "#030a21", // Dark text on light background
     nativeToken: "APE",
   },
   [apeChainCurtis.id]: {
     name: "ApeChain Curtis",
     shortName: "Curtis",
-    icon: "🦍",
-    color: "from-[#030a21] to-[#e2f0ff]", // Official ApeChain colors
-    bgColor: "#030a21",
-    textColor: "#e2f0ff",
+    icon: "https://apescan.io/assets/ape/images/svg/brandassets/logo-symbol-light.svg", // Official ApeChain logo
+    color: "from-[#e2f0ff] via-[#e2f0ff] to-[#e2f0ff]", // Official GM Blue
+    bgColor: "#e2f0ff",
+    textColor: "#030a21",
     nativeToken: "APE",
   },
   [sepolia.id]: {

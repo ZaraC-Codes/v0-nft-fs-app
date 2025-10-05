@@ -107,12 +107,16 @@ export function Footer() {
                 href="https://apecoin.com"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-gradient-to-r from-[#030a21] to-[#e2f0ff]/20 border border-[#e2f0ff]/30 hover:border-[#e2f0ff]/50 transition-all group"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#e2f0ff] hover:bg-[#e2f0ff]/90 border border-[#e2f0ff] transition-all"
               >
-                <span className="text-xs font-semibold text-[#e2f0ff] group-hover:text-white transition-colors">
+                <img
+                  src="https://apescan.io/assets/ape/images/svg/brandassets/logo-symbol.svg"
+                  alt="ApeCoin"
+                  className="h-5 w-5"
+                />
+                <span className="text-sm font-bold text-[#030a21]" style={{ fontFamily: 'DM Sans, sans-serif' }}>
                   Powered By ApeCoin
                 </span>
-                <span className="text-sm">🦍</span>
               </a>
             </div>
             <div className="flex items-center space-x-4">
