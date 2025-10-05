@@ -482,7 +482,7 @@ export default function BundlesPage() {
                           <img
                             src={nft.image || "/placeholder.svg"}
                             alt={nft.name}
-                            className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
+                            className="w-full aspect-square object-contain bg-black/20 transition-transform duration-300 group-hover:scale-105"
                           />
 
                           {/* Chain Badge */}

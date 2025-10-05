@@ -317,7 +317,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         <img
                           src={nft.image || "/placeholder.svg"}
                           alt={nft.name}
-                          className="w-full h-32 object-cover transition-transform duration-300 group-hover:scale-105 "
+                          className="w-full aspect-square object-contain bg-black/20 transition-transform duration-300 group-hover:scale-105 "
                         />
 
                         {/* Chain Badge */}
@@ -660,7 +660,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         <img
                           src={item.image || "/placeholder.svg"}
                           alt={item.name}
-                          className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105 "
+                          className="w-full aspect-square object-contain bg-black/20 transition-transform duration-300 group-hover:scale-105 "
                         />
 
                         {/* Chain Badge */}
