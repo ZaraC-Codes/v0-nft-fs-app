@@ -35,42 +35,57 @@ export default function HomePage() {
   const [selectedChain, setSelectedChain] = useState<"all" | number>("all")
   const [activeUsers, setActiveUsers] = useState<any[]>([])
 
+  // Real ApeChain Collections - Top 5 by volume/popularity
   const featuredCollections = [
     {
-      name: "Bored Ape Yacht Club",
-      image: "https://picsum.photos/800/400?random=bayc",
-      description: "The iconic collection that started it all. Join the club of exclusive NFT holders.",
-      floorPrice: "12.5 APE",
-      totalBundles: 234,
+      name: "Gs on Ape",
+      image: "https://picsum.photos/800/400?random=gsonape",
+      description: "Top ApeChain collection with strong community and high trading volume.",
+      floorPrice: "933 APE",
+      volume24h: "High volume",
+      totalSupply: "Unknown",
       verified: true,
       chainId: apeChainCurtis.id
     },
     {
-      name: "CryptoPunks Genesis",
-      image: "https://picsum.photos/800/400?random=punks",
-      description: "Original 10,000 unique collectible characters on the blockchain.",
-      floorPrice: "0.045 ETH",
-      totalBundles: 567,
-      verified: true,
-      chainId: sepolia.id
-    },
-    {
-      name: "Azuki NFT Collection",
-      image: "https://picsum.photos/800/400?random=azuki",
-      description: "A collection of 10,000 avatars that grant access to The Garden.",
-      floorPrice: "8.2 APE",
-      totalBundles: 189,
+      name: "Gobs on Ape",
+      image: "https://picsum.photos/800/400?random=gobsonape",
+      description: "2,222 unique PFP avatars released January 2025. Part of ApeChain's Spotlight Loyalty Program.",
+      floorPrice: "878 APE",
+      volume24h: "5M APE Total Volume",
+      totalSupply: "2,222",
       verified: true,
       chainId: apeChainCurtis.id
     },
     {
-      name: "Moonbirds Official",
-      image: "https://picsum.photos/800/400?random=moonbirds",
-      description: "A collection of 10,000 utility-enabled PFPs that feature a richly diverse roster.",
-      floorPrice: "0.032 ETH",
-      totalBundles: 312,
+      name: "NightGlyders",
+      image: "https://picsum.photos/800/400?random=nightglyders",
+      description: "3,333 NFTs rooted in the magic of the Notca Fruit's rupture. Unique traits and mystical powers.",
+      floorPrice: "170 APE",
+      volume24h: "4,422 APE (24h)",
+      totalSupply: "3,333",
       verified: true,
-      chainId: sepolia.id
+      chainId: apeChainCurtis.id
+    },
+    {
+      name: "Zards",
+      image: "https://picsum.photos/800/400?random=zards",
+      description: "5,000 pixelated wizards with magical powers. Soft stake to earn Magic Points and boost rarity!",
+      floorPrice: "66 APE",
+      volume24h: "349K APE Total Volume",
+      totalSupply: "4,999",
+      verified: true,
+      chainId: apeChainCurtis.id
+    },
+    {
+      name: "BALLOONS",
+      image: "https://picsum.photos/800/400?random=balloons",
+      description: "Blowing it up on ApeChain! Trending collection with active community.",
+      floorPrice: "28 APE",
+      volume24h: "Active Trading",
+      totalSupply: "Unknown",
+      verified: true,
+      chainId: apeChainCurtis.id
     }
   ]
 
@@ -290,8 +305,12 @@ export default function HomePage() {
                           <p className="text-2xl font-bold text-primary neon-text">{collection.floorPrice}</p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-400 mb-1">Bundles Created</p>
-                          <p className="text-2xl font-bold text-secondary neon-text">{collection.totalBundles}</p>
+                          <p className="text-sm text-gray-400 mb-1">Total Supply</p>
+                          <p className="text-2xl font-bold text-secondary neon-text">{collection.totalSupply}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-400 mb-1">Volume</p>
+                          <p className="text-xl font-bold text-cyan-400 neon-text">{collection.volume24h}</p>
                         </div>
                       </div>
                       <Button
