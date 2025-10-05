@@ -24,9 +24,12 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
-import { apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA, client } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { generateBundleImage, uploadBundleImageToIPFS } from "@/lib/bundle-image"
+import { generateBundleMetadataURI, prepareCreateBundle, getUniqueNFTContracts } from "@/lib/bundle"
+import { useSendTransaction } from "thirdweb/react"
 
 // Rarity color system
 const getRarityColor = (rarity: string) => {
@@ -213,7 +216,9 @@ export default function BundlesPage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [bundleName, setBundleName] = useState("")
   const [bundleDescription, setBundleDescription] = useState("")
+  const [isCreatingBundle, setIsCreatingBundle] = useState(false)
   const { toast } = useToast()
+  const { mutate: sendTransaction } = useSendTransaction()
 
   const collections = ["all", ...Object.keys(mockPortfolioNFTs)]
 
@@ -269,7 +274,7 @@ export default function BundlesPage() {
 
   const totalSelectedValue = selectedNFTsList.reduce((sum, nft) => sum + nft.estimatedValue, 0)
 
-  const handleCreateBundle = () => {
+  const handleCreateBundle = async () => {
     if (selectedNFTs.size < 2) {
       toast({
         title: "Invalid Selection",
@@ -288,15 +293,96 @@ export default function BundlesPage() {
       return
     }
 
-    toast({
-      title: "Bundle Created!",
-      description: `Successfully created "${bundleName}" with ${selectedNFTs.size} NFTs.`,
-    })
+    if (thumbnailNFTs.size !== 3) {
+      toast({
+        title: "Thumbnail Selection Required",
+        description: "Please select exactly 3 thumbnails for your bundle display.",
+        variant: "destructive"
+      })
+      return
+    }
 
-    // Reset form
-    setSelectedNFTs(new Set())
-    setBundleName("")
-    setBundleDescription("")
+    try {
+      setIsCreatingBundle(true)
+
+      // Get selected NFTs and thumbnails
+      const thumbnailsList = searchedNFTs.filter(nft =>
+        thumbnailNFTs.has(`${nft.contractAddress}-${nft.tokenId}`)
+      )
+
+      // Generate composite bundle image with FS logo + 3 thumbnails
+      const bundleImageDataUri = await generateBundleImage(
+        thumbnailsList.map(nft => ({
+          image: nft.image || "",
+          name: nft.name
+        }))
+      )
+
+      // Upload to IPFS (or use data URI for now)
+      const bundleImageUrl = await uploadBundleImageToIPFS(bundleImageDataUri)
+
+      // Generate metadata URI with all NFT data and thumbnails
+      const metadataURI = generateBundleMetadataURI(
+        bundleName,
+        bundleDescription || `Bundle of ${selectedNFTs.size} NFTs`,
+        bundleImageUrl,
+        selectedNFTsList.map(nft => ({
+          name: nft.name,
+          contractAddress: nft.contractAddress,
+          tokenId: nft.tokenId,
+          image: nft.image
+        })),
+        thumbnailsList.map(nft => ({
+          name: nft.name,
+          image: nft.image || "",
+          tokenId: nft.tokenId
+        }))
+      )
+
+      // Prepare bundle creation transaction
+      const nftContracts = selectedNFTsList.map(nft => nft.contractAddress)
+      const tokenIds = selectedNFTsList.map(nft => nft.tokenId)
+
+      const transaction = prepareCreateBundle(client, apeChain, {
+        nftContracts,
+        tokenIds,
+        bundleName,
+        bundleTokenURI: metadataURI
+      })
+
+      // Send transaction
+      sendTransaction(transaction, {
+        onSuccess: () => {
+          toast({
+            title: "Bundle Created!",
+            description: `Successfully created "${bundleName}" with ${selectedNFTs.size} NFTs and ${thumbnailNFTs.size} featured thumbnails.`,
+          })
+
+          // Reset form
+          setSelectedNFTs(new Set())
+          setThumbnailNFTs(new Set())
+          setBundleName("")
+          setBundleDescription("")
+        },
+        onError: (error) => {
+          console.error("Bundle creation error:", error)
+          toast({
+            title: "Bundle Creation Failed",
+            description: error.message || "Failed to create bundle. Please try again.",
+            variant: "destructive"
+          })
+        }
+      })
+    } catch (error: any) {
+      console.error("Bundle preparation error:", error)
+      toast({
+        title: "Error",
+        description: error.message || "Failed to prepare bundle creation.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsCreatingBundle(false)
+    }
   }
 
   const handleUnwrapBundle = (bundleId: string, bundleName: string) => {
@@ -609,16 +695,21 @@ export default function BundlesPage() {
                     {/* Create Button */}
                     <Button
                       onClick={handleCreateBundle}
-                      disabled={selectedNFTs.size < 2 || !bundleName.trim()}
+                      disabled={selectedNFTs.size < 2 || !bundleName.trim() || thumbnailNFTs.size !== 3 || isCreatingBundle}
                       className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
                     >
                       <Package className="h-4 w-4 mr-2" />
-                      Create Bundle
+                      {isCreatingBundle ? "Creating Bundle..." : "Create Bundle"}
                     </Button>
 
                     {selectedNFTs.size < 2 && (
                       <p className="text-xs text-muted-foreground text-center">
                         Select at least 2 NFTs to create a bundle
+                      </p>
+                    )}
+                    {selectedNFTs.size >= 2 && thumbnailNFTs.size !== 3 && (
+                      <p className="text-xs text-muted-foreground text-center">
+                        Select exactly 3 thumbnails for display ({thumbnailNFTs.size}/3 selected)
                       </p>
                     )}
                   </CardContent>
