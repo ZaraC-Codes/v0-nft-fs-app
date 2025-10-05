@@ -40,7 +40,6 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
   const [delistedNFTs, setDelistedNFTs] = useState<Set<string>>(new Set())
   const [isApprovingAll, setIsApprovingAll] = useState(false)
   const [isDelistingAll, setIsDelistingAll] = useState(false)
-  const [coverImageIndex, setCoverImageIndex] = useState<number>(0) // Index of NFT to use as cover
   const [thumbnailIndices, setThumbnailIndices] = useState<number[]>([0, 1, 2]) // Indices of NFTs to show as thumbnails
 
   // Check which selected NFTs have active listings
@@ -275,7 +274,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
           </DialogTitle>
           <DialogDescription className="text-base">
             {step === "select" && "Select NFTs to bundle together"}
-            {step === "customize" && "Choose cover image and thumbnails"}
+            {step === "customize" && "Choose preview thumbnails"}
             {step === "delist" && "Cancel listings for selected NFTs"}
             {step === "approve" && "Approve NFT contracts for bundling"}
             {step === "create" && "Create your bundle"}
@@ -457,46 +456,6 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
           {step === "customize" && (
             <>
               <div className="space-y-6">
-                {/* Cover Image Selection */}
-                <Card className="glass-card border-cyan-500/30 p-6">
-                  <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <ImageIcon className="h-5 w-5 text-cyan-400" />
-                    Select Cover Image
-                  </h3>
-                  <p className="text-sm text-muted-foreground mb-4">
-                    Choose one NFT to be the main cover image for your bundle card
-                  </p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {selectedNFTs.map((nft, index) => (
-                      <div
-                        key={`${nft.contractAddress}-${nft.tokenId}`}
-                        onClick={() => setCoverImageIndex(index)}
-                        className={`relative cursor-pointer rounded-lg border-2 transition-all ${
-                          coverImageIndex === index
-                            ? "border-cyan-400 ring-2 ring-cyan-400/50"
-                            : "border-gray-700 hover:border-gray-600"
-                        }`}
-                      >
-                        <div className="aspect-square overflow-hidden rounded-lg">
-                          <img
-                            src={nft.image || "/placeholder.svg"}
-                            alt={nft.name}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        {coverImageIndex === index && (
-                          <div className="absolute top-2 right-2 bg-cyan-400 rounded-full p-1">
-                            <Check className="h-4 w-4 text-black" />
-                          </div>
-                        )}
-                        <div className="p-2">
-                          <p className="text-xs font-medium truncate">{nft.name}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-
                 {/* Thumbnail Selection */}
                 <Card className="glass-card border-purple-500/30 p-6">
                   <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
