@@ -223,11 +223,6 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
               <span className="text-muted-foreground">Token ID</span>
               <span className="font-medium">#{nft.tokenId}</span>
             </div>
-            <Separator />
-            <div className="flex justify-between py-2">
-              <span className="text-muted-foreground">Contract Address</span>
-              <span className="font-mono text-xs truncate max-w-[200px]">{nft.contractAddress}</span>
-            </div>
           </CardContent>
         </Card>
       </TabsContent>
@@ -806,13 +801,12 @@ export function NFTDetailsModal({
               <BundleContentsTab nft={nft} />
             )}
 
-            {/* Traits/Activity Tabs for Individual NFTs */}
-            {!nft.isBundle && (
-              <Tabs defaultValue="traits" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="traits">Traits</TabsTrigger>
-                  <TabsTrigger value="activity">Activity</TabsTrigger>
-                </TabsList>
+            {/* Traits/Activity Tabs for All NFTs */}
+            <Tabs defaultValue="traits" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="traits">Traits</TabsTrigger>
+                <TabsTrigger value="activity">Activity</TabsTrigger>
+              </TabsList>
 
                 <TabsContent value="traits" className="space-y-4">
                   <Card className="border-border/50 bg-card/50">
@@ -892,9 +886,8 @@ export function NFTDetailsModal({
                     </CardContent>
                   </Card>
                 </TabsContent>
-              </Tabs>
-            )}
 
+              </Tabs>
             {/* NFT Details */}
             <Card className="border-border/50 bg-card/50">
               <CardHeader>

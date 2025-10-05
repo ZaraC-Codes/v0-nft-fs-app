@@ -745,7 +745,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 tokenId: nft.tokenId,
                 name: nft.name || `Token #${nft.tokenId}`,
                 image: nft.image,
-                collection: nft.collectionName || 'Unknown Collection',
+                collection: isBundleNFT ? 'Fortuna Square Bundle NFTs' : (nft.collectionName || 'Unknown Collection'),
                 chainId: nft.chainId || chainId,
                 acquiredAt: new Date(),
                 estimatedValue: 0,
