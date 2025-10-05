@@ -646,9 +646,97 @@ npx hardhat run scripts/deploy-rentals.ts --network apechain_curtis
 ### Areas for Enhancement
 - Real-time NFT data integration
 - Advanced search and filtering
-- Mobile responsiveness improvements
 - Performance optimizations
 - Error boundary implementations
+
+## Recent Updates (October 5, 2025)
+
+### OAuth Profile Auto-Population ✅
+**What**: Users who sign up with Google, Discord, Twitter, Facebook, or Apple automatically get their profile picture and info pulled from their social account.
+
+**Key Features**:
+- Auto-populated avatar from OAuth provider (Google, Discord, Twitter, etc.)
+- Username generated from OAuth name or email
+- Email pre-filled from OAuth
+- Bio shows provider (e.g., "Connected via Google 🚀")
+- Social links section in Settings page (Twitter, Discord, Website, Instagram, Telegram, GitHub)
+- Social icons displayed on profile pages
+
+**Files Modified**:
+- `types/profile.ts` - Added `SocialLinks` interface and OAuth metadata fields
+- `components/auth/auth-provider.tsx` - Captures OAuth data via `wallet.getUserInfo()`
+- `lib/profile-service.ts` - Updated `createProfileFromWallet()` to accept OAuth data
+- `app/settings/page.tsx` - Added social links form section
+- `components/profile/profile-header.tsx` - Added social icons display
+
+### Professional NFT Grid Layouts ✅
+**What**: Dense grid layouts matching industry standards (OpenSea, Magic Eden) for better browsing of large NFT collections.
+
+**Complete Responsive Grid System**:
+| Screen Size | Width | Columns | Use Case |
+|------------|-------|---------|----------|
+| **Extra Small** | < 640px | **2** | Small phones (iPhone SE) |
+| **Small** | 640-768px | **3** | Standard phones |
+| **Medium** | 768-1024px | **5** | Tablets (portrait) |
+| **Large** | 1024-1280px | **8** | Tablets (landscape) / Small laptops |
+| **Extra Large** | 1280px+ | **10** | Desktop / Large screens |
+
+**Card Optimizations**:
+- Image height: h-64 → h-32 (50% reduction)
+- Card padding: p-4 → p-2 (tighter spacing)
+- Grid gap: gap-6 → gap-3 (closer cards)
+- Text sizes: Reduced to text-xs and text-[10px]
+- Badge sizes: text-[9px] with compact padding
+- Truncated text with ellipsis for long names
+- Simplified price display (removed secondary info)
+
+**Benefits**:
+- 10x more NFTs visible on large screens (4 → 10 columns)
+- 2x more on mobile (1 → 2 columns on small phones)
+- Perfect for collectors with hundreds/thousands of NFTs
+- Industry-standard layout familiarity
+- Better screen space utilization
+
+**Files Modified**:
+- `components/profile/profile-tabs.tsx` - Portfolio and watchlist grids
+- `app/bundles/page.tsx` - Bundle browsing grid
+- `app/rentals/page.tsx` - Rental listings grid
+
+### Mobile Optimization ✅
+**What**: Added extra-small breakpoint for better mobile experience on all screen sizes.
+
+**Mobile-Specific Improvements**:
+- 2 columns on phones < 640px (was 3, too cramped)
+- Better touch targets and readability
+- Larger cards on mobile (2 cols = ~170px wide vs 3 cols = ~110px)
+- All components tested for mobile responsiveness
+- Hamburger menu for navigation
+- Responsive profile layouts
+- Scrollable modals with `max-h-[90vh]`
+
+**Grid Progression Across Screens**:
+```
+grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10
+```
+
+## All Deployed Contracts (Mainnet - Chain ID: 33139)
+
+### Bundle System
+- BundleNFTUnified: `0x58511e5E3Bfb99b3bD250c0D2feDCB93Ad10c779`
+- FortunaSquareBundleAccount: `0x6F71009f0100Eb85aF10D4A3968D3fbA16069553`
+
+### Rental System
+- FortunaSquareRentalAccount: `0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f`
+- RentalWrapperDelegated: `0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672`
+- RentalManagerDelegated: `0x04e6658323e423729bfA0cE90706Ab1a5e5151a0`
+
+### Marketplace & Swap
+- FortunaSquareMarketplace: `0x3e076856f0E06A37F4C79Cd46C936fc27f8fA7E0`
+- SwapManager: `0x732984EC859f4597502B9336FD3B1fCCBCD57C91`
+
+### Infrastructure
+- ERC6551 Registry: `0x000000006551c19487814612e58FE06813775758`
+- Delegate.cash Registry: `0x00000000000000447e69651d841bD8D104Bed493`
 
 ---
 
