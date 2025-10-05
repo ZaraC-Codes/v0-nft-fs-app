@@ -37,7 +37,7 @@ export default function HomePage() {
   const [selectedChain, setSelectedChain] = useState<"all" | number>("all")
   const [activeUsers, setActiveUsers] = useState<any[]>([])
 
-  // Real ApeChain Collections - Top 5 by volume/popularity
+  // Real ApeChain Collections - Top 4 by volume/popularity
   const featuredCollections = [
     {
       name: "Gs on Ape",
@@ -76,16 +76,6 @@ export default function HomePage() {
       floorPrice: "66 APE",
       volume24h: "349K APE Total Volume",
       totalSupply: "4,999",
-      verified: true,
-      chainId: apeChain.id
-    },
-    {
-      name: "BALLOONS",
-      image: "https://picsum.photos/800/400?random=balloons",
-      description: "Blowing it up on ApeChain! Trending collection with active community.",
-      floorPrice: "28 APE",
-      volume24h: "Active Trading",
-      totalSupply: "Unknown",
       verified: true,
       chainId: apeChain.id
     }
