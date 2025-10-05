@@ -45,7 +45,7 @@ export default function HomePage() {
       description: "Top ApeChain collection with strong community and high trading volume.",
       floorPrice: "933 APE",
       volume24h: "High volume",
-      totalSupply: "Unknown",
+      totalSupply: "5,555",
       verified: true,
       chainId: apeChain.id
     },
