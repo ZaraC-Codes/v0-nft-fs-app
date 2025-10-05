@@ -11,10 +11,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { TransactionButton, useSendTransaction } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { apeChain, apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, apeChainCurtis, sepolia, client } from "@/lib/thirdweb"
 import { prepareApproveNFTContract, prepareCreateBundle, getUniqueNFTContracts, generateBundleMetadataURI } from "@/lib/bundle"
 import { cancelListing } from "@/lib/marketplace"
 import { Package, Plus, X, Check, AlertCircle, Image as ImageIcon } from "lucide-react"
+import { ChainBadge } from "@/components/ui/chain-badge"
 import Image from "next/image"
 import { useProfile } from "@/components/profile/profile-provider"
 import { NFTWithTraits } from "@/lib/nft-matching"
@@ -411,10 +412,10 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                               fill
                               className="object-cover"
                             />
-                            {getChainMetadata(nft.chainId) && (
-                              <Badge className={`absolute top-1 left-1 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0 text-xs`}>
-                                {getChainMetadata(nft.chainId)!.icon}
-                              </Badge>
+                            {nft.chainId && (
+                              <div className="absolute top-1 left-1">
+                                <ChainBadge chainId={nft.chainId} size="sm" />
+                              </div>
                             )}
                             {isSelected && (
                               <div className="absolute top-1 right-1 bg-cyan-500 rounded-full p-1">
