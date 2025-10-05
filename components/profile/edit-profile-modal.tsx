@@ -34,6 +34,8 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
 
   const [avatarFile, setAvatarFile] = useState<File | null>(null)
   const [coverFile, setCoverFile] = useState<File | null>(null)
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  const [coverPreview, setCoverPreview] = useState<string | null>(null)
 
   // Update form data when profile changes
   useEffect(() => {
@@ -57,11 +59,20 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
   }
 
   const handleFileChange = (type: 'avatar' | 'cover', file: File | null) => {
-    if (type === 'avatar') {
-      setAvatarFile(file)
-    } else {
-      setCoverFile(file)
+    if (!file) return
+
+    // Convert to base64 data URL instead of blob URL for persistence
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (type === 'avatar') {
+        setAvatarPreview(reader.result as string)
+        setAvatarFile(file)
+      } else {
+        setCoverPreview(reader.result as string)
+        setCoverFile(file)
+      }
     }
+    reader.readAsDataURL(file)
   }
 
   const handleSave = async () => {
@@ -77,12 +88,12 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
         isPublic: formData.isPublic,
       }
 
-      // Mock file upload - in reality you'd upload to cloud storage
-      if (avatarFile) {
-        updates.avatar = URL.createObjectURL(avatarFile)
+      // Use base64 data URLs for persistence (not blob URLs!)
+      if (avatarPreview) {
+        updates.avatar = avatarPreview
       }
-      if (coverFile) {
-        updates.coverImage = URL.createObjectURL(coverFile)
+      if (coverPreview) {
+        updates.coverImage = coverPreview
       }
 
       await updateProfile(updates)
@@ -135,9 +146,9 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
               <Label className="text-sm font-medium">Cover Image</Label>
               <div className="mt-2">
                 <div className="relative h-32 w-full rounded-lg border-2 border-dashed border-border bg-muted/50 flex items-center justify-center overflow-hidden">
-                  {(coverFile || userProfile.coverImage) ? (
+                  {(coverPreview || userProfile.coverImage) ? (
                     <img
-                      src={coverFile ? URL.createObjectURL(coverFile) : userProfile.coverImage}
+                      src={coverPreview || userProfile.coverImage}
                       alt="Cover"
                       className="w-full h-full object-cover"
                     />
@@ -164,7 +175,7 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
                 <div className="relative">
                   <Avatar className="h-20 w-20">
                     <AvatarImage
-                      src={avatarFile ? URL.createObjectURL(avatarFile) : userProfile.avatar}
+                      src={avatarPreview || userProfile.avatar}
                       alt={userProfile.username}
                     />
                     <AvatarFallback className="bg-gradient-to-br from-primary to-secondary text-white text-xl">
