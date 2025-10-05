@@ -7,7 +7,8 @@ import { wrapNFT, getLatestWrapperIdForUser } from "@/lib/rental";
 import { useToast } from "@/components/ui/use-toast";
 import { Package } from "lucide-react";
 import { getContract, prepareContractCall, sendTransaction } from "thirdweb";
-import { apeChainCurtis, client } from "@/lib/thirdweb";
+import { apeChain, client } from "@/lib/thirdweb";
+import { ensureCorrectNetwork } from "@/lib/network-utils";
 
 interface WrapNFTButtonProps {
   nftContract: string;
@@ -34,12 +35,26 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
     setIsWrapping(true);
 
     try {
+      // Step 0: Ensure user is on the correct network (ApeChain mainnet)
+      console.log("🔍 Checking network...");
+      const networkCorrect = await ensureCorrectNetwork(apeChain.id);
+
+      if (!networkCorrect) {
+        toast({
+          title: "Network Switch Required",
+          description: "Please switch to ApeChain mainnet in your wallet to wrap NFTs for rental.",
+          variant: "destructive",
+        });
+        setIsWrapping(false);
+        return;
+      }
+
       // Step 1: Approve RentalManager to transfer NFT
       const rentalManagerAddress = process.env.NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS!;
 
       const nftContractInstance = getContract({
         client,
-        chain: apeChainCurtis,
+        chain: apeChain,
         address: nftContract,
       });
 
