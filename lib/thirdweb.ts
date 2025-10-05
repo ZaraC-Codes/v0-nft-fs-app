@@ -53,20 +53,24 @@ export { sepolia };
 // Supported chains for the marketplace
 export const SUPPORTED_CHAINS = [apeChain, apeChainCurtis, sepolia] as const;
 
-// Chain metadata for display
+// Chain metadata for display (official ApeChain branding guidelines)
 export const CHAIN_METADATA = {
   [apeChain.id]: {
     name: "ApeChain",
     shortName: "ApeChain",
     icon: "🦍",
-    color: "from-purple-500 to-pink-600",
+    color: "from-[#030a21] to-[#e2f0ff]", // Official ApeChain Dark Blue to GM Blue
+    bgColor: "#030a21", // Official Dark Blue
+    textColor: "#e2f0ff", // Official GM Blue
     nativeToken: "APE",
   },
   [apeChainCurtis.id]: {
     name: "ApeChain Curtis",
     shortName: "Curtis",
     icon: "🦍",
-    color: "from-blue-500 to-blue-600",
+    color: "from-[#030a21] to-[#e2f0ff]", // Official ApeChain colors
+    bgColor: "#030a21",
+    textColor: "#e2f0ff",
     nativeToken: "APE",
   },
   [sepolia.id]: {
@@ -74,6 +78,8 @@ export const CHAIN_METADATA = {
     shortName: "Sepolia",
     icon: "⟠",
     color: "from-gray-400 to-gray-500",
+    bgColor: "#6b7280",
+    textColor: "#ffffff",
     nativeToken: "ETH",
   },
 } as const;

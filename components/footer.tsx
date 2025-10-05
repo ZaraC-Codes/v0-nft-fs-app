@@ -99,17 +99,32 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-border/50 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between">
-          <p className="text-sm text-muted-foreground">© 2025 Fortuna Square. All rights reserved.</p>
-          <div className="flex items-center space-x-4 mt-4 md:mt-0">
-            <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-              Privacy Policy
-            </Link>
-            <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
-              Terms of Service
-            </Link>
-            <div className="flex items-center text-sm text-muted-foreground">
-              Made with <Heart className="mx-1 h-3 w-3 text-red-500" /> for the future
+        <div className="border-t border-border/50 mt-12 pt-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <p className="text-sm text-muted-foreground">© 2025 Fortuna Square. All rights reserved.</p>
+              <a
+                href="https://apecoin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-gradient-to-r from-[#030a21] to-[#e2f0ff]/20 border border-[#e2f0ff]/30 hover:border-[#e2f0ff]/50 transition-all group"
+              >
+                <span className="text-xs font-semibold text-[#e2f0ff] group-hover:text-white transition-colors">
+                  Powered By ApeCoin
+                </span>
+                <span className="text-sm">🦍</span>
+              </a>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Privacy Policy
+              </Link>
+              <Link href="/terms" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                Terms of Service
+              </Link>
+              <div className="flex items-center text-sm text-muted-foreground">
+                Made with <Heart className="mx-1 h-3 w-3 text-red-500" /> for the future
+              </div>
             </div>
           </div>
         </div>
