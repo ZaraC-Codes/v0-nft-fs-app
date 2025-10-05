@@ -251,6 +251,8 @@ export function NFTDetailsModal({
   const [swapCriteria, setSwapCriteria] = useState<SwapCriteria | null>(null)
   const [isEditingPrice, setIsEditingPrice] = useState(false)
   const [newPrice, setNewPrice] = useState("")
+  const [showRentalForm, setShowRentalForm] = useState(false)
+  const [wrappedNFTId, setWrappedNFTId] = useState<string>("")
   const [activity, setActivity] = useState<Array<{
     type: string;
     price?: string;
@@ -588,30 +590,37 @@ export function NFTDetailsModal({
                         Swap
                       </Button>
 
-                      <WrapNFTButton
-                        nftContract={nft.contractAddress}
-                        tokenId={nft.tokenId}
-                        onSuccess={() => {
-                          toast({
-                            title: "NFT Wrapped!",
-                            description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
-                          })
-                          onClose()
-                        }}
-                      />
+                      {/* List for Rent button - wraps NFT and shows rental form */}
+                      {nft.collection !== "Fortuna Square Rental Wrapper" && !showRentalForm && (
+                        <WrapNFTButton
+                          nftContract={nft.contractAddress}
+                          tokenId={nft.tokenId}
+                          onSuccess={(wrapResult: any) => {
+                            console.log("🎉 Wrap successful, showing rental form. Result:", wrapResult)
+                            // Extract wrapper ID from transaction receipt or events
+                            // For now, we'll need to parse the transaction result
+                            setShowRentalForm(true)
+                            setWrappedNFTId(nft.tokenId) // This will need to be the wrapper ID, not original
+                          }}
+                          buttonText="List for Rent"
+                        />
+                      )}
                     </div>
 
-                    {/* Create Rental Listing Section (for wrapped rental NFTs) */}
-                    {nft.collection === "Fortuna Square Rental Wrapper" && (
+                    {/* Create Rental Listing Form - shown after wrapping OR for existing wrappers */}
+                    {(showRentalForm || nft.collection === "Fortuna Square Rental Wrapper") && (
                       <div className="mt-4 p-4 border border-cyan-500/30 rounded-lg">
-                        <p className="text-sm text-cyan-400 mb-3 font-medium">This is a Rental Wrapper NFT</p>
+                        <p className="text-sm text-cyan-400 mb-3 font-medium">
+                          {showRentalForm ? "NFT Wrapped! Create your rental listing:" : "This is a Rental Wrapper NFT"}
+                        </p>
                         <CreateRentalListing
-                          wrapperId={nft.tokenId}
+                          wrapperId={showRentalForm ? wrappedNFTId : nft.tokenId}
                           onSuccess={() => {
                             toast({
                               title: "Rental Listing Created!",
                               description: "Your NFT is now available for rent.",
                             })
+                            setShowRentalForm(false)
                             onClose()
                           }}
                         />

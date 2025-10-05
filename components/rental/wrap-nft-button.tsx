@@ -12,10 +12,11 @@ import { apeChainCurtis, client } from "@/lib/thirdweb";
 interface WrapNFTButtonProps {
   nftContract: string;
   tokenId: string;
-  onSuccess?: () => void;
+  onSuccess?: (result?: any) => void;
+  buttonText?: string;
 }
 
-export function WrapNFTButton({ nftContract, tokenId, onSuccess }: WrapNFTButtonProps) {
+export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "Wrap for Rental" }: WrapNFTButtonProps) {
   const account = useActiveAccount();
   const { toast } = useToast();
   const [isWrapping, setIsWrapping] = useState(false);
@@ -62,13 +63,16 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess }: WrapNFTButton
 
       console.log("✅ NFT wrapped successfully:", result);
 
-      toast({
-        title: "NFT Wrapped Successfully!",
-        description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
-      });
+      // Don't show toast if buttonText is "List for Rent" (modal will show form instead)
+      if (buttonText === "Wrap for Rental") {
+        toast({
+          title: "NFT Wrapped Successfully!",
+          description: "Your NFT is now ready for rental. Refresh the page to create a rental listing.",
+        });
+      }
 
       if (onSuccess) {
-        onSuccess();
+        onSuccess(result);
       }
     } catch (error: any) {
       console.error("Error wrapping NFT:", error);
@@ -105,7 +109,7 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess }: WrapNFTButton
       ) : (
         <>
           <Package className="h-4 w-4 mr-2" />
-          Wrap for Rental
+          {buttonText}
         </>
       )}
     </Button>
