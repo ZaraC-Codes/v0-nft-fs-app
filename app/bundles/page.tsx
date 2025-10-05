@@ -685,9 +685,9 @@ export default function BundlesPage() {
                       </div>
 
                       {/* Preview Images for Bundle - 3 Featured Thumbnails */}
-                      <div className="absolute bottom-4 left-4 flex space-x-2">
+                      <div className="absolute bottom-4 left-4 right-4 flex space-x-1.5">
                         {bundle.items.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
+                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
                             <img
                               src={item?.image || `https://picsum.photos/100/100?random=${bundle.id}-${idx}`}
                               alt=""

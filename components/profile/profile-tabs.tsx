@@ -240,10 +240,10 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                         </Badge>
 
                         {/* Preview Images for Bundle - 3 Featured Thumbnails */}
-                        <div className="absolute bottom-4 left-4 flex space-x-2 ">
+                        <div className="absolute bottom-4 left-4 right-4 flex space-x-1.5 ">
                           {nft.bundlePreviewImages && nft.bundlePreviewImages.length > 0 ? (
                             nft.bundlePreviewImages.slice(0, 3).map((previewItem, idx) => (
-                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
+                              <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
                                 <img
                                   src={previewItem.image}
                                   alt={previewItem.name}
@@ -254,7 +254,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                           ) : (
                             // Fallback to placeholder if preview images not loaded
                             [...Array(Math.min(3, nft.bundleCount || 0))].map((_, idx) => (
-                              <div key={idx} className="w-16 h-16 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg bg-gray-800">
+                              <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg bg-gray-800">
                                 <div className="w-full h-full flex items-center justify-center text-gray-500">
                                   <span className="text-xs">#{idx + 1}</span>
                                 </div>
