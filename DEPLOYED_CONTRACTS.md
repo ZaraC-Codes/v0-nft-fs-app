@@ -34,6 +34,50 @@ NEXT_PUBLIC_ERC6551_ACCOUNT_IMPLEMENTATION=0x76591D246caC5DFB0D31c65d0052a15f6A8
 
 ---
 
+### Rental System with Delegate.cash ✅
+
+**Deployment Date:** October 5, 2025
+
+**Revolutionary rental system with zero collateral and token-gating support!**
+
+**FortunaSquareRentalAccount (TBA Implementation):**
+- Contract: `0x718D032B42ff34a63A5100B9dFc897EC04c139be`
+- Features: Custom ERC-6551 TBA with Delegate.cash integration
+- Explorer: https://apechain.calderachain.xyz/address/0x718D032B42ff34a63A5100B9dFc897EC04c139be
+
+**RentalWrapperDelegated (ERC721 + ERC4907):**
+- Contract: `0xc06D38353dc437d981C4C0F6E0bEac63196A4A68`
+- Features: Wrap any NFT for rental, ERC4907 compliance, delegation on rent
+- Explorer: https://apechain.calderachain.xyz/address/0xc06D38353dc437d981C4C0F6E0bEac63196A4A68
+
+**RentalManagerDelegated (Rental Marketplace):**
+- Contract: `0x96b692b2301925e3284001E963B69F8fb2B53c1d`
+- Features: Custom pricing/duration, 2.5% platform fee, marketplace
+- Explorer: https://apechain.calderachain.xyz/address/0x96b692b2301925e3284001E963B69F8fb2B53c1d
+
+**Key Features:**
+- ✅ Zero collateral rentals
+- ✅ Delegate.cash integration for token-gating
+- ✅ Owner keeps wrapper NFT (can sell while rented)
+- ✅ Custom pricing and rental duration
+- ✅ Works with OpenSea, Premint, Guild.xyz, and more
+- ✅ ERC4907 standard compliance
+- ✅ Seamless UX: Single "List for Rent" button auto-wraps NFT and shows listing form inline
+
+**Environment Variables:**
+```bash
+NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0x718D032B42ff34a63A5100B9dFc897EC04c139be
+NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0xc06D38353dc437d981C4C0F6E0bEac63196A4A68
+NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x96b692b2301925e3284001E963B69F8fb2B53c1d
+NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
+```
+
+**Delegate.cash Registry:**
+- Contract: `0x00000000000000447e69651d841bD8D104Bed493`
+- Same address on all EVM chains
+
+---
+
 ## ApeChain Curtis Testnet (Chain ID: 33111)
 
 ### FortunaSquareMarketplace ✅
@@ -57,48 +101,6 @@ NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS=0x3109db997d454625af2f7678238c75dc6fa903
 
 **Contract on Explorer:**
 https://curtis.explorer.caldera.xyz/address/0x3109db997d454625af2f7678238c75dc6fa90367
-
-### Rental System with Delegate.cash ✅
-
-**Deployment Date:** October 5, 2025
-
-**Revolutionary rental system with zero collateral and token-gating support!**
-
-**FortunaSquareRentalAccount (TBA Implementation):**
-- Contract: `0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f`
-- Features: Custom ERC-6551 TBA with Delegate.cash integration
-- Explorer: https://apechain.calderaexplorer.xyz/address/0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f
-
-**RentalWrapperDelegated (ERC721 + ERC4907):**
-- Contract: `0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672`
-- Features: Wrap any NFT for rental, ERC4907 compliance, delegation on rent
-- Explorer: https://apechain.calderaexplorer.xyz/address/0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672
-
-**RentalManagerDelegated (Rental Marketplace):**
-- Contract: `0x04e6658323e423729bfA0cE90706Ab1a5e5151a0`
-- Features: Custom pricing/duration, 2.5% platform fee, marketplace
-- Explorer: https://apechain.calderaexplorer.xyz/address/0x04e6658323e423729bfA0cE90706Ab1a5e5151a0
-
-**Key Features:**
-- ✅ Zero collateral rentals
-- ✅ Delegate.cash integration for token-gating
-- ✅ Owner keeps wrapper NFT (can sell while rented)
-- ✅ Custom pricing and rental duration
-- ✅ Works with OpenSea, Premint, Guild.xyz, and more
-- ✅ ERC4907 standard compliance
-- ✅ Seamless UX: Single "List for Rent" button auto-wraps NFT and shows listing form inline
-
-**Environment Variables:**
-```bash
-NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0xeB1B7Bc64b93707B57aA9128445Ae7ac2B32Ab5f
-NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0x5b1Ae2E328B3f08FD95bD06A2ef176bfCB2aB672
-NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x04e6658323e423729bfA0cE90706Ab1a5e5151a0
-NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
-```
-
-**Delegate.cash Registry:**
-- Contract: `0x00000000000000447e69651d841bD8D104Bed493`
-- Same address on all EVM chains (including ApeChain mainnet)
 
 ## Swap System (ApeChain Mainnet)
 
