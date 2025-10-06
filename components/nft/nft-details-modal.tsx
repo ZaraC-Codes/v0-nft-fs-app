@@ -842,6 +842,7 @@ export function NFTDetailsModal({
                 <CardContent>
                   <CreateRentalListing
                     wrapperId={showRentalForm ? wrappedNFTId : nft.wrapperId || nft.tokenId}
+                    showCard={false}
                     onSuccess={() => {
                       toast({
                         title: "Rental Listing Created!",

@@ -14,9 +14,10 @@ import { toWei } from "thirdweb";
 interface CreateRentalListingProps {
   wrapperId: string;
   onSuccess?: () => void;
+  showCard?: boolean; // Whether to wrap in a Card (default true for backwards compatibility)
 }
 
-export function CreateRentalListing({ wrapperId, onSuccess }: CreateRentalListingProps) {
+export function CreateRentalListing({ wrapperId, onSuccess, showCard = true }: CreateRentalListingProps) {
   const account = useActiveAccount();
   const [isCreating, setIsCreating] = useState(false);
 
@@ -92,24 +93,27 @@ export function CreateRentalListing({ wrapperId, onSuccess }: CreateRentalListin
   };
 
   if (!account) {
+    const content = (
+      <div className="text-center py-4">
+        <p className="text-sm text-muted-foreground">Connect your wallet to create a rental listing</p>
+      </div>
+    );
+
+    if (!showCard) return content;
+
     return (
       <Card>
         <CardHeader>
           <CardTitle>Create Rental Listing</CardTitle>
           <CardDescription>Connect your wallet to create a rental listing</CardDescription>
         </CardHeader>
+        <CardContent>{content}</CardContent>
       </Card>
     );
   }
 
-  return (
-    <Card className="bg-black/40 border-cyan-500/30">
-      <CardHeader>
-        <CardTitle className="text-cyan-400">Create Rental Listing</CardTitle>
-        <CardDescription>Set your rental price and duration</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4">
+  const formContent = (
+    <form onSubmit={handleSubmit} className="space-y-4">
           {/* Price Per Day */}
           <div className="space-y-2">
             <Label htmlFor="pricePerDay" className="text-sm font-medium">
@@ -209,6 +213,20 @@ export function CreateRentalListing({ wrapperId, onSuccess }: CreateRentalListin
             Your NFT will be wrapped and available for rent with zero collateral using Delegate.cash
           </p>
         </form>
+  );
+
+  if (!showCard) {
+    return formContent;
+  }
+
+  return (
+    <Card className="bg-black/40 border-cyan-500/30">
+      <CardHeader>
+        <CardTitle className="text-cyan-400">Create Rental Listing</CardTitle>
+        <CardDescription>Set your rental price and duration</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {formContent}
       </CardContent>
     </Card>
   );
