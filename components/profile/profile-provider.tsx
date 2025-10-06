@@ -945,8 +945,17 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const profile = ProfileService.getProfile(user.id)
 
         if (profile) {
-          setUserProfile(profile)
-          console.log("✅ Auto-loaded userProfile for:", profile.username)
+          // Migrate profile to ensure embedded wallet is in wallets array
+          const migratedProfile = ProfileService.migrateProfileWallets(profile)
+
+          // Save migrated profile if it changed
+          if (migratedProfile.wallets && migratedProfile.wallets.length > 0 &&
+              (!profile.wallets || profile.wallets.length === 0)) {
+            await ProfileService.updateProfile(profile.id, { wallets: migratedProfile.wallets })
+          }
+
+          setUserProfile(migratedProfile)
+          console.log("✅ Auto-loaded userProfile for:", migratedProfile.username)
         } else {
           console.warn("⚠️ User logged in but no profile found:", user.id)
         }

@@ -453,4 +453,47 @@ export class ProfileService {
   static getAllProfiles(): UserProfile[] {
     return this.getProfiles()
   }
+  /**
+   * Migrate profile to ensure embedded wallet is in wallets array
+   */
+  static migrateProfileWallets(profile: UserProfile): UserProfile {
+    // If profile has walletAddress but no wallets array, create it
+    if (profile.walletAddress && (!profile.wallets || profile.wallets.length === 0)) {
+      const wallets: WalletMetadata[] = [{
+        address: profile.walletAddress,
+        type: 'embedded',
+        addedAt: profile.createdAt || new Date()
+      }]
+
+      return {
+        ...profile,
+        wallets
+      }
+    }
+
+    // If profile has walletAddress but it's not in wallets array, add it
+    if (profile.walletAddress && profile.wallets) {
+      const hasEmbeddedWallet = profile.wallets.some(
+        w => w.address.toLowerCase() === profile.walletAddress?.toLowerCase()
+      )
+
+      if (!hasEmbeddedWallet) {
+        const wallets: WalletMetadata[] = [
+          {
+            address: profile.walletAddress,
+            type: 'embedded',
+            addedAt: profile.createdAt || new Date()
+          },
+          ...profile.wallets
+        ]
+
+        return {
+          ...profile,
+          wallets
+        }
+      }
+    }
+
+    return profile
+  }
 }
