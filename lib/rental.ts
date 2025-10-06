@@ -117,10 +117,13 @@ export async function getLatestWrapperIdForUser(userAddress: string): Promise<bi
   }
 
   // Find the highest wrapper ID owned by this user
-  // Start from a reasonable max (1000) and work backwards
+  // Start from a low number and work upwards (most wrapper IDs will be 0-100)
   let latestWrapperId: bigint | null = null;
+  const maxToCheck = 100; // Check first 100 IDs
 
-  for (let i = 1000; i >= 0; i--) {
+  console.log(`🔍 Checking wrapper IDs 0-${maxToCheck}...`);
+
+  for (let i = 0; i <= maxToCheck; i++) {
     try {
       const owner = await ownerOf({
         contract: wrapperContract,
@@ -129,18 +132,19 @@ export async function getLatestWrapperIdForUser(userAddress: string): Promise<bi
 
       if (owner.toLowerCase() === userAddress.toLowerCase()) {
         latestWrapperId = BigInt(i);
-        console.log("🎁 Found latest wrapper ID:", latestWrapperId.toString());
-        break;
+        console.log(`🎁 Found wrapper ID ${i} owned by user`);
+        // Don't break - keep checking to find the LATEST one
       }
     } catch {
       // Token doesn't exist or not owned by user, continue
     }
   }
 
-  if (!latestWrapperId) {
-    throw new Error("Could not find wrapper ID for user");
+  if (!latestWrapperId && latestWrapperId !== 0n) {
+    throw new Error("Could not find wrapper ID for user in range 0-100");
   }
 
+  console.log("🎁 Latest wrapper ID:", latestWrapperId.toString());
   return latestWrapperId;
 }
 

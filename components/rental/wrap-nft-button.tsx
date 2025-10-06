@@ -68,18 +68,47 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
       // Step 2: Wrap the NFT
       console.log("📦 Wrapping NFT for rental...");
       let txResult;
+      let wrapperId: string;
+
       try {
         txResult = await wrapNFT(account, nftContract, BigInt(tokenId));
         console.log("✅ NFT wrapped successfully. TX Hash:", txResult.transactionHash);
+
+        // Step 3: Try to get wrapper ID from transaction logs
+        console.log("🔍 Extracting wrapper ID from transaction receipt...");
+
+        // Parse the Transfer event to get the token ID
+        // The RentalManager emits a Transfer event when minting the wrapper NFT
+        // Transfer(address from, address to, uint256 tokenId)
+        // tokenId is the third parameter (index 2) in the topics
+        if (txResult.logs && txResult.logs.length > 0) {
+          // Look for Transfer events from address(0) (minting)
+          const transferLog = txResult.logs.find((log: any) =>
+            log.topics &&
+            log.topics[0] === '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' && // Transfer event signature
+            log.topics[1] === '0x0000000000000000000000000000000000000000000000000000000000000000' // from address(0)
+          );
+
+          if (transferLog && transferLog.topics && transferLog.topics[3]) {
+            // Token ID is in topics[3] for indexed Transfer events
+            wrapperId = BigInt(transferLog.topics[3]).toString();
+            console.log("🎁 Extracted wrapper ID from logs:", wrapperId);
+          } else {
+            // Fallback to old method
+            console.log("⚠️ Could not find Transfer event, using fallback method...");
+            const fallbackId = await getLatestWrapperIdForUser(account.address);
+            wrapperId = fallbackId.toString();
+          }
+        } else {
+          // Fallback to old method
+          console.log("⚠️ No logs in receipt, using fallback method...");
+          const fallbackId = await getLatestWrapperIdForUser(account.address);
+          wrapperId = fallbackId.toString();
+        }
       } catch (wrapError: any) {
         console.error("❌ Wrapping failed:", wrapError);
         throw new Error(`Failed to wrap NFT: ${wrapError.message || 'Unknown error'}`);
       }
-
-      // Step 3: Get latest wrapper ID owned by user (workaround for Curtis testnet)
-      console.log("🔍 Finding latest wrapper ID for user...");
-      const wrapperId = await getLatestWrapperIdForUser(account.address);
-      console.log("🎁 Wrapper ID:", wrapperId.toString());
 
       // Don't show toast if buttonText is "List for Rent" (modal will show form instead)
       if (buttonText === "Wrap for Rental") {
@@ -90,7 +119,7 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
       }
 
       if (onSuccess) {
-        onSuccess(wrapperId.toString());
+        onSuccess(wrapperId);
       }
     } catch (error: any) {
       console.error("Error wrapping NFT:", error);
