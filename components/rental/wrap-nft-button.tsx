@@ -59,24 +59,37 @@ export function WrapNFTButton({ nftContract, tokenId, onSuccess, buttonText = "W
       });
 
       console.log("📝 Approving RentalManager to transfer NFT...");
+      console.log("NFT Contract:", nftContract);
+      console.log("Token ID:", tokenId);
+      console.log("RentalManager Address:", rentalManagerAddress);
+
       const approveTx = prepareContractCall({
         contract: nftContractInstance,
         method: "function approve(address to, uint256 tokenId)",
         params: [rentalManagerAddress, BigInt(tokenId)],
       });
 
-      await sendTransaction({
-        transaction: approveTx,
-        account,
-      });
-
-      console.log("✅ Approval successful");
+      try {
+        const approvalResult = await sendTransaction({
+          transaction: approveTx,
+          account,
+        });
+        console.log("✅ Approval successful. TX Hash:", approvalResult.transactionHash);
+      } catch (approvalError: any) {
+        console.error("❌ Approval failed:", approvalError);
+        throw new Error(`Failed to approve NFT transfer: ${approvalError.message || 'Unknown error'}`);
+      }
 
       // Step 2: Wrap the NFT
       console.log("📦 Wrapping NFT for rental...");
-      const txResult = await wrapNFT(account, nftContract, BigInt(tokenId));
-
-      console.log("✅ NFT wrapped successfully. TX Hash:", txResult.transactionHash);
+      let txResult;
+      try {
+        txResult = await wrapNFT(account, nftContract, BigInt(tokenId));
+        console.log("✅ NFT wrapped successfully. TX Hash:", txResult.transactionHash);
+      } catch (wrapError: any) {
+        console.error("❌ Wrapping failed:", wrapError);
+        throw new Error(`Failed to wrap NFT: ${wrapError.message || 'Unknown error'}`);
+      }
 
       // Step 3: Get latest wrapper ID owned by user (workaround for Curtis testnet)
       console.log("🔍 Finding latest wrapper ID for user...");
