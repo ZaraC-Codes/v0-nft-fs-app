@@ -93,6 +93,18 @@ export interface PortfolioNFT {
   bundleItems?: PortfolioNFT[]
   bundleCount?: number
   bundlePreviewImages?: Array<{ image: string; name: string; tokenId: string }>
+  isWrapper?: boolean // Is this a rental wrapper NFT?
+  wrapperId?: string // Wrapper token ID
+  originalContract?: string // Original NFT contract address (if wrapper)
+  originalTokenId?: string // Original NFT token ID (if wrapper)
+  tbaAddress?: string // Token Bound Account address (if wrapper)
+  rentalListing?: {
+    pricePerDay: bigint
+    minRentalDays: bigint
+    maxRentalDays: bigint
+    currentRenter: string
+    expiresAt: bigint
+  }
   chainId: number
   ownerWallet?: string // Which wallet owns this NFT
 }
@@ -109,8 +121,10 @@ export interface NFTListing {
   }
   rent?: {
     pricePerDay: number
-    minDays: number
-    maxDays: number
+    minDuration?: number
+    maxDuration?: number
+    minDays?: number // Legacy
+    maxDays?: number // Legacy
   }
   swap?: {
     wantedCollection: string

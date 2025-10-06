@@ -727,10 +727,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
             // Map the NFT data to our PortfolioNFT format with owner wallet
             const nfts = await Promise.all((data.nfts || []).map(async (nft: any) => {
-              // Import bundle utilities dynamically
+              // Import bundle and rental utilities dynamically
               const { BUNDLE_CONTRACT_ADDRESSES, getBundleMetadata, getBundleAccountAddress } = await import("@/lib/bundle")
               const { bundlePreviewCache } = await import("@/lib/bundle-preview-cache")
               const { client, apeChain, apeChainCurtis } = await import("@/lib/thirdweb")
+              const { getOriginalNFT, getRentalInfo } = await import("@/lib/rental")
 
               // Determine which chain to use (mainnet or testnet)
               const nftChain = chainId === apeChain.id ? apeChain : apeChainCurtis
@@ -738,6 +739,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               // Check if this is a bundle NFT
               const bundleNFTAddress = BUNDLE_CONTRACT_ADDRESSES[chainId]?.bundleNFT?.toLowerCase()
               const isBundleNFT = nft.contractAddress.toLowerCase() === bundleNFTAddress
+
+              // Check if this is a wrapper NFT (rental)
+              const wrapperNFTAddress = process.env.NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS?.toLowerCase()
+              const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
               // Base NFT data
               const baseNFT = {
@@ -754,6 +759,74 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 listing: { type: "none" as const },
                 ownerWallet: walletAddress,
                 isBundle: false,
+              }
+
+              // If it's a wrapper NFT (rental), fetch original NFT metadata
+              if (isWrapperNFT) {
+                try {
+                  console.log(`🎁 Detected wrapper NFT: ${nft.tokenId}`)
+
+                  // Fetch original NFT details from wrapper
+                  const wrappedNFT = await getOriginalNFT(BigInt(nft.tokenId))
+                  console.log(`✅ Original NFT: ${wrappedNFT.originalContract}:${wrappedNFT.originalTokenId}`)
+
+                  // Fetch the original NFT's metadata to display
+                  const originalNFTResponse = await fetch(`/api/wallet-nfts?address=${wrappedNFT.tbaAddress}&chainId=${chainId}`)
+
+                  let originalImage = nft.image
+                  let originalName = `Wrapped #${nft.tokenId}`
+                  let originalCollection = 'Unknown Collection'
+
+                  if (originalNFTResponse.ok) {
+                    const originalData = await originalNFTResponse.json()
+                    if (originalData.nfts && originalData.nfts.length > 0) {
+                      const originalNFT = originalData.nfts[0]
+                      originalImage = originalNFT.image || originalImage
+                      originalName = originalNFT.name || originalName
+                      originalCollection = originalNFT.collectionName || originalCollection
+                    }
+                  }
+
+                  // Fetch rental listing info
+                  let rentalListing = null
+                  try {
+                    const rentalInfo = await getRentalInfo(BigInt(nft.tokenId))
+                    if (rentalInfo.listing.isActive) {
+                      rentalListing = {
+                        pricePerDay: rentalInfo.listing.pricePerDay,
+                        minRentalDays: rentalInfo.listing.minRentalDays,
+                        maxRentalDays: rentalInfo.listing.maxRentalDays,
+                        currentRenter: rentalInfo.currentRenter,
+                        expiresAt: rentalInfo.expiresAt
+                      }
+                    }
+                  } catch (rentalError) {
+                    console.warn(`⚠️ No rental listing for wrapper ${nft.tokenId}`)
+                  }
+
+                  return {
+                    ...baseNFT,
+                    isWrapper: true,
+                    wrapperId: nft.tokenId,
+                    name: originalName,
+                    image: originalImage,
+                    collection: originalCollection,
+                    originalContract: wrappedNFT.originalContract,
+                    originalTokenId: wrappedNFT.originalTokenId.toString(),
+                    tbaAddress: wrappedNFT.tbaAddress,
+                    rentalListing,
+                    listing: rentalListing ? {
+                      type: "rent" as const,
+                      rent: {
+                        pricePerDay: Number(rentalListing.pricePerDay) / 1e18,
+                        maxDuration: Number(rentalListing.maxRentalDays),
+                        minDuration: Number(rentalListing.minRentalDays)
+                      }
+                    } : baseNFT.listing
+                  }
+                } catch (error) {
+                  console.error(`❌ Error fetching wrapper metadata for token ${nft.tokenId}:`, error)
+                }
               }
 
               // If it's a bundle NFT, fetch bundle metadata and preview images
