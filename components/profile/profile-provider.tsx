@@ -793,7 +793,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   try {
                     const rentalInfo = await getRentalInfo(BigInt(nft.tokenId))
                     console.log(`🔍 Rental info for wrapper ${nft.tokenId}:`, rentalInfo)
-                    if (rentalInfo.listing.isActive) {
+                    if (rentalInfo && rentalInfo.listing && rentalInfo.listing.isActive) {
                       rentalListing = {
                         pricePerDay: rentalInfo.listing.pricePerDay,
                         minRentalDays: rentalInfo.listing.minRentalDays,
@@ -803,7 +803,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       }
                       console.log(`✅ Active rental listing found for wrapper ${nft.tokenId}`, rentalListing)
                     } else {
-                      console.warn(`⚠️ Rental listing not active for wrapper ${nft.tokenId}`, rentalInfo.listing)
+                      console.warn(`⚠️ No active rental listing for wrapper ${nft.tokenId}`)
                     }
                   } catch (rentalError) {
                     console.warn(`⚠️ Error fetching rental info for wrapper ${nft.tokenId}:`, rentalError)

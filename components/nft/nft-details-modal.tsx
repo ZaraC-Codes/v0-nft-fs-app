@@ -635,10 +635,11 @@ export function NFTDetailsModal({
                         <WrapNFTButton
                           nftContract={nft.contractAddress}
                           tokenId={nft.tokenId}
-                          onSuccess={(wrapperId: string) => {
+                          onSuccess={async (wrapperId: string) => {
                             console.log("🎉 Wrap successful! Wrapper ID:", wrapperId)
                             setShowRentalForm(true)
                             setWrappedNFTId(wrapperId)
+                            await refreshProfile() // Refresh to show new wrapper NFT
                           }}
                           buttonText="Rent"
                         />
