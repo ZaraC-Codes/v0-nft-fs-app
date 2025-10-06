@@ -482,6 +482,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const [portfolio, setPortfolio] = useState<PortfolioNFT[]>([])
   const [treasuries, setTreasuries] = useState<Treasury[]>([])
   const [loading, setLoading] = useState(false)
+  const [refreshTrigger, setRefreshTrigger] = useState(0)
 
   // Get the active wallet chain (supports mainnet and testnet)
   const activeChain = useActiveWalletChain()
@@ -979,9 +980,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
 
     fetchWalletNFTs()
-  }, [userProfile?.id, userProfile?.linkedWallets, isDemoProfile])
+  }, [userProfile?.id, userProfile?.linkedWallets, isDemoProfile, refreshTrigger, chainId])
 
-  // Refresh profile from ProfileService
+  // Refresh profile from ProfileService and trigger NFT refetch
   const refreshProfile = async () => {
     if (!userProfile || isDemoProfile) return
 
@@ -993,6 +994,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setUserProfile(updatedProfile)
         console.log("✅ Profile refreshed from ProfileService")
       }
+
+      // Trigger NFT data refetch by incrementing refresh trigger
+      setRefreshTrigger(prev => prev + 1)
+      console.log("🔄 Triggering NFT data refresh...")
     } catch (error) {
       console.error("Failed to refresh profile:", error)
     }
