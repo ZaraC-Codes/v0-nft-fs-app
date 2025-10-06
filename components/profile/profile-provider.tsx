@@ -995,6 +995,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         console.log("✅ Profile refreshed from ProfileService")
       }
 
+      // Clear portfolio cache to force fresh fetch from blockchain
+      const { portfolioCache } = await import("@/lib/portfolio-cache")
+      const allWallets = userProfile.linkedWallets || []
+      portfolioCache.clearForWallets(allWallets)
+      console.log("🧹 Cleared portfolio cache, forcing fresh blockchain fetch...")
+
       // Trigger NFT data refetch by incrementing refresh trigger
       setRefreshTrigger(prev => prev + 1)
       console.log("🔄 Triggering NFT data refresh...")
