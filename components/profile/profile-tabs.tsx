@@ -665,8 +665,9 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
 
                         {/* Chain Badge */}
                         {getChainMetadata(item.chainId) && (
-                          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 `}>
-                            {getChainMetadata(item.chainId)!.icon} {getChainMetadata(item.chainId)!.shortName}
+                          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 flex items-center gap-1`}>
+                            <img src={getChainMetadata(item.chainId)!.icon} alt={getChainMetadata(item.chainId)!.name} className="w-3 h-3" />
+                            {getChainMetadata(item.chainId)!.shortName}
                           </Badge>
                         )}
 

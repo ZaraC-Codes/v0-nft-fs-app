@@ -91,8 +91,9 @@ export function MarketplaceListing({ listing, metadata, chain = apeChainCurtis }
         )}
 
         {/* Chain Badge */}
-        <Badge className={`absolute top-2 left-2 bg-gradient-to-r ${chainMetadata.color} text-white border-0`}>
-          {chainMetadata.icon} {chainMetadata.shortName}
+        <Badge className={`absolute top-2 left-2 bg-gradient-to-r ${chainMetadata.color} text-white border-0 flex items-center gap-1`}>
+          <img src={chainMetadata.icon} alt={chainMetadata.name} className="w-3 h-3" />
+          {chainMetadata.shortName}
         </Badge>
 
         {listing.reserved && (

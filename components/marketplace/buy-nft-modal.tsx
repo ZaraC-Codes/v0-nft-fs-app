@@ -99,8 +99,9 @@ export function BuyNFTModal({ isOpen, onClose, nft }: BuyNFTModalProps) {
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 {chainMetadata && (
-                  <Badge className={`bg-gradient-to-r ${chainMetadata.color} text-white border-0`}>
-                    {chainMetadata.icon} {chainMetadata.shortName}
+                  <Badge className={`bg-gradient-to-r ${chainMetadata.color} text-white border-0 flex items-center gap-1`}>
+                    <img src={chainMetadata.icon} alt={chainMetadata.name} className="w-3 h-3" />
+                    {chainMetadata.shortName}
                   </Badge>
                 )}
                 {nft.isBundle && (

@@ -109,9 +109,10 @@ export function NFTDetail({ nft }: NFTDetailProps) {
             {/* Chain Badge */}
             {getChainMetadata(nft.chainId) && (
               <Badge
-                className={`absolute top-4 left-4 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0`}
+                className={`absolute top-4 left-4 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0 flex items-center gap-1`}
               >
-                {getChainMetadata(nft.chainId)!.icon} {getChainMetadata(nft.chainId)!.shortName}
+                <img src={getChainMetadata(nft.chainId)!.icon} alt={getChainMetadata(nft.chainId)!.name} className="w-3 h-3" />
+                {getChainMetadata(nft.chainId)!.shortName}
               </Badge>
             )}
 

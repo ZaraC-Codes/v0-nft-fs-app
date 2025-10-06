@@ -1638,8 +1638,8 @@
       ]
     },
     "C:\\Users\\zarac\\v0-nft-fs-app\\contracts\\BundleNFTUnified_Updated.sol": {
-      "lastModificationDate": 1759530431671,
-      "contentHash": "fcc02510be96ef30b80ae91302ab7d54",
+      "lastModificationDate": 1759701936642,
+      "contentHash": "da4a484c8cde37b7672ed91955abf906",
       "sourceName": "contracts/BundleNFTUnified_Updated.sol",
       "solcConfig": {
         "version": "0.8.24",

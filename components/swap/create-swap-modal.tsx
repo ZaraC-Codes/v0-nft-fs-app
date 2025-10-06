@@ -114,8 +114,8 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
                       className="object-cover"
                     />
                     {getChainMetadata(selectedNFT.chainId) && (
-                      <Badge className={`absolute top-1 left-1 bg-gradient-to-r ${getChainMetadata(selectedNFT.chainId)!.color} text-white border-0 text-xs`}>
-                        {getChainMetadata(selectedNFT.chainId)!.icon}
+                      <Badge className={`absolute top-1 left-1 bg-gradient-to-r ${getChainMetadata(selectedNFT.chainId)!.color} text-white border-0 text-xs flex items-center gap-1`}>
+                        <img src={getChainMetadata(selectedNFT.chainId)!.icon} alt={getChainMetadata(selectedNFT.chainId)!.name} className="w-3 h-3" />
                       </Badge>
                     )}
                   </div>
@@ -151,8 +151,8 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
                           className="object-cover"
                         />
                         {getChainMetadata(nft.chainId) && (
-                          <Badge className={`absolute top-1 left-1 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0 text-xs`}>
-                            {getChainMetadata(nft.chainId)!.icon}
+                          <Badge className={`absolute top-1 left-1 bg-gradient-to-r ${getChainMetadata(nft.chainId)!.color} text-white border-0 text-xs flex items-center gap-1`}>
+                            <img src={getChainMetadata(nft.chainId)!.icon} alt={getChainMetadata(nft.chainId)!.name} className="w-3 h-3" />
                           </Badge>
                         )}
                       </div>
