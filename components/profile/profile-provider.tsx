@@ -792,6 +792,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   let rentalListing = null
                   try {
                     const rentalInfo = await getRentalInfo(BigInt(nft.tokenId))
+                    console.log(`🔍 Rental info for wrapper ${nft.tokenId}:`, rentalInfo)
                     if (rentalInfo.listing.isActive) {
                       rentalListing = {
                         pricePerDay: rentalInfo.listing.pricePerDay,
@@ -800,9 +801,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                         currentRenter: rentalInfo.currentRenter,
                         expiresAt: rentalInfo.expiresAt
                       }
+                      console.log(`✅ Active rental listing found for wrapper ${nft.tokenId}`, rentalListing)
+                    } else {
+                      console.warn(`⚠️ Rental listing not active for wrapper ${nft.tokenId}`, rentalInfo.listing)
                     }
                   } catch (rentalError) {
-                    console.warn(`⚠️ No rental listing for wrapper ${nft.tokenId}`)
+                    console.warn(`⚠️ Error fetching rental info for wrapper ${nft.tokenId}:`, rentalError)
                   }
 
                   return {

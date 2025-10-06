@@ -9,7 +9,7 @@
  */
 
 import { getContract, prepareContractCall, readContract, sendTransaction } from "thirdweb";
-import { apeChain, client } from "./thirdweb";
+import { apeChainCurtis, client } from "./thirdweb";
 import type { Account } from "thirdweb/wallets";
 
 // Contract addresses from environment variables
@@ -49,7 +49,7 @@ export interface RentalInfo {
 export function getRentalManagerContract() {
   return getContract({
     client,
-    chain: apeChain,
+    chain: apeChainCurtis,
     address: RENTAL_MANAGER_ADDRESS,
   });
 }
@@ -60,7 +60,7 @@ export function getRentalManagerContract() {
 export function getRentalWrapperContract() {
   return getContract({
     client,
-    chain: apeChain,
+    chain: apeChainCurtis,
     address: RENTAL_WRAPPER_ADDRESS,
   });
 }
