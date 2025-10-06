@@ -31,6 +31,7 @@ import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice } from "@/lib/marketplace"
 import { getNFTHistory, formatAddress as formatActivityAddress, formatPrice as formatActivityPrice, getActivityLabel, getActivityColor, NFTActivityEvent } from "@/lib/nft-history"
+import { getBundleActivity, getBundledContentsProvenance, getBundleActivityLabel, getBundleActivityColor, formatBundledNFTs, BundleActivityEvent, BundledNFTProvenance } from "@/lib/bundle-history"
 import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
@@ -252,6 +253,10 @@ export function NFTDetailsModal({
   const [wrappedNFTId, setWrappedNFTId] = useState<string>("")
   const [activity, setActivity] = useState<NFTActivityEvent[]>([])
   const [isLoadingActivity, setIsLoadingActivity] = useState(false)
+  const [bundleActivity, setBundleActivity] = useState<BundleActivityEvent[]>([])
+  const [bundleProvenance, setBundleProvenance] = useState<BundledNFTProvenance[]>([])
+  const [isLoadingBundleActivity, setIsLoadingBundleActivity] = useState(false)
+  const [bundleActivityTab, setBundleActivityTab] = useState<"bundle" | "provenance">("bundle")
 
   // Fetch real activity data when modal opens
   useEffect(() => {
@@ -823,72 +828,212 @@ export function NFTDetailsModal({
                   </Card>
                 </TabsContent>
 
+{/* Activity Tab - Different UI for Bundles vs Regular NFTs */}
                 <TabsContent value="activity" className="space-y-4">
-                  <Card className="border-border/50 bg-card/50">
-                    <CardHeader>
-                      <CardTitle className="text-lg">Recent Activity</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      {isLoadingActivity ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          Loading activity...
-                        </div>
-                      ) : activity.length === 0 ? (
-                        <div className="text-center py-8 text-muted-foreground">
-                          No blockchain activity yet
-                        </div>
-                      ) : (
-                        <div className="space-y-3">
-                          {activity.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors">
-                              <div className="flex items-center gap-3">
-                                <div className={`flex-shrink-0 ${getActivityColor(item.type)}`}>
-                                  <Activity className="h-4 w-4" />
+                  {nft.isBundle ? (
+                    // Bundle Activity with Sub-Tabs
+                    <Card className="border-border/50 bg-card/50">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Bundle Activity</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Tabs value={bundleActivityTab} onValueChange={(v) => setBundleActivityTab(v as "bundle" | "provenance")} className="w-full">
+                          <TabsList className="grid w-full grid-cols-2 mb-4">
+                            <TabsTrigger value="bundle">Bundle Activity</TabsTrigger>
+                            <TabsTrigger value="provenance">Contents History</TabsTrigger>
+                          </TabsList>
+
+                          {/* Bundle Activity Tab */}
+                          <TabsContent value="bundle">
+                            {isLoadingBundleActivity ? (
+                              <div className="text-center py-8 text-muted-foreground">
+                                Loading bundle activity...
+                              </div>
+                            ) : bundleActivity.length === 0 ? (
+                              <div className="text-center py-8 text-muted-foreground">
+                                No bundle activity yet
+                              </div>
+                            ) : (
+                              <div className="space-y-3">
+                                {bundleActivity.map((item, idx) => (
+                                  <div key={idx} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`flex-shrink-0 ${getBundleActivityColor(item.type)}`}>
+                                        <Package className="h-4 w-4" />
+                                      </div>
+                                      <div>
+                                        <p className={`font-medium ${getBundleActivityColor(item.type)}`}>
+                                          {getBundleActivityLabel(item.type)}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground">
+                                          {item.timestamp.toLocaleDateString()} at {item.timestamp.toLocaleTimeString()}
+                                        </p>
+                                        {item.creator && (
+                                          <p className="text-xs text-muted-foreground">
+                                            Creator: {formatActivityAddress(item.creator)}
+                                          </p>
+                                        )}
+                                        {item.from && (
+                                          <p className="text-xs text-muted-foreground">
+                                            From: {formatActivityAddress(item.from)}
+                                          </p>
+                                        )}
+                                        {item.to && (
+                                          <p className="text-xs text-muted-foreground">
+                                            To: {formatActivityAddress(item.to)}
+                                          </p>
+                                        )}
+                                        {item.nftContracts && item.tokenIds && (
+                                          <p className="text-xs text-cyan-400">
+                                            {formatBundledNFTs(item.nftContracts, item.tokenIds)}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <a
+                                        href={`https://${nft.chainId === 33139 ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                      >
+                                        View tx →
+                                      </a>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </TabsContent>
+
+                          {/* Contents Provenance Tab */}
+                          <TabsContent value="provenance">
+                            {isLoadingBundleActivity ? (
+                              <div className="text-center py-8 text-muted-foreground">
+                                Loading provenance...
+                              </div>
+                            ) : bundleProvenance.length === 0 ? (
+                              <div className="text-center py-8 text-muted-foreground">
+                                No provenance data available
+                              </div>
+                            ) : (
+                              <div className="space-y-6">
+                                {bundleProvenance.map((nftProv, idx) => (
+                                  <div key={idx} className="space-y-2">
+                                    <div className="flex items-center gap-2 pb-2 border-b border-border/50">
+                                      <p className="font-medium text-sm">
+                                        NFT #{nftProv.tokenId}
+                                      </p>
+                                      <p className="text-xs text-muted-foreground truncate">
+                                        {formatActivityAddress(nftProv.contractAddress)}
+                                      </p>
+                                    </div>
+                                    {nftProv.history.length === 0 ? (
+                                      <p className="text-xs text-muted-foreground pl-4">No history</p>
+                                    ) : (
+                                      <div className="space-y-2 pl-4">
+                                        {nftProv.history.slice(0, 5).map((histItem, histIdx) => (
+                                          <div key={histIdx} className="flex items-center justify-between text-xs">
+                                            <div>
+                                              <span className={getActivityColor(histItem.type)}>
+                                                {getActivityLabel(histItem.type)}
+                                              </span>
+                                              <span className="text-muted-foreground ml-2">
+                                                {histItem.timestamp.toLocaleDateString()}
+                                              </span>
+                                            </div>
+                                            {histItem.price && (
+                                              <span className="text-muted-foreground">
+                                                {formatActivityPrice(histItem.price)}
+                                              </span>
+                                            )}
+                                          </div>
+                                        ))}
+                                        {nftProv.history.length > 5 && (
+                                          <p className="text-xs text-muted-foreground italic">
+                                            +{nftProv.history.length - 5} more events
+                                          </p>
+                                        )}
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </TabsContent>
+                        </Tabs>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    // Regular NFT Activity (Original)
+                    <Card className="border-border/50 bg-card/50">
+                      <CardHeader>
+                        <CardTitle className="text-lg">Recent Activity</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {isLoadingActivity ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            Loading activity...
+                          </div>
+                        ) : activity.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No blockchain activity yet
+                          </div>
+                        ) : (
+                          <div className="space-y-3">
+                            {activity.map((item, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-3 bg-muted/20 rounded-lg hover:bg-muted/30 transition-colors">
+                                <div className="flex items-center gap-3">
+                                  <div className={`flex-shrink-0 ${getActivityColor(item.type)}`}>
+                                    <Activity className="h-4 w-4" />
+                                  </div>
+                                  <div>
+                                    <p className={`font-medium ${getActivityColor(item.type)}`}>
+                                      {getActivityLabel(item.type)}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      {item.timestamp.toLocaleDateString()} at {item.timestamp.toLocaleTimeString()}
+                                    </p>
+                                    {item.from && (
+                                      <p className="text-xs text-muted-foreground">
+                                        From: {formatActivityAddress(item.from)}
+                                      </p>
+                                    )}
+                                    {item.to && (
+                                      <p className="text-xs text-muted-foreground">
+                                        To: {formatActivityAddress(item.to)}
+                                      </p>
+                                    )}
+                                    {item.marketplace && (
+                                      <p className="text-xs text-cyan-400">
+                                        via {item.marketplace}
+                                      </p>
+                                    )}
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className={`font-medium ${getActivityColor(item.type)}`}>
-                                    {getActivityLabel(item.type)}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    {item.timestamp.toLocaleDateString()} at {item.timestamp.toLocaleTimeString()}
-                                  </p>
-                                  {item.from && (
-                                    <p className="text-xs text-muted-foreground">
-                                      From: {formatActivityAddress(item.from)}
-                                    </p>
+                                <div className="text-right">
+                                  {item.price && (
+                                    <p className="font-medium">{formatActivityPrice(item.price)}</p>
                                   )}
-                                  {item.to && (
-                                    <p className="text-xs text-muted-foreground">
-                                      To: {formatActivityAddress(item.to)}
-                                    </p>
-                                  )}
-                                  {item.marketplace && (
-                                    <p className="text-xs text-cyan-400">
-                                      via {item.marketplace}
-                                    </p>
-                                  )}
+                                  <a
+                                    href={`https://${nft.chainId === 33139 ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                  >
+                                    View tx →
+                                  </a>
                                 </div>
                               </div>
-                              <div className="text-right">
-                                {item.price && (
-                                  <p className="font-medium">{formatActivityPrice(item.price)}</p>
-                                )}
-                                <a
-                                  href={`https://${nft.chainId === 33139 ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
-                                >
-                                  View tx →
-                                </a>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                            ))}
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
                 </TabsContent>
+
+
 
               </Tabs>
             {/* NFT Details */}
