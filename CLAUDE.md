@@ -525,7 +525,35 @@ Peer-to-peer NFT swaps with flexible matching:
 - `SWAP_DEPLOY.md` - Deployment guide
 
 ### Rental System with Delegate.cash (ERC4907 + ERC6551 + Delegation)
-**Status**: ✅ DEPLOYED TO CURTIS TESTNET - Fully Functional (Oct 5, 2025)
+**Status**: ⚠️ DEPLOYED TO MAINNET - NEEDS TROUBLESHOOTING (Oct 6, 2025)
+
+**CRITICAL ISSUE**: Rental wrapping not working after mainnet deployment. User reports wrap button shows MetaMask confirmation but nothing happens after approval. Marketplace and bundle systems work correctly on mainnet.
+
+**Current State**:
+- ✅ Rental contracts deployed to ApeChain mainnet (Chain ID: 33139)
+- ✅ `.env.local` updated with mainnet addresses
+- ✅ `lib/rental.ts` changed from `apeChainCurtis` to `apeChain`
+- ✅ `components/rental/wrap-nft-button.tsx` uses correct mainnet chain
+- ❌ Wrap functionality not working (needs console logs from user to diagnose)
+
+**Deployed Contracts (ApeChain Mainnet - Chain ID: 33139)**:
+- FortunaSquareRentalAccount: `0x718D032B42ff34a63A5100B9dFc897EC04c139be`
+- RentalWrapperDelegated: `0xc06D38353dc437d981C4C0F6E0bEac63196A4A68`
+- RentalManagerDelegated: `0x96b692b2301925e3284001E963B69F8fb2B53c1d`
+- Delegate.cash Registry: `0x00000000000000447e69651d841bD8D104Bed493`
+
+**Environment Variables (Mainnet)**:
+```bash
+NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0x718D032B42ff34a63A5100B9dFc897EC04c139be
+NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0xc06D38353dc437d981C4C0F6E0bEac63196A4A68
+NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x96b692b2301925e3284001E963B69F8fb2B53c1d
+NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
+```
+
+**OLD Curtis Testnet Contracts (Chain ID: 33111)** - No longer used:
+- FortunaSquareRentalAccount: `0xF3435A43471123933AEE2E871C3530761a085502`
+- RentalWrapperDelegated: `0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6`
+- RentalManagerDelegated: `0x6c45305a90427cAF108108Af2f44D5b1dA9809F5`
 
 Revolutionary rental system with **zero collateral** and **token-gating support** via Delegate.cash:
 - Works with ANY ERC721 NFT (not just ERC4907)
@@ -537,20 +565,6 @@ Revolutionary rental system with **zero collateral** and **token-gating support*
 - Automatic expiration, no manual intervention
 - Re-rentable without unwrapping
 - Custom pricing and duration (owner sets per-day rate and min/max days)
-
-**Deployed Contracts (ApeChain Curtis Testnet - Chain ID: 33111)**:
-- FortunaSquareRentalAccount: `0xF3435A43471123933AEE2E871C3530761a085502`
-- RentalWrapperDelegated: `0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6`
-- RentalManagerDelegated: `0x6c45305a90427cAF108108Af2f44D5b1dA9809F5`
-- Delegate.cash Registry: `0x00000000000000447e69651d841bD8D104Bed493`
-
-**Environment Variables**:
-```bash
-NEXT_PUBLIC_RENTAL_ACCOUNT_ADDRESS=0xF3435A43471123933AEE2E871C3530761a085502
-NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS=0x4D33C409A3C898AF6E155Eb2f727b9c033f448D6
-NEXT_PUBLIC_RENTAL_MANAGER_ADDRESS=0x6c45305a90427cAF108108Af2f44D5b1dA9809F5
-NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
-```
 
 **Critical Technical Notes**:
 1. **Delegate.cash Integration**: When rental starts, TBA delegates original NFT to renter via `delegateERC721()`
@@ -569,12 +583,19 @@ NEXT_PUBLIC_DELEGATE_REGISTRY_ADDRESS=0x00000000000000447e69651d841bD8D104Bed493
 5. Rental expires → `userOf()` returns address(0), delegation can be manually revoked
 6. Owner can unwrap (if not rented) → Returns original NFT, burns wrapper
 
-**Integration Status**: ✅ Fully Working
-- Smart contracts deployed and tested
+**Integration Status**: ⚠️ NEEDS DEBUGGING
+- Smart contracts deployed to mainnet
 - Frontend components complete
 - Browse rentals page: `/rentals`
 - NFT modal integration: Owners can wrap/list directly from profile
-- Full user flow functional from both profile and rentals page
+- ❌ Wrap functionality broken - needs console output to diagnose
+
+**Next Steps for Debugging**:
+1. User needs to open browser console
+2. Click wrap button on any NFT
+3. Approve transaction in MetaMask
+4. Copy full console output (including any errors/warnings)
+5. Share console output to identify the specific failure point
 
 **User Flow from Profile**:
 1. Owner clicks on their NFT → Opens NFT details modal
