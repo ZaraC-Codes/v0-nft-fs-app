@@ -71,7 +71,7 @@ export async function getBundleActivity(
           accountAddress: event.args.accountAddress,
           nftContracts: event.args.nftContracts,
           tokenIds: event.args.tokenIds?.map((id: bigint) => id.toString()),
-          timestamp: new Date((event.block?.timestamp || 0) * 1000),
+          timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
           txHash: event.transactionHash,
           blockNumber: event.block?.number,
         })
@@ -96,7 +96,7 @@ export async function getBundleActivity(
           owner: event.args.owner,
           nftContracts: event.args.nftContracts,
           tokenIds: event.args.tokenIds?.map((id: bigint) => id.toString()),
-          timestamp: new Date((event.block?.timestamp || 0) * 1000),
+          timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
           txHash: event.transactionHash,
           blockNumber: event.block?.number,
         })
@@ -124,7 +124,7 @@ export async function getBundleActivity(
             bundleId: bundleTokenId,
             from: event.args.from,
             to: event.args.to,
-            timestamp: new Date((event.block?.timestamp || 0) * 1000),
+            timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
             txHash: event.transactionHash,
             blockNumber: event.block?.number,
           })
@@ -149,7 +149,7 @@ export async function getBundleActivity(
           bundleId: bundleTokenId,
           nftContracts: [event.args.nftContract],
           tokenIds: [event.args.tokenId?.toString()],
-          timestamp: new Date((event.block?.timestamp || 0) * 1000),
+          timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
           txHash: event.transactionHash,
           blockNumber: event.block?.number,
         })

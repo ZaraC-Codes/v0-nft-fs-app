@@ -274,6 +274,50 @@ export function NFTDetailsModal({
     }
   }, [isOpen, nft])
 
+  // Load bundle contents provenance when viewing Contents History tab
+  useEffect(() => {
+    async function loadProvenance() {
+      if (isOpen && nft?.isBundle && bundleActivityTab === "provenance" && bundleProvenance.length === 0) {
+        setIsLoadingBundleActivity(true)
+
+        try {
+          // Get bundle contents to extract NFT contract addresses and token IDs
+          const { getBundleAccountAddress } = await import("@/lib/bundle")
+          const { client, apeChain, apeChainCurtis, sepolia } = await import("@/lib/thirdweb")
+
+          const nftChain = nft.chainId === 33139 ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChainCurtis)
+          const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
+
+          // Fetch NFTs from TBA
+          const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId}`)
+          if (!response.ok) throw new Error("Failed to fetch bundle contents")
+
+          const data = await response.json()
+          const bundleNFTs = data.nfts || []
+
+          if (bundleNFTs.length > 0) {
+            // Extract contract addresses and token IDs
+            const contracts = bundleNFTs.map((n: any) => n.contractAddress)
+            const tokenIds = bundleNFTs.map((n: any) => n.tokenId)
+
+            console.log(`🔍 Loading provenance for ${bundleNFTs.length} bundled NFTs...`)
+
+            // Fetch provenance
+            const provenance = await getBundledContentsProvenance(contracts, tokenIds, nft.chainId)
+            setBundleProvenance(provenance)
+            console.log(`✅ Loaded provenance for ${provenance.length} NFTs`)
+          }
+        } catch (error) {
+          console.error("Failed to load bundle provenance:", error)
+        } finally {
+          setIsLoadingBundleActivity(false)
+        }
+      }
+    }
+
+    loadProvenance()
+  }, [isOpen, nft, bundleActivityTab, bundleProvenance.length])
+
   if (!nft) return null
 
   const copyToClipboard = (text: string, label: string) => {

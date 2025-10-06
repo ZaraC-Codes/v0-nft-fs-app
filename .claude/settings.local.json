@@ -60,7 +60,10 @@
       "Bash(move tsconfig.json.bak tsconfig.json)",
       "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-remove-cover.js)",
       "Bash(del c:/Users/zarac/v0-nft-fs-app/fix-avatar-persistence.js)",
-      "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-fix-avatar.js)"
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-fix-avatar.js)",
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/fix-timestamps-and-bundle.js)",
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/update-bundle-provenance.js)",
+      "Bash(del c:Userszaracv0-nft-fs-appfix-timestamps-and-bundle.js)"
     ],
     "deny": [],
     "ask": []
