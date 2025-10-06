@@ -9,7 +9,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { client, getChainMetadata, apeChainCurtis } from "@/lib/thirdweb"
+import { client, getChainMetadata, apeChain } from "@/lib/thirdweb"
 import { prepareListForSale, isNFTApproved, prepareApproveNFT } from "@/lib/marketplace"
 import { Tag, DollarSign, Info, ShoppingCart, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
@@ -55,7 +55,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
 
       const approved = await isNFTApproved({
         client,
-        chain: apeChainCurtis,
+        chain: apeChain,
         contractAddress: nft.contractAddress,
         ownerAddress: account.address,
         tokenId: nft.tokenId,
@@ -136,10 +136,11 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 <h3 className="font-semibold text-foreground">{nft.name}</h3>
                 <p className="text-sm text-muted-foreground">{nft.collection}</p>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 {chainMetadata && (
-                  <Badge className={`bg-gradient-to-r ${chainMetadata.color} text-white border-0 text-xs`}>
-                    {chainMetadata.icon} {chainMetadata.shortName}
+                  <Badge className={`bg-gradient-to-r ${chainMetadata.color} text-white border-0 text-xs flex items-center gap-1`}>
+                    <img src={chainMetadata.icon} alt={chainMetadata.name} className="w-3 h-3" />
+                    {chainMetadata.shortName}
                   </Badge>
                 )}
                 {nft.isBundle && (
@@ -264,7 +265,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("🔍 Preparing approval transaction for token:", nft.tokenId)
                 return await prepareApproveNFT({
                   client,
-                  chain: apeChainCurtis,
+                  chain: apeChain,
                   contractAddress: nft.contractAddress,
                   tokenId: nft.tokenId,
                 })
@@ -322,7 +323,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("✅ Validation passed, preparing transaction...")
                 const tx = prepareListForSale({
                   client,
-                  chain: apeChainCurtis,
+                  chain: apeChain,
                   contractAddress: nft.contractAddress,
                   tokenId: nft.tokenId,
                   price,
