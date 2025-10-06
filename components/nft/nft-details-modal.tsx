@@ -38,6 +38,7 @@ import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
 import { CreateRentalListing } from "@/components/rental/create-rental-listing"
 import { UnwrapNFTButton } from "@/components/rental/unwrap-nft-button"
 import { ChainBadge } from "@/components/ui/chain-badge"
+import { useProfile } from "@/components/profile/profile-provider"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -245,6 +246,7 @@ export function NFTDetailsModal({
 }: NFTDetailsModalProps) {
   const { toast } = useToast()
   const account = useActiveAccount()
+  const { refreshProfile } = useProfile()
   const [swapModalOpen, setSwapModalOpen] = useState(false)
   const [swapListingId, setSwapListingId] = useState<string>("")
   const [swapCriteria, setSwapCriteria] = useState<SwapCriteria | null>(null)
@@ -844,12 +846,13 @@ export function NFTDetailsModal({
                 <CreateRentalListing
                   wrapperId={showRentalForm ? wrappedNFTId : nft.wrapperId || nft.tokenId}
                   showCard={false}
-                  onSuccess={() => {
+                  onSuccess={async () => {
                     toast({
                       title: "Rental Listing Created!",
                       description: "Your NFT is now available for rent.",
                     })
                     setShowRentalForm(false)
+                    await refreshProfile() // Refresh portfolio to show new listing
                     onClose()
                   }}
                 />
