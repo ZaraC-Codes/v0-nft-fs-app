@@ -51,7 +51,16 @@
       "Bash(del hardhat.config.js)",
       "Bash(del librental.ts)",
       "Bash(git checkout:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(git restore:*)",
+      "Bash(git reset:*)",
+      "Bash(if exist temp_fix.txt del temp_fix.txt)",
+      "Bash(del temp_fix.txt)",
+      "Bash(move tsconfig.json tsconfig.json.bak)",
+      "Bash(move tsconfig.json.bak tsconfig.json)",
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-remove-cover.js)",
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/fix-avatar-persistence.js)",
+      "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-fix-avatar.js)"
     ],
     "deny": [],
     "ask": []
