@@ -830,32 +830,32 @@ export function NFTDetailsModal({
                 )}
               </CardContent>
             </Card>
-
-            {/* Create Rental Listing Form - shown after wrapping OR for existing wrappers without listings */}
-            {(showRentalForm || (nft.isWrapper && !nft.rentalListing)) && (
-              <Card className="border-cyan-500/30 bg-card/50">
-                <CardHeader>
-                  <CardTitle className="text-lg text-cyan-400">
-                    {showRentalForm ? "Create Rental Listing" : "List for Rent"}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CreateRentalListing
-                    wrapperId={showRentalForm ? wrappedNFTId : nft.wrapperId || nft.tokenId}
-                    showCard={false}
-                    onSuccess={() => {
-                      toast({
-                        title: "Rental Listing Created!",
-                        description: "Your NFT is now available for rent.",
-                      })
-                      setShowRentalForm(false)
-                      onClose()
-                    }}
-                  />
-                </CardContent>
-              </Card>
-            )}
           </div>
+
+          {/* Full-Width Rental Listing Form - shown after wrapping OR for existing wrappers without listings */}
+          {(showRentalForm || (nft.isWrapper && !nft.rentalListing)) && (
+            <Card className="border-cyan-500/30 bg-card/50">
+              <CardHeader>
+                <CardTitle className="text-lg text-cyan-400">
+                  {showRentalForm ? "Create Rental Listing" : "List for Rent"}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CreateRentalListing
+                  wrapperId={showRentalForm ? wrappedNFTId : nft.wrapperId || nft.tokenId}
+                  showCard={false}
+                  onSuccess={() => {
+                    toast({
+                      title: "Rental Listing Created!",
+                      description: "Your NFT is now available for rent.",
+                    })
+                    setShowRentalForm(false)
+                    onClose()
+                  }}
+                />
+              </CardContent>
+            </Card>
+          )}
 
           {/* Bottom Section - Bundle Contents OR Traits/Activity */}
           <div className="space-y-6">
