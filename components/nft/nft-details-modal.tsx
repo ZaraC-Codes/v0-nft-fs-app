@@ -36,6 +36,7 @@ import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
 import { CreateRentalListing } from "@/components/rental/create-rental-listing"
+import { UnwrapNFTButton } from "@/components/rental/unwrap-nft-button"
 import { ChainBadge } from "@/components/ui/chain-badge"
 
 interface NFTDetailsModalProps {
@@ -642,14 +643,14 @@ export function NFTDetailsModal({
                       )}
                     </div>
 
-                    {/* Create Rental Listing Form - shown after wrapping OR for existing wrappers */}
-                    {(showRentalForm || nft.collection === "Fortuna Square Rental Wrapper") && (
+                    {/* Create Rental Listing Form - shown after wrapping OR for existing wrappers without listings */}
+                    {(showRentalForm || (nft.isWrapper && !nft.rentalListing)) && (
                       <div className="mt-4 p-4 border border-cyan-500/30 rounded-lg">
                         <p className="text-sm text-cyan-400 mb-3 font-medium">
-                          {showRentalForm ? "NFT Wrapped! Create your rental listing:" : "This is a Rental Wrapper NFT"}
+                          {showRentalForm ? "NFT Wrapped! Create your rental listing:" : "Create a rental listing for this wrapped NFT:"}
                         </p>
                         <CreateRentalListing
-                          wrapperId={showRentalForm ? wrappedNFTId : nft.tokenId}
+                          wrapperId={showRentalForm ? wrappedNFTId : nft.wrapperId || nft.tokenId}
                           onSuccess={() => {
                             toast({
                               title: "Rental Listing Created!",
@@ -758,6 +759,20 @@ export function NFTDetailsModal({
                         <Package className="h-4 w-4 mr-2" />
                         Unwrap Bundle
                       </Button>
+                    )}
+
+                    {/* Unwrap Rental NFT Button (only for wrappers) */}
+                    {nft.isWrapper && (
+                      <UnwrapNFTButton
+                        wrapperId={nft.wrapperId || nft.tokenId}
+                        onSuccess={() => {
+                          toast({
+                            title: "NFT Unwrapped!",
+                            description: "Your original NFT has been returned.",
+                          })
+                          onClose()
+                        }}
+                      />
                     )}
                   </div>
                 )}
