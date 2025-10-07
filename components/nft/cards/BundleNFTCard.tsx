@@ -104,9 +104,9 @@ export function BundleNFTCard({
           </div>
         )}
 
-        {/* Preview Thumbnails - bottom */}
+        {/* Preview Thumbnails - bottom center */}
         {thumbnails.length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 flex space-x-1.5">
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center space-x-1.5">
             {thumbnails.map((preview, idx) => (
               <div
                 key={idx}

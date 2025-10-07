@@ -266,20 +266,10 @@ export function ProfileHeader({ profile: profileProp }: ProfileHeaderProps) {
                 )}
 
                 {isOwnProfile && (
-                  <>
-                    <Button variant="outline" onClick={() => setEditModalOpen(true)}>
-                      <Settings className="mr-2 h-4 w-4" />
-                      Edit Profile
-                    </Button>
-
-                    <Button asChild className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 neon-glow">
-                      <Link href="/bundles" className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        <Package className="h-4 w-4" />
-                        <span className="hidden sm:inline">Create Bundle</span>
-                      </Link>
-                    </Button>
-                  </>
+                  <Button variant="outline" onClick={() => setEditModalOpen(true)}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Edit Profile
+                  </Button>
                 )}
 
                 <Button variant="outline" onClick={shareProfile}>

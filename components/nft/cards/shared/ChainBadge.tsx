@@ -50,7 +50,7 @@ export function ChainBadge({
 
   const badgeContent = (
     <Badge
-      className={`bg-gradient-to-r ${chainMetadata.color} text-white border-0 flex items-center ${logoOnly ? '' : 'gap-1'} ${logoOnly ? sizeClasses.logoOnlyBadge : sizeClasses.badge} ${className}`}
+      className={`bg-gradient-to-r ${chainMetadata.color} ${logoOnly ? 'text-white' : 'text-black'} border-0 flex items-center ${logoOnly ? '' : 'gap-1'} ${logoOnly ? sizeClasses.logoOnlyBadge : sizeClasses.badge} ${className}`}
     >
       <img
         src={chainMetadata.icon}

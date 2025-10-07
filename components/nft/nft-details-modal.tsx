@@ -843,12 +843,8 @@ export function NFTDetailsModal({
                       <span className="font-bold text-blue-400 text-lg">{nft.listing.rent.pricePerDay} APE/Day</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-muted-foreground">Min Duration</span>
-                      <span className="font-medium">{nft.listing.rent.minDays} Day{nft.listing.rent.minDays !== 1 ? 's' : ''}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Max Duration</span>
-                      <span className="font-medium">{nft.listing.rent.maxDays} Day{nft.listing.rent.maxDays !== 1 ? 's' : ''}</span>
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium">{nft.listing.rent.minDays}-{nft.listing.rent.maxDays} Days</span>
                     </div>
                   </>
                 )}

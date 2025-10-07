@@ -177,27 +177,6 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                   <Package className="h-4 w-4 mr-2" />
                   Create Bundle
                 </Button>
-                <Button
-                  onClick={() => {
-                    if ((profileTabData.portfolio as NFTWithTraits[]).length === 0) {
-                      alert("You need at least one NFT to wrap for rental")
-                      return
-                    }
-                    // Just open modal, user will select NFT inside
-                    alert("Select an NFT from your portfolio to wrap for rental")
-                  }}
-                  className="bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 neon-glow"
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Wrap for Rental
-                </Button>
-                <Button
-                  onClick={() => setCreateSwapModalOpen(true)}
-                  className="bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Swap Listing
-                </Button>
               </div>
             )}
 
