@@ -65,7 +65,9 @@
       "Bash(del c:/Users/zarac/v0-nft-fs-app/update-bundle-provenance.js)",
       "Bash(del c:Userszaracv0-nft-fs-appfix-timestamps-and-bundle.js)",
       "Bash(npx -y @smithery/cli install filesystem --client claude)",
-      "Bash(npx -y @smithery/cli search filesystem)"
+      "Bash(npx -y @smithery/cli search filesystem)",
+      "Bash(git mv:*)",
+      "Bash(env)"
     ],
     "deny": [],
     "ask": []

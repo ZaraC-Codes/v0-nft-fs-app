@@ -32,7 +32,7 @@ import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice } from "@/lib/marketplace"
 import { getNFTHistory, formatAddress as formatActivityAddress, formatPrice as formatActivityPrice, getActivityLabel, getActivityColor, NFTActivityEvent } from "@/lib/nft-history"
 import { getBundleActivity, getBundledContentsProvenance, getBundleActivityLabel, getBundleActivityColor, formatBundledNFTs, BundleActivityEvent, BundledNFTProvenance } from "@/lib/bundle-history"
-import { client, apeChain, apeChain, sepolia } from "@/lib/thirdweb"
+import { client, apeChain, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
 import { CreateRentalListing } from "@/components/rental/create-rental-listing"
@@ -114,7 +114,7 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
     try {
       // Import bundle utilities
       const { getBundleAccountAddress } = await import("@/lib/bundle")
-      const { client, apeChain, apeChain, sepolia } = await import("@/lib/thirdweb")
+      const { client, apeChain, sepolia } = await import("@/lib/thirdweb")
 
       // Determine the correct chain from NFT's chainId
       const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChain)
@@ -286,7 +286,7 @@ export function NFTDetailsModal({
         try {
           // Get bundle contents to extract NFT contract addresses and token IDs
           const { getBundleAccountAddress } = await import("@/lib/bundle")
-          const { client, apeChain, apeChain, sepolia } = await import("@/lib/thirdweb")
+          const { client, apeChain, sepolia } = await import("@/lib/thirdweb")
 
           const nftChain = nft.chainId === 33139 ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChain)
           const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)

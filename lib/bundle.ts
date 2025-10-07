@@ -1,7 +1,7 @@
 import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
-import { apeChain, apeChain, sepolia } from "./thirdweb";
+import { apeChain, sepolia } from "./thirdweb";
 import { encodeFunctionData } from "viem";
 
 /**

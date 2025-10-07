@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ClearStorageButton } from "@/components/debug/clear-storage"
-import { apeChain, apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import {
   ArrowRight,

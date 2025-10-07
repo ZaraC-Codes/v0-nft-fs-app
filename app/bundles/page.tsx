@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
-import { apeChain, apeChain, sepolia, CHAIN_METADATA, client } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA, client } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import { generateBundleImage, uploadBundleImageToIPFS } from "@/lib/bundle-image"

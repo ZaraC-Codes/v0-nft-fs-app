@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { UserProfile, NFTWatchlistItem, UserFollow, ProfileTabData, PortfolioNFT, Treasury } from "@/types/profile"
-import { apeChain, apeChain, sepolia } from "@/lib/thirdweb"
+import { apeChain, sepolia } from "@/lib/thirdweb"
 import { useActiveWalletChain } from "thirdweb/react"
 
 interface ProfileContextType {
@@ -731,7 +731,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               // Import bundle and rental utilities dynamically
               const { BUNDLE_CONTRACT_ADDRESSES, getBundleMetadata, getBundleAccountAddress } = await import("@/lib/bundle")
               const { bundlePreviewCache } = await import("@/lib/bundle-preview-cache")
-              const { client, apeChain, apeChain } = await import("@/lib/thirdweb")
+              const { client, apeChain } = await import("@/lib/thirdweb")
               const { getOriginalNFT, getRentalInfo } = await import("@/lib/rental")
 
               // Determine which chain to use (mainnet or testnet)

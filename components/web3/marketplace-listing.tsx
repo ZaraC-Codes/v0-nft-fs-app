@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TransactionButton, useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { buyFromListing } from "@/lib/marketplace";
-import { apeChain, apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb";
+import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb";
 import { calculateTotalWithFee, formatFeePercentage } from "@/lib/platform-fees";
 import type { Chain } from "thirdweb/chains";
 
