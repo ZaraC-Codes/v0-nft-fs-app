@@ -8,7 +8,7 @@
  * - Token-gating compatible
  */
 
-import { getContract, prepareContractCall, readContract, sendTransaction } from "thirdweb";
+import { getContract, prepareContractCall, readContract, sendTransaction, waitForReceipt } from "thirdweb";
 import { apeChain, client } from "./thirdweb";
 import type { Account } from "thirdweb/wallets";
 
@@ -85,10 +85,19 @@ export async function wrapNFT(
     params: [nftContract, tokenId],
   });
 
-  return sendTransaction({
+  const result = await sendTransaction({
     transaction,
     account,
   });
+
+  console.log("⏳ Waiting for wrap transaction confirmation...");
+
+  // Wait for transaction to be mined before returning
+  await waitForReceipt(result);
+
+  console.log("✅ Wrap transaction confirmed");
+
+  return result;
 }
 
 /**
@@ -171,10 +180,19 @@ export async function createRentalListing(
     params: [wrapperId, pricePerDay, minDays, maxDays],
   });
 
-  return sendTransaction({
+  const result = await sendTransaction({
     transaction,
     account,
   });
+
+  console.log("⏳ Waiting for rental listing transaction confirmation...");
+
+  // Wait for transaction to be mined before returning
+  const receipt = await waitForReceipt(result);
+
+  console.log("✅ Rental listing transaction confirmed:", receipt.transactionHash);
+
+  return result;
 }
 
 /**
@@ -251,10 +269,19 @@ export async function rentNFT(
     value: paymentAmount,
   });
 
-  return sendTransaction({
+  const result = await sendTransaction({
     transaction,
     account,
   });
+
+  console.log("⏳ Waiting for rent transaction confirmation...");
+
+  // Wait for transaction to be mined before returning
+  await waitForReceipt(result);
+
+  console.log("✅ Rent transaction confirmed");
+
+  return result;
 }
 
 /**
@@ -274,10 +301,19 @@ export async function unwrapNFT(
     params: [wrapperId],
   });
 
-  return sendTransaction({
+  const result = await sendTransaction({
     transaction,
     account,
   });
+
+  console.log("⏳ Waiting for unwrap transaction confirmation...");
+
+  // Wait for transaction to be mined before returning
+  await waitForReceipt(result);
+
+  console.log("✅ Unwrap transaction confirmed");
+
+  return result;
 }
 
 /**
