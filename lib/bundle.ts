@@ -6,29 +6,22 @@ import { encodeFunctionData } from "viem";
 
 /**
  * Bundle Contract Addresses
- * Updated: Oct 3, 2025 - Custom ERC-6551 with batch unwrap (60-80% gas savings)
+ * Updated: Oct 7, 2025 - Use environment variables to prevent duplicate key issues
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
-  // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025 (FIXED: context-based auth)
+  // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025
   [apeChain.id]: {
-    bundleNFT: "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017", // BundleNFTUnified with batchUnwrapBundle
-    bundleManager: "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017", // Same as bundleNFT (unified contract)
-    erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x76591D246caC5DFB0D31c65d0052a15f6A887e7f", // FortunaSquareBundleAccount with context-based auth
+    bundleNFT: process.env.NEXT_PUBLIC_BUNDLE_NFT_ADDRESS || "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017",
+    bundleManager: process.env.NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS || "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017",
+    erc6551Registry: process.env.NEXT_PUBLIC_ERC6551_REGISTRY_ADDRESS || "0x000000006551c19487814612e58FE06813775758",
+    accountImplementation: process.env.NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT || "0x76591D246caC5DFB0D31c65d0052a15f6A887e7f",
   },
-  // ApeChain Curtis (testnet)
-  [apeChain.id]: {
-    bundleNFT: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // BundleNFTUnified with emergency unwrap - Oct 3, 2025
-    bundleManager: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // Same as bundleNFT (unified contract)
-    erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x41C8f39463A868d3A88af00cd0fe7102F30E44eC", // Curtis-specific implementation (broken executeCall)
-  },
-  // Sepolia (testnet)
+  // Sepolia (testnet) - if needed
   [sepolia.id]: {
     bundleNFT: "0x...",
     bundleManager: "0x...",
-    erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry
-    accountImplementation: "0x...", // Deploy AccountFactory on Sepolia if needed
+    erc6551Registry: "0x000000006551c19487814612e58FE06813775758",
+    accountImplementation: "0x...",
   },
 } as const;
 
