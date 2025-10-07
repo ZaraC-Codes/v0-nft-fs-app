@@ -437,7 +437,7 @@ export function NFTDetailsModal({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/95 backdrop-blur-xl border-border/50">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
-              <span>{nft.collection}</span>
+              <span>{nft.collection || nft.name}</span>
               <div className="flex items-center gap-2">
                 {nft.chainId && (
                   <ChainBadge chainId={nft.chainId} size="md" />
