@@ -318,6 +318,23 @@ export async function getRentalInfo(wrapperId: bigint): Promise<RentalInfo> {
     params: [wrapperId],
   });
 
+  // Handle case where listing doesn't exist or is empty
+  if (!result || !result.listing) {
+    return {
+      listing: {
+        wrapperId: wrapperId,
+        owner: "0x0000000000000000000000000000000000000000",
+        pricePerDay: 0n,
+        minRentalDays: 0n,
+        maxRentalDays: 0n,
+        isActive: false,
+        createdAt: 0n,
+      },
+      currentRenter: "0x0000000000000000000000000000000000000000",
+      expiresAt: 0n,
+    };
+  }
+
   return {
     listing: {
       wrapperId: result.listing.wrapperId,
