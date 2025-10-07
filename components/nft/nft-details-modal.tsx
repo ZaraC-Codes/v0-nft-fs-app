@@ -98,6 +98,12 @@ const getRarityColor = (rarity: string) => {
   return "from-gray-400 to-gray-500"
 }
 
+// Format price to remove unnecessary trailing zeros
+const formatPriceDisplay = (price: number): string => {
+  // Remove trailing zeros and decimal point if not needed
+  return price.toString().replace(/\.?0+$/, '')
+}
+
 // Bundle Contents Tab Component - lazy loads bundle NFTs
 function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
   const [bundleNFTs, setBundleNFTs] = useState<any[]>([])
@@ -431,7 +437,7 @@ export function NFTDetailsModal({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/95 backdrop-blur-xl border-border/50">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
-              <span>{nft.name}</span>
+              <span>{nft.collection || 'Unknown Collection'}</span>
               <div className="flex items-center gap-2">
                 {nft.chainId && (
                   <ChainBadge chainId={nft.chainId} size="md" />
@@ -853,11 +859,7 @@ export function NFTDetailsModal({
                   <>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Daily Rate</span>
-                      <span className="font-bold text-blue-400 text-lg">{(Number(nft.rentalListing.pricePerDay) / 1e18).toFixed(4)} APE/Day</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Duration</span>
-                      <span className="font-medium">{Number(nft.rentalListing.minRentalDays)}-{Number(nft.rentalListing.maxRentalDays)} Days</span>
+                      <span className="font-bold text-blue-400 text-lg">{formatPriceDisplay(Number(nft.rentalListing.pricePerDay) / 1e18)} APE/Day</span>
                     </div>
                     {nft.rentalListing.currentRenter !== "0x0000000000000000000000000000000000000000" && (
                       <div className="flex justify-between">

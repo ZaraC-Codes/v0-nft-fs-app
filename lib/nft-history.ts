@@ -62,9 +62,9 @@ export async function getNFTHistory(
           type: isMint ? "mint" : "transfer",
           from: event.args.from,
           to: event.args.to,
-          timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
+          timestamp: event.blockTimestamp ? new Date(Number(event.blockTimestamp) * 1000) : new Date(),
           txHash: event.transactionHash,
-          blockNumber: event.block?.number,
+          blockNumber: event.blockNumber,
         })
       }
     }
@@ -98,9 +98,9 @@ export async function getNFTHistory(
             type: "listing",
             from: event.args.seller,
             price: event.args.pricePerToken?.toString(),
-            timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
+            timestamp: event.blockTimestamp ? new Date(Number(event.blockTimestamp) * 1000) : new Date(),
             txHash: event.transactionHash,
-            blockNumber: event.block?.number,
+            blockNumber: event.blockNumber,
             marketplace: "Fortuna Square",
           })
         }
@@ -126,9 +126,9 @@ export async function getNFTHistory(
             from: event.args.seller,
             to: event.args.buyer,
             price: event.args.totalPrice?.toString(),
-            timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
+            timestamp: event.blockTimestamp ? new Date(Number(event.blockTimestamp) * 1000) : new Date(),
             txHash: event.transactionHash,
-            blockNumber: event.block?.number,
+            blockNumber: event.blockNumber,
             marketplace: "Fortuna Square",
           })
         }
@@ -152,9 +152,9 @@ export async function getNFTHistory(
           activities.push({
             type: "listing_cancelled",
             from: event.args.seller,
-            timestamp: event.block?.timestamp ? new Date(Number(event.block.timestamp) * 1000) : new Date(),
+            timestamp: event.blockTimestamp ? new Date(Number(event.blockTimestamp) * 1000) : new Date(),
             txHash: event.transactionHash,
-            blockNumber: event.block?.number,
+            blockNumber: event.blockNumber,
             marketplace: "Fortuna Square",
           })
         }

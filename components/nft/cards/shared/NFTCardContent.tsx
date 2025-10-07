@@ -66,13 +66,13 @@ export function NFTCardContent({
 
   return (
     <CardContent className={`${paddingClass} ${className}`}>
-      {/* Header Row - Title/Collection */}
+      {/* Header Row - Collection Name / Token ID */}
       <div className="mb-1">
         <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
-          {title}
+          {collection || 'Unknown Collection'}
         </h3>
         <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
-          {collection}
+          #{nft.tokenId}
           {bundleCount && (
             <span className="ml-1 text-orange-400">
               • {bundleCount}
