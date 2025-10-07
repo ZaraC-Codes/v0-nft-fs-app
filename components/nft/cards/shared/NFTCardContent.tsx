@@ -69,7 +69,7 @@ export function NFTCardContent({
       {/* Header Row - Collection Name / Token ID */}
       <div className="mb-1">
         <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
-          {collection || 'Unknown Collection'}
+          {collection}
         </h3>
         <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
           #{nft.tokenId}
