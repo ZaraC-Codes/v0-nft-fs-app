@@ -355,16 +355,24 @@ export async function getRentalInfo(wrapperId: bigint): Promise<RentalInfo> {
   });
 
   console.log(`🔍 RAW rental info from contract for wrapper ${wrapperId}:`, result);
-  console.log(`   listing.wrapperId: ${result.listing?.wrapperId}`);
-  console.log(`   listing.owner: ${result.listing?.owner}`);
-  console.log(`   listing.pricePerDay: ${result.listing?.pricePerDay}`);
-  console.log(`   listing.minRentalDays: ${result.listing?.minRentalDays}`);
-  console.log(`   listing.maxRentalDays: ${result.listing?.maxRentalDays}`);
-  console.log(`   listing.isActive: ${result.listing?.isActive}`);
-  console.log(`   listing.createdAt: ${result.listing?.createdAt}`);
+
+  // ThirdWeb v5 returns Solidity tuples as arrays, not objects
+  // result is [listing, currentRenter, expiresAt]
+  const [listingData, currentRenter, expiresAt] = result as any[];
+
+  console.log(`   Tuple element 0 (listing):`, listingData);
+  console.log(`   Tuple element 1 (currentRenter): ${currentRenter}`);
+  console.log(`   Tuple element 2 (expiresAt): ${expiresAt}`);
+  console.log(`   listing.wrapperId: ${listingData?.wrapperId}`);
+  console.log(`   listing.owner: ${listingData?.owner}`);
+  console.log(`   listing.pricePerDay: ${listingData?.pricePerDay}`);
+  console.log(`   listing.minRentalDays: ${listingData?.minRentalDays}`);
+  console.log(`   listing.maxRentalDays: ${listingData?.maxRentalDays}`);
+  console.log(`   listing.isActive: ${listingData?.isActive}`);
+  console.log(`   listing.createdAt: ${listingData?.createdAt}`);
 
   // Handle case where listing doesn't exist or is empty
-  if (!result || !result.listing) {
+  if (!listingData || listingData.owner === "0x0000000000000000000000000000000000000000") {
     return {
       listing: {
         wrapperId: wrapperId,
@@ -382,16 +390,16 @@ export async function getRentalInfo(wrapperId: bigint): Promise<RentalInfo> {
 
   return {
     listing: {
-      wrapperId: result.listing.wrapperId,
-      owner: result.listing.owner,
-      pricePerDay: result.listing.pricePerDay,
-      minRentalDays: result.listing.minRentalDays,
-      maxRentalDays: result.listing.maxRentalDays,
-      isActive: result.listing.isActive,
-      createdAt: result.listing.createdAt,
+      wrapperId: listingData.wrapperId,
+      owner: listingData.owner,
+      pricePerDay: listingData.pricePerDay,
+      minRentalDays: listingData.minRentalDays,
+      maxRentalDays: listingData.maxRentalDays,
+      isActive: listingData.isActive,
+      createdAt: listingData.createdAt,
     },
-    currentRenter: result.currentRenter,
-    expiresAt: result.expiresAt,
+    currentRenter: currentRenter as string,
+    expiresAt: expiresAt as bigint,
   };
 }
 
