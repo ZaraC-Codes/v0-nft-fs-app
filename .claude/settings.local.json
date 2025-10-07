@@ -68,7 +68,8 @@
       "Bash(npx -y @smithery/cli search filesystem)",
       "Bash(git mv:*)",
       "Bash(env)",
-      "Bash(vercel ls:*)"
+      "Bash(vercel ls:*)",
+      "Read(//c/tmp/**)"
     ],
     "deny": [],
     "ask": []

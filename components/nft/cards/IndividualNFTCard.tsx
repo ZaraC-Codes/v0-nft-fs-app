@@ -8,6 +8,7 @@ import { RarityBadge } from "./shared/RarityBadge"
 import { ListingBadge } from "./shared/ListingBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { ShoppingCart, Calendar, ArrowLeftRight } from "lucide-react"
 import type { PortfolioNFT } from "@/types/profile"
 import type { CardSize } from "@/types/nft"
 
@@ -15,8 +16,12 @@ interface IndividualNFTCardProps {
   nft: PortfolioNFT
   size?: CardSize
   onClick?: (nft: PortfolioNFT) => void
+  onBuyClick?: (nft: PortfolioNFT) => void
+  onRentClick?: (nft: PortfolioNFT) => void
+  onSwapClick?: (nft: PortfolioNFT) => void
   showActions?: boolean
   showWatchlist?: boolean
+  isOwner?: boolean
   className?: string
 }
 
@@ -44,8 +49,12 @@ export function IndividualNFTCard({
   nft,
   size = 'standard',
   onClick,
+  onBuyClick,
+  onRentClick,
+  onSwapClick,
   showActions = true,
   showWatchlist = true,
+  isOwner = false,
   className = ''
 }: IndividualNFTCardProps) {
   return (
@@ -100,9 +109,54 @@ export function IndividualNFTCard({
         {showActions && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
             <div className="p-4 w-full pointer-events-auto">
-              <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow">
-                View Details
-              </Button>
+              {/* Buy Button - for sale listings (non-owner) */}
+              {nft.listing?.type === 'sale' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onBuyClick?.(nft)
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Buy for {nft.listing.sale.price} APE
+                </Button>
+              )}
+
+              {/* Rent Button - for rental listings (non-owner) */}
+              {nft.listing?.type === 'rent' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRentClick?.(nft)
+                  }}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Rent {nft.listing.rent.pricePerDay} APE/Day
+                </Button>
+              )}
+
+              {/* Swap Button - for swap listings (non-owner) */}
+              {nft.listing?.type === 'swap' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onSwapClick?.(nft)
+                  }}
+                >
+                  <ArrowLeftRight className="h-4 w-4 mr-2" />
+                  Propose Swap
+                </Button>
+              )}
+
+              {/* View Details Button - for non-listed or owner viewing own listing */}
+              {(!nft.listing || nft.listing.type === 'none' || isOwner) && (
+                <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow">
+                  View Details
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -111,7 +165,7 @@ export function IndividualNFTCard({
       <NFTCardContent
         title={nft.name}
         collection={nft.collection}
-        price={nft.listing?.sale?.price?.toString()}
+        nft={nft}
         size={size}
       />
     </Card>

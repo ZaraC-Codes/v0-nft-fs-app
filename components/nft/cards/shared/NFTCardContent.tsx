@@ -1,18 +1,14 @@
 import { CardContent } from "@/components/ui/card"
-import { Heart, Eye } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import type { CardSize } from "@/types/nft"
+import type { ListingType, PortfolioNFT } from "@/types/profile"
 
 interface NFTCardContentProps {
   title: string
-  creator?: string
   collection?: string
-  price?: string
-  priceLabel?: string  // e.g., "2.5 APE/day" for rentals
-  likes?: number
-  views?: number
   bundleCount?: number
+  nft: PortfolioNFT // Pass full NFT to access listing data
   size?: CardSize
-  showStats?: boolean
   className?: string
 }
 
@@ -20,17 +16,20 @@ const TEXT_SIZE_CLASSES = {
   compact: {
     title: 'text-xs',
     subtitle: 'text-[10px]',
-    price: 'text-xs'
+    price: 'text-xs',
+    badge: 'text-[9px] px-1.5 py-0.5'
   },
   standard: {
     title: 'text-sm',
     subtitle: 'text-xs',
-    price: 'text-sm'
+    price: 'text-sm',
+    badge: 'text-xs px-2 py-0.5'
   },
   large: {
     title: 'text-base',
     subtitle: 'text-sm',
-    price: 'text-base'
+    price: 'text-base',
+    badge: 'text-sm px-2 py-1'
   }
 }
 
@@ -41,85 +40,126 @@ const PADDING_CLASSES = {
 }
 
 /**
- * NFT Card Content - Footer section with title, creator, price, stats
+ * NFT Card Content - Footer section matching old implementation
  *
- * @example
- * <NFTCardContent
- *   title="Cyber Samurai #001"
- *   creator="NeonArtist"
- *   collection="Cyber Samurai Collection"
- *   price="2.5 APE"
- *   likes={234}
- *   views={1520}
- *   size="compact"
- * />
+ * Shows:
+ * - Title + Collection + Bundle Count
+ * - Listing status badge (Sale/Rent/Swap)
+ * - Price information based on listing type:
+ *   - Sale: "X APE" (green)
+ *   - Rent: "X APE/Day" (blue)
+ *   - Swap: "Wants: Collection" + details (purple)
+ *   - None: "Last Sale: X APE" or "Not Listed" (gray)
  */
 export function NFTCardContent({
   title,
-  creator,
   collection,
-  price,
-  priceLabel,
-  likes,
-  views,
   bundleCount,
+  nft,
   size = 'standard',
-  showStats = true,
   className = ''
 }: NFTCardContentProps) {
   const textClasses = TEXT_SIZE_CLASSES[size]
   const paddingClass = PADDING_CLASSES[size]
-
-  // Display collection name with bundle count if applicable
-  const collectionDisplay = collection || ''
-  const bundleSuffix = bundleCount ? ` • ${bundleCount}` : ''
+  const listing = nft.listing
+  const listingType = listing?.type
 
   return (
     <CardContent className={`${paddingClass} ${className}`}>
+      {/* Header Row - Title/Collection + Listing Badge */}
       <div className="flex items-start justify-between mb-1">
         <div className="flex-1 min-w-0">
           <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
             {title}
           </h3>
-          {(creator || collectionDisplay) && (
-            <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
-              {creator && `by ${creator}`}
-              {creator && collectionDisplay && ' • '}
-              {collectionDisplay}
-              {bundleCount && (
-                <span className="text-orange-400">{bundleSuffix}</span>
-              )}
-            </p>
-          )}
+          <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
+            {collection}
+            {bundleCount && (
+              <span className="ml-1 text-orange-400">
+                • {bundleCount}
+              </span>
+            )}
+          </p>
         </div>
 
-        {price && (
-          <div className="text-right ml-2 flex-shrink-0">
-            <p className={`font-bold text-primary neon-text whitespace-nowrap ${textClasses.price}`}>
-              {priceLabel || price}
+        {/* Listing Status Badge */}
+        <div className="text-right ml-2">
+          {listingType && listingType !== 'none' && (
+            <Badge
+              className={`${textClasses.badge} ${
+                listingType === 'sale' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
+                listingType === 'rent' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
+                'bg-purple-500/20 text-purple-400 border-purple-500/30'
+              }`}
+            >
+              {listingType === 'sale' ? 'Sale' :
+               listingType === 'rent' ? 'Rent' : 'Swap'}
+            </Badge>
+          )}
+        </div>
+      </div>
+
+      {/* Price Information Row */}
+      <div className="space-y-0.5">
+        {/* Sale Listing - Green */}
+        {listingType === 'sale' && listing.sale && (
+          <div>
+            <p className={`font-bold text-primary neon-text ${textClasses.price}`}>
+              {listing.sale.price} APE
             </p>
           </div>
         )}
-      </div>
 
-      {showStats && (likes !== undefined || views !== undefined) && (
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-          <div className="flex items-center space-x-2">
-            {likes !== undefined && (
-              <span className="flex items-center">
-                <Heart className="mr-1 h-2.5 w-2.5" />
-                {likes}
-              </span>
+        {/* Rent Listing - Blue */}
+        {listingType === 'rent' && listing.rent && (
+          <div>
+            <p className={`font-bold text-blue-400 ${textClasses.price}`}>
+              {listing.rent.pricePerDay} APE/Day
+            </p>
+          </div>
+        )}
+
+        {/* Swap Listing - Purple */}
+        {listingType === 'swap' && listing.swap && (
+          <div>
+            <p className={`font-bold text-purple-400 ${textClasses.price} mb-1`}>
+              Wants: {listing.swap.wantedCollection}
+            </p>
+            <p className={`${textClasses.subtitle} text-muted-foreground`}>
+              ID: {listing.swap.wantedTokenId || "Any"}
+            </p>
+            {listing.swap.wantedTraits && listing.swap.wantedTraits.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1">
+                {listing.swap.wantedTraits.map((trait, index) => (
+                  <Badge key={index} variant="outline" className={`${textClasses.badge} px-1 py-0`}>
+                    {trait}
+                  </Badge>
+                ))}
+              </div>
             )}
-            {views !== undefined && (
-              <span className="flex items-center">
-                <Eye className="mr-1 h-2.5 w-2.5" />
-                {views}
-              </span>
+            {nft.lastSalePrice && (
+              <p className={`${textClasses.subtitle} text-muted-foreground mt-1`}>
+                Last Sale: {nft.lastSalePrice} APE
+              </p>
             )}
           </div>
-        </div>
-      )}
+        )}
+
+        {/* Not Listed - Gray */}
+        {(!listingType || listingType === 'none') && (
+          <div>
+            {nft.lastSalePrice ? (
+              <p className={`${textClasses.price} text-muted-foreground`}>
+                Last Sale: {nft.lastSalePrice} APE
+              </p>
+            ) : (
+              <p className={`${textClasses.price} text-muted-foreground`}>
+                Not Listed
+              </p>
+            )}
+          </div>
+        )}
+      </div>
     </CardContent>
   )
 }

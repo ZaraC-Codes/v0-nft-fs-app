@@ -142,7 +142,7 @@ export function RentalWrapperNFTCard({
       <NFTCardContent
         title={nft.name}
         collection={nft.collection}
-        priceLabel={rentalPriceDisplay}
+        nft={nft}
         size={size}
       />
     </Card>

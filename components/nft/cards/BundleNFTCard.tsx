@@ -7,6 +7,7 @@ import { BundleBadge } from "./shared/BundleBadge"
 import { ListingBadge } from "./shared/ListingBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { ShoppingCart, Calendar, ArrowLeftRight, Package } from "lucide-react"
 import type { PortfolioNFT } from "@/types/profile"
 import type { CardSize } from "@/types/nft"
 
@@ -14,8 +15,12 @@ interface BundleNFTCardProps {
   nft: PortfolioNFT
   size?: CardSize
   onClick?: (nft: PortfolioNFT) => void
+  onBuyClick?: (nft: PortfolioNFT) => void
+  onRentClick?: (nft: PortfolioNFT) => void
+  onSwapClick?: (nft: PortfolioNFT) => void
   showActions?: boolean
   showWatchlist?: boolean
+  isOwner?: boolean
   className?: string
 }
 
@@ -49,8 +54,12 @@ export function BundleNFTCard({
   nft,
   size = 'standard',
   onClick,
+  onBuyClick,
+  onRentClick,
+  onSwapClick,
   showActions = true,
   showWatchlist = true,
+  isOwner = false,
   className = ''
 }: BundleNFTCardProps) {
   const heightClass = HEIGHT_CLASSES[size]
@@ -135,9 +144,54 @@ export function BundleNFTCard({
         {showActions && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
             <div className="p-4 w-full pointer-events-auto">
-              <Button className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow">
-                View Bundle
-              </Button>
+              {/* Buy Button - for sale listings (non-owner) */}
+              {nft.listing?.type === 'sale' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onBuyClick?.(nft)
+                  }}
+                >
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Buy Bundle
+                </Button>
+              )}
+
+              {/* Rent Button - for rental listings (non-owner) */}
+              {nft.listing?.type === 'rent' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onRentClick?.(nft)
+                  }}
+                >
+                  <Calendar className="h-4 w-4 mr-2" />
+                  Rent Bundle
+                </Button>
+              )}
+
+              {/* Swap Button - for swap listings (non-owner) */}
+              {nft.listing?.type === 'swap' && !isOwner && (
+                <Button
+                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onSwapClick?.(nft)
+                  }}
+                >
+                  <ArrowLeftRight className="h-4 w-4 mr-2" />
+                  Propose Swap
+                </Button>
+              )}
+
+              {/* View Details Button - for non-listed or owner viewing own listing */}
+              {(!nft.listing || nft.listing.type === 'none' || isOwner) && (
+                <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow">
+                  View Bundle
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -147,7 +201,7 @@ export function BundleNFTCard({
         title={nft.name}
         collection="Fortuna Square Bundle NFTs"
         bundleCount={nft.bundleCount}
-        price={nft.listing?.sale?.price?.toString()}
+        nft={nft}
         size={size}
       />
     </Card>

@@ -13,8 +13,12 @@ interface NFTCardGridProps {
   emptyMessage?: string
   loading?: boolean
   onCardClick?: (nft: PortfolioNFT) => void
+  onBuyClick?: (nft: PortfolioNFT) => void
+  onRentClick?: (nft: PortfolioNFT) => void
+  onSwapClick?: (nft: PortfolioNFT) => void
   showActions?: boolean
   showWatchlist?: boolean
+  isOwner?: boolean
   className?: string
 }
 
@@ -49,8 +53,12 @@ export function NFTCardGrid({
   emptyMessage = "No NFTs found",
   loading = false,
   onCardClick,
+  onBuyClick,
+  onRentClick,
+  onSwapClick,
   showActions = true,
   showWatchlist = true,
+  isOwner = false,
   className = ''
 }: NFTCardGridProps) {
   // Loading skeleton
@@ -90,8 +98,12 @@ export function NFTCardGrid({
               nft={nft}
               size={size}
               onClick={onCardClick}
+              onBuyClick={onBuyClick}
+              onRentClick={onRentClick}
+              onSwapClick={onSwapClick}
               showActions={showActions}
               showWatchlist={showWatchlist}
+              isOwner={isOwner}
             />
           )
         }
@@ -117,8 +129,12 @@ export function NFTCardGrid({
             nft={nft}
             size={size}
             onClick={onCardClick}
+            onBuyClick={onBuyClick}
+            onRentClick={onRentClick}
+            onSwapClick={onSwapClick}
             showActions={showActions}
             showWatchlist={showWatchlist}
+            isOwner={isOwner}
           />
         )
       })}

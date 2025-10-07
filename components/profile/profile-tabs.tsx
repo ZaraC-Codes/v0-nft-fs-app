@@ -205,8 +205,18 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
               nfts={profileTabData.portfolio}
               size="compact"
               onCardClick={handleNFTClick}
+              onBuyClick={(nft) => {
+                setSelectedNFTToBuy(nft)
+                setBuyNFTModalOpen(true)
+              }}
+              onRentClick={(nft) => {
+                // Handle rent action
+                console.log("Rent clicked:", nft)
+              }}
+              onSwapClick={handleSwapClick}
               loading={loading}
               emptyMessage="No NFTs in portfolio"
+              isOwner={user?.id === profile.id}
             />
           </CardContent>
         </TabsContent>
