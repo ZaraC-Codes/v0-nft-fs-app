@@ -23,17 +23,17 @@ interface NFTCardGridProps {
  *
  * Features:
  * - Auto-detects NFT type and renders correct card variant
- * - Responsive grid: 2/3/5/8/10 columns
+ * - Responsive grid: 2/3/4/5/6 columns (optimized for bundle thumbnail visibility)
  * - Loading skeleton state
  * - Empty state message
  * - Click handler for all cards
  *
- * Grid Breakpoints:
- * - xs (< 640px): 2 columns
- * - sm (640-768px): 3 columns
- * - md (768-1024px): 5 columns
- * - lg (1024-1280px): 8 columns
- * - xl (1280px+): 10 columns
+ * Grid Breakpoints (optimized for viewing bundle thumbnails and action buttons):
+ * - xs (< 640px): 2 columns (~170px cards)
+ * - sm (640-768px): 3 columns (~210px cards)
+ * - md (768-1024px): 4 columns (~190px cards)
+ * - lg (1024-1280px): 5 columns (~200px cards)
+ * - xl (1280px+): 6 columns (~210px cards)
  *
  * @example
  * <NFTCardGrid
@@ -56,7 +56,7 @@ export function NFTCardGrid({
   // Loading skeleton
   if (loading) {
     return (
-      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3 ${className}`}>
+      <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 ${className}`}>
         {Array.from({ length: 10 }).map((_, i) => (
           <div key={i} className="animate-pulse">
             <div className="bg-card/30 h-32 rounded-t-lg" />
@@ -78,7 +78,7 @@ export function NFTCardGrid({
 
   // Render NFT grid with correct card variant
   return (
-    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3 ${className}`}>
+    <div className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 ${className}`}>
       {nfts.map((nft) => {
         const key = `${nft.contractAddress}-${nft.tokenId}`
 

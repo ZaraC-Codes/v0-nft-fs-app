@@ -67,7 +67,8 @@
       "Bash(npx -y @smithery/cli install filesystem --client claude)",
       "Bash(npx -y @smithery/cli search filesystem)",
       "Bash(git mv:*)",
-      "Bash(env)"
+      "Bash(env)",
+      "Bash(vercel ls:*)"
     ],
     "deny": [],
     "ask": []

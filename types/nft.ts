@@ -71,7 +71,7 @@ export interface NFTActionButton {
 
 /**
  * Grid Responsive Breakpoints
- * Matches Fortuna Square's grid system
+ * Optimized for viewing bundle thumbnails and action buttons
  */
 export interface GridBreakpoints {
   xs: number   // < 640px
@@ -82,11 +82,11 @@ export interface GridBreakpoints {
 }
 
 export const DEFAULT_GRID_BREAKPOINTS: GridBreakpoints = {
-  xs: 2,   // 2 columns on extra small phones
-  sm: 3,   // 3 columns on phones
-  md: 5,   // 5 columns on tablets
-  lg: 8,   // 8 columns on laptops
-  xl: 10,  // 10 columns on desktop
+  xs: 2,   // 2 columns on extra small phones (~170px cards)
+  sm: 3,   // 3 columns on phones (~210px cards)
+  md: 4,   // 4 columns on tablets (~190px cards)
+  lg: 5,   // 5 columns on laptops (~200px cards)
+  xl: 6,   // 6 columns on desktop (~210px cards)
 }
 
 /**

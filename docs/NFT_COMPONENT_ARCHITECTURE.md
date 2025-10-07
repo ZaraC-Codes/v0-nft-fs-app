@@ -287,7 +287,7 @@ export const DEFAULT_GRID_BREAKPOINTS: GridBreakpoints = {
   sm: 3,   // 3 columns on phones
   md: 5,   // 5 columns on tablets
   lg: 8,   // 8 columns on laptops
-  xl: 10,  // 10 columns on desktop
+  xl: 10,  // 6 columns on desktop
 }
 ```
 
@@ -1090,7 +1090,7 @@ const MemoizedNFTCard = React.memo(NFTCard, (prev, next) => {
 // sm (640-768px): 3 columns
 // md (768-1024px): 5 columns
 // lg (1024-1280px): 8 columns
-// xl (1280px+): 10 columns
+// xl (1280px+): 6 columns
 ```
 
 ### 7. Accessibility
@@ -1474,7 +1474,7 @@ const MemoizedNFTCard = React.memo(NFTCard, (prev, next) => {
 
 Before implementation, clarify:
 
-1. **Grid Columns**: Are current breakpoints (2/3/5/8/10) final, or should they be configurable?
+1. **Grid Columns**: Are current breakpoints (2/3/4/5/6) final, or should they be configurable?
 2. **Action Priority**: What's the priority order when multiple actions are available?
 3. **Mobile UX**: Should mobile cards have different action buttons (tap vs hover)?
 4. **Bundle Thumbnails**: Always show 3 thumbnails, or dynamic (1-5)?
