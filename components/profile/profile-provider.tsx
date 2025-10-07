@@ -960,15 +960,22 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
             // For unlisted NFTs, fetch last sale price from marketplace events
             try {
+              console.log(`🔍 [ProfileProvider] Fetching last sale price for ${nft.name} (${nft.contractAddress}/${nft.tokenId})`);
               const lastSalePrice = await getLastSalePrice(nft.contractAddress, nft.tokenId)
+              console.log(`📊 [ProfileProvider] Last sale price result for ${nft.name}:`, lastSalePrice);
+
               if (lastSalePrice) {
+                const parsedPrice = parseFloat(lastSalePrice);
+                console.log(`✅ [ProfileProvider] Setting lastSalePrice to ${parsedPrice} APE for ${nft.name}`);
                 return {
                   ...nft,
-                  lastSalePrice: parseFloat(lastSalePrice)
+                  lastSalePrice: parsedPrice
                 }
+              } else {
+                console.log(`📊 [ProfileProvider] No last sale price for ${nft.name}`);
               }
             } catch (error) {
-              console.warn(`Could not fetch last sale price for ${nft.contractAddress}/${nft.tokenId}:`, error)
+              console.error(`❌ [ProfileProvider] Could not fetch last sale price for ${nft.contractAddress}/${nft.tokenId}:`, error)
             }
 
             return nft
