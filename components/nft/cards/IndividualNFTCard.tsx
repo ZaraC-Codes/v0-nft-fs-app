@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button"
 import { NFTCardImage } from "./shared/NFTCardImage"
 import { ChainBadge } from "./shared/ChainBadge"
 import { RarityBadge } from "./shared/RarityBadge"
-import { ListingBadge } from "./shared/ListingBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import { ShoppingCart, Calendar, ArrowLeftRight } from "lucide-react"
@@ -77,16 +76,6 @@ export function IndividualNFTCard({
         {nft.rarity && (
           <div className="absolute top-7 left-1.5">
             <RarityBadge rarity={nft.rarity} size={size === 'compact' ? 'xs' : 'sm'} />
-          </div>
-        )}
-
-        {/* Listing Badge - top-left, position 3 */}
-        {nft.listing && nft.listing.type !== 'none' && (
-          <div className="absolute top-[52px] left-1.5">
-            <ListingBadge
-              listingType={nft.listing.type}
-              size={size === 'compact' ? 'xs' : 'sm'}
-            />
           </div>
         )}
 

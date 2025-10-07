@@ -921,7 +921,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
         // Fetch marketplace listings and merge with NFT data
         try {
-          const { getAllListings } = await import("@/lib/marketplace")
+          const { getAllListings, getLastSalePrice } = await import("@/lib/marketplace")
           const listings = await getAllListings()
           console.log(`📋 Fetched ${listings.length} marketplace listings`)
 
@@ -935,8 +935,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             }
           })
 
-          // Merge listings into NFTs
-          combinedNFTs = combinedNFTs.map(nft => {
+          // Merge listings into NFTs and fetch last sale prices for unlisted NFTs
+          combinedNFTs = await Promise.all(combinedNFTs.map(async nft => {
             const key = `${nft.contractAddress.toLowerCase()}-${nft.tokenId}`
             const listing = listingMap.get(key)
 
@@ -956,8 +956,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               }
             }
 
+            // For unlisted NFTs, fetch last sale price from marketplace events
+            try {
+              const lastSalePrice = await getLastSalePrice(nft.contractAddress, nft.tokenId)
+              if (lastSalePrice) {
+                return {
+                  ...nft,
+                  lastSalePrice: parseFloat(lastSalePrice)
+                }
+              }
+            } catch (error) {
+              console.warn(`Could not fetch last sale price for ${nft.contractAddress}/${nft.tokenId}:`, error)
+            }
+
             return nft
-          })
+          }))
 
           console.log(`✅ Merged ${listingMap.size} active listings with NFT data`)
         } catch (error) {

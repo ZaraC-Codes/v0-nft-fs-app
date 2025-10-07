@@ -66,37 +66,19 @@ export function NFTCardContent({
 
   return (
     <CardContent className={`${paddingClass} ${className}`}>
-      {/* Header Row - Title/Collection + Listing Badge */}
-      <div className="flex items-start justify-between mb-1">
-        <div className="flex-1 min-w-0">
-          <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
-            {title}
-          </h3>
-          <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
-            {collection}
-            {bundleCount && (
-              <span className="ml-1 text-orange-400">
-                • {bundleCount}
-              </span>
-            )}
-          </p>
-        </div>
-
-        {/* Listing Status Badge */}
-        <div className="text-right ml-2">
-          {listingType && listingType !== 'none' && (
-            <Badge
-              className={`${textClasses.badge} ${
-                listingType === 'sale' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
-                listingType === 'rent' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
-                'bg-purple-500/20 text-purple-400 border-purple-500/30'
-              }`}
-            >
-              {listingType === 'sale' ? 'Sale' :
-               listingType === 'rent' ? 'Rent' : 'Swap'}
-            </Badge>
+      {/* Header Row - Title/Collection */}
+      <div className="mb-1">
+        <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
+          {title}
+        </h3>
+        <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
+          {collection}
+          {bundleCount && (
+            <span className="ml-1 text-orange-400">
+              • {bundleCount}
+            </span>
           )}
-        </div>
+        </p>
       </div>
 
       {/* Price Information Row */}

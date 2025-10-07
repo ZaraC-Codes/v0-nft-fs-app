@@ -263,19 +263,74 @@ export function NFTDetailsModal({
 
   // Fetch real activity data when modal opens
   useEffect(() => {
-    if (isOpen && nft) {
+    async function loadActivity() {
+      if (!isOpen || !nft) return
+
       setIsLoadingActivity(true)
-      getNFTHistory(nft.contractAddress, nft.tokenId, nft.chainId)
-        .then(data => {
-          setActivity(data)
-          setIsLoadingActivity(false)
-        })
-        .catch(err => {
-          console.error("Failed to fetch activity:", err)
-          setIsLoadingActivity(false)
-        })
+      try {
+        // Get basic NFT history
+        const nftHistory = await getNFTHistory(nft.contractAddress, nft.tokenId, nft.chainId)
+
+        // If this is a wrapper NFT, also fetch rental listing creation events
+        if (nft.isWrapper) {
+          try {
+            const { getRentalListingEvents } = await import("@/lib/rental")
+            const rentalEvents = await getRentalListingEvents(nft.tokenId)
+
+            // Convert rental events to activity format
+            const rentalActivities = rentalEvents.map(event => ({
+              type: "listed" as const,
+              price: (Number(event.pricePerDay) / 1e18).toFixed(4),
+              from: event.owner,
+              timestamp: event.timestamp,
+              txHash: event.txHash,
+              marketplace: "Rental Listing"
+            }))
+
+            // Combine and sort by timestamp
+            const combined = [...nftHistory, ...rentalActivities].sort(
+              (a, b) => b.timestamp.getTime() - a.timestamp.getTime()
+            )
+
+            setActivity(combined)
+          } catch (rentalError) {
+            console.error("Failed to fetch rental events:", rentalError)
+            setActivity(nftHistory)
+          }
+        } else {
+          setActivity(nftHistory)
+        }
+      } catch (err) {
+        console.error("Failed to fetch activity:", err)
+      } finally {
+        setIsLoadingActivity(false)
+      }
     }
+
+    loadActivity()
   }, [isOpen, nft])
+
+  // Load bundle activity when modal opens for bundle NFTs
+  useEffect(() => {
+    async function loadBundleActivity() {
+      if (isOpen && nft?.isBundle && bundleActivity.length === 0 && bundleActivityTab === "bundle") {
+        setIsLoadingBundleActivity(true)
+
+        try {
+          console.log(`📦 Loading bundle activity for bundle #${nft.tokenId}...`)
+          const bundleEvents = await getBundleActivity(nft.tokenId, nft.chainId)
+          setBundleActivity(bundleEvents)
+          console.log(`✅ Loaded ${bundleEvents.length} bundle activity events`)
+        } catch (error) {
+          console.error("Failed to load bundle activity:", error)
+        } finally {
+          setIsLoadingBundleActivity(false)
+        }
+      }
+    }
+
+    loadBundleActivity()
+  }, [isOpen, nft, bundleActivity.length, bundleActivityTab])
 
   // Load bundle contents provenance when viewing Contents History tab
   useEffect(() => {
@@ -373,7 +428,7 @@ export function NFTDetailsModal({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-border/50">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/95 backdrop-blur-xl border-border/50">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
               <span>{nft.name}</span>
@@ -586,7 +641,7 @@ export function NFTDetailsModal({
                           })
                         }}
                       >
-                        Cancel Listing (No ID)
+                        Cancel Rental Listing
                       </Button>
                     )}
                   </div>
@@ -721,10 +776,8 @@ export function NFTDetailsModal({
                             console.log("🗑️ Cleared portfolio cache after unwrap")
 
                             toast({
-                              title: isMainnet ? "Bundle Unwrapped!" : "Bundle Unwrapped (Demo Mode)!",
-                              description: isMainnet
-                                ? `Successfully extracted ${bundledNFTs.length} NFTs from bundle and returned them to your wallet!`
-                                : `Verified ${bundledNFTs.length} NFTs in TBA and burned bundle NFT. On mainnet, NFTs would be extracted.`,
+                              title: "Bundle Unwrapped!",
+                              description: `Successfully extracted ${bundledNFTs.length} NFTs from bundle and returned them to your wallet!`,
                             })
                             setTimeout(() => window.location.reload(), 2000)
 
@@ -797,6 +850,25 @@ export function NFTDetailsModal({
                       <span className="text-muted-foreground">Max Duration</span>
                       <span className="font-medium">{nft.listing.rent.maxDays} Day{nft.listing.rent.maxDays !== 1 ? 's' : ''}</span>
                     </div>
+                  </>
+                )}
+
+                {nft.rentalListing && (
+                  <>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Daily Rate</span>
+                      <span className="font-bold text-blue-400 text-lg">{(Number(nft.rentalListing.pricePerDay) / 1e18).toFixed(4)} APE/Day</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Duration</span>
+                      <span className="font-medium">{Number(nft.rentalListing.minRentalDays)}-{Number(nft.rentalListing.maxRentalDays)} Days</span>
+                    </div>
+                    {nft.rentalListing.currentRenter !== "0x0000000000000000000000000000000000000000" && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Currently Rented</span>
+                        <span className="font-medium text-yellow-400">Yes</span>
+                      </div>
+                    )}
                   </>
                 )}
 

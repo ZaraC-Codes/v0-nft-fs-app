@@ -7,7 +7,6 @@ import { Clock } from "lucide-react"
 import { NFTCardImage } from "./shared/NFTCardImage"
 import { ChainBadge } from "./shared/ChainBadge"
 import { RarityBadge } from "./shared/RarityBadge"
-import { ListingBadge } from "./shared/ListingBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import type { PortfolioNFT } from "@/types/profile"
@@ -89,28 +88,6 @@ export function RentalWrapperNFTCard({
             <RarityBadge rarity={nft.rarity} size={size === 'compact' ? 'xs' : 'sm'} />
           </div>
         )}
-
-        {/* Listing Badge - top-left, position 3 */}
-        {nft.listing && nft.listing.type !== 'none' && (
-          <div className="absolute top-[52px] left-1.5">
-            <ListingBadge
-              listingType={nft.listing.type}
-              size={size === 'compact' ? 'xs' : 'sm'}
-            />
-          </div>
-        )}
-
-        {/* Rental Status Badge - top-left, position 4 */}
-        <div className="absolute top-[76px] left-1.5">
-          <Badge
-            className={`flex items-center gap-1 ${rentalStatusColor} ${
-              size === 'compact' ? 'text-[9px] px-1.5 py-0.5' : 'text-[10px] px-2 py-0.5'
-            }`}
-          >
-            <Clock className={size === 'compact' ? 'h-2.5 w-2.5' : 'h-3 w-3'} />
-            {rentalStatusLabel}
-          </Badge>
-        </div>
 
         {/* Watchlist Toggle - top-right */}
         {showWatchlist && (

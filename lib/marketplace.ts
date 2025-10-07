@@ -410,6 +410,60 @@ export function prepareBuyNFT({
   })
 }
 
+/**
+ * Get the most recent sale price for an NFT
+ * @param contractAddress NFT contract address
+ * @param tokenId NFT token ID
+ * @returns Last sale price in APE (as string) or null if never sold
+ */
+export async function getLastSalePrice(contractAddress: string, tokenId: string): Promise<string | null> {
+  const contract = getMarketplaceContract();
+
+  try {
+    // Define Sale event
+    const saleEvent = prepareEvent({
+      signature: "event Sale(uint256 indexed listingId, address indexed buyer, address indexed seller, address nftContract, uint256 tokenId, uint256 quantity, uint256 totalPrice, uint256 platformFee)"
+    });
+
+    console.log(`🔍 Fetching sale events for NFT ${contractAddress}/${tokenId}...`);
+
+    // Fetch all Sale events
+    const saleEvents = await getContractEvents({
+      contract,
+      events: [saleEvent]
+    });
+
+    // Filter for this specific NFT
+    const relevantSales = saleEvents
+      .filter((event: any) => {
+        const args = event.args;
+        return args &&
+          args.nftContract?.toLowerCase() === contractAddress.toLowerCase() &&
+          args.tokenId?.toString() === tokenId;
+      })
+      .map((event: any) => ({
+        totalPrice: event.args.totalPrice,
+        timestamp: Number(event.blockTimestamp || 0)
+      }))
+      .sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
+
+    if (relevantSales.length === 0) {
+      console.log(`📊 No sale history found for NFT ${contractAddress}/${tokenId}`);
+      return null;
+    }
+
+    // Get the most recent sale
+    const lastSale = relevantSales[0];
+    const priceInAPE = (Number(lastSale.totalPrice) / 1e18).toFixed(2);
+
+    console.log(`✅ Last sale price: ${priceInAPE} APE`);
+    return priceInAPE;
+  } catch (error) {
+    console.error("❌ Error fetching last sale price:", error);
+    return null;
+  }
+}
+
 // Get NFT activity from marketplace events
 export async function getNFTActivity(contractAddress: string, tokenId: string) {
   const contract = getMarketplaceContract();

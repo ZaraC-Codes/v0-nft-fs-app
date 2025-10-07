@@ -11,17 +11,12 @@ interface NFTCardImageProps {
   className?: string
 }
 
-const HEIGHT_CLASSES: Record<CardSize, string> = {
-  compact: 'h-32',   // Dense 10-column grid
-  standard: 'h-48',  // Standard 4-column grid
-  large: 'h-64'      // Featured sections
-}
-
 /**
  * NFT Card Image - Standardized image container with overlays
  *
  * Features:
- * - Auto aspect ratio based on size
+ * - Square aspect ratio (aspect-square)
+ * - Object-contain to prevent cropping
  * - Fallback placeholder for missing images
  * - Hover scale effect
  * - Supports overlay children (badges, action buttons)
@@ -46,14 +41,12 @@ export function NFTCardImage({
   children,
   className = ''
 }: NFTCardImageProps) {
-  const heightClass = HEIGHT_CLASSES[size]
-
   return (
     <div className={`relative ${className}`}>
       <img
         src={src || "/placeholder.svg"}
         alt={alt}
-        className={`w-full ${heightClass} object-cover transition-transform duration-300 ${
+        className={`w-full aspect-square object-contain bg-black/20 transition-transform duration-300 ${
           showHover ? 'group-hover:scale-105' : ''
         } ${onImageClick ? 'cursor-pointer' : ''}`}
         onClick={onImageClick}

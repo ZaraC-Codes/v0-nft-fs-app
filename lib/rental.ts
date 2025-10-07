@@ -524,3 +524,60 @@ export function formatDuration(days: bigint): string {
 export function isRentalActive(expiresAt: bigint): boolean {
   return expiresAt > BigInt(Math.floor(Date.now() / 1000));
 }
+
+/**
+ * Get rental listing creation events for activity feed
+ * @param wrapperId Specific wrapper ID to fetch events for (optional)
+ * @returns Array of rental listing creation events with parsed data
+ */
+export async function getRentalListingEvents(wrapperId?: string) {
+  const { getContractEvents, prepareEvent } = await import("thirdweb");
+  const contract = getRentalManagerContract();
+
+  try {
+    // Define RentalListingCreated event with full Solidity signature
+    const rentalListingCreatedEvent = prepareEvent({
+      signature: "event RentalListingCreated(uint256 indexed wrapperId, address indexed owner, uint256 pricePerDay, uint256 minDays, uint256 maxDays)"
+    });
+
+    console.log("🔍 Fetching rental listing creation events...");
+
+    // Fetch all RentalListingCreated events
+    const events = await getContractEvents({
+      contract,
+      events: [rentalListingCreatedEvent]
+    });
+
+    console.log(`📊 Found ${events.length} rental listing creation events`);
+
+    // Parse and filter events
+    const parsedEvents = events
+      .map((event: any) => {
+        const args = event.args;
+        if (!args) return null;
+
+        // Filter by wrapperId if provided
+        if (wrapperId && args.wrapperId?.toString() !== wrapperId) {
+          return null;
+        }
+
+        return {
+          wrapperId: args.wrapperId?.toString() || "",
+          owner: args.owner || "",
+          pricePerDay: args.pricePerDay || 0n,
+          minDays: args.minDays || 0n,
+          maxDays: args.maxDays || 0n,
+          timestamp: new Date(Number(event.blockTimestamp || 0) * 1000),
+          txHash: event.transactionHash || "",
+          blockNumber: event.blockNumber || 0
+        };
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null);
+
+    console.log(`✅ Parsed ${parsedEvents.length} rental listing creation events`);
+    return parsedEvents;
+  } catch (error) {
+    console.error("❌ Error fetching rental listing creation events:", error);
+    return [];
+  }
+}

@@ -573,3 +573,66 @@ export function generateBundleMetadataURI(
   const base64 = Buffer.from(jsonString).toString('base64');
   return `data:application/json;base64,${base64}`;
 }
+
+/**
+ * Get bundle creation events for activity feed
+ * @param client ThirdwebClient instance
+ * @param chain Chain to query
+ * @param bundleId Specific bundle ID to fetch events for (optional)
+ * @returns Array of bundle creation events with parsed data
+ */
+export async function getBundleCreationEvents(
+  client: ThirdwebClient,
+  chain: Chain,
+  bundleId?: string
+) {
+  const { getContractEvents, prepareEvent } = await import("thirdweb");
+  const contract = getBundleNFTContract(client, chain);
+
+  try {
+    // Define BundleCreated event with full Solidity signature
+    const bundleCreatedEvent = prepareEvent({
+      signature: "event BundleCreated(uint256 indexed bundleId, address indexed creator, address accountAddress, address[] nftContracts, uint256[] tokenIds)"
+    });
+
+    console.log("🔍 Fetching bundle creation events...");
+
+    // Fetch all BundleCreated events
+    const events = await getContractEvents({
+      contract,
+      events: [bundleCreatedEvent]
+    });
+
+    console.log(`📊 Found ${events.length} bundle creation events`);
+
+    // Parse and filter events
+    const parsedEvents = events
+      .map((event: any) => {
+        const args = event.args;
+        if (!args) return null;
+
+        // Filter by bundleId if provided
+        if (bundleId && args.bundleId?.toString() !== bundleId) {
+          return null;
+        }
+
+        return {
+          bundleId: args.bundleId?.toString() || "",
+          creator: args.creator || "",
+          accountAddress: args.accountAddress || "",
+          nftContracts: args.nftContracts || [],
+          tokenIds: (args.tokenIds || []).map((id: bigint) => id.toString()),
+          timestamp: new Date(Number(event.blockTimestamp || 0) * 1000),
+          txHash: event.transactionHash || "",
+          blockNumber: event.blockNumber || 0
+        };
+      })
+      .filter((e): e is NonNullable<typeof e> => e !== null);
+
+    console.log(`✅ Parsed ${parsedEvents.length} bundle creation events`);
+    return parsedEvents;
+  } catch (error) {
+    console.error("❌ Error fetching bundle creation events:", error);
+    return [];
+  }
+}

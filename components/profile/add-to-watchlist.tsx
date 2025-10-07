@@ -158,15 +158,15 @@ export function WatchlistToggle({
     <button
       onClick={handleToggleWatchlist}
       disabled={loading || isAdding}
-      className={`inline-flex items-center justify-center rounded-md h-8 w-8 transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-50 ${className} ${
+      className={`inline-flex items-center justify-center rounded-md h-8 w-8 transition-all disabled:pointer-events-none disabled:opacity-50 ${className} ${
         inWatchlist
-          ? "text-blue-600 hover:text-blue-700"
-          : "text-muted-foreground hover:text-blue-600"
+          ? "text-blue-600 hover:text-blue-700 hover:scale-110"
+          : "text-muted-foreground hover:text-blue-600 hover:scale-110"
       }`}
       style={{ position: 'relative', zIndex: 9999 }}
     >
       <Eye
-        className={`h-4 w-4 ${
+        className={`h-4 w-4 transition-all ${
           inWatchlist ? "fill-current" : ""
         }`}
       />

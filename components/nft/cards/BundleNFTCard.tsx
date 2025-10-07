@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { ChainBadge } from "./shared/ChainBadge"
 import { BundleBadge } from "./shared/BundleBadge"
-import { ListingBadge } from "./shared/ListingBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import { ShoppingCart, Calendar, ArrowLeftRight, Package } from "lucide-react"
@@ -24,21 +23,15 @@ interface BundleNFTCardProps {
   className?: string
 }
 
-const HEIGHT_CLASSES: Record<CardSize, string> = {
-  compact: 'h-32',
-  standard: 'h-48',
-  large: 'h-64'
-}
-
 /**
  * Bundle NFT Card - Displays bundle NFTs with FS logo and thumbnails
  *
  * Layout:
+ * - Square aspect ratio (aspect-square)
  * - Gradient background (purple → black → blue)
  * - FS logo watermark (center, opacity 20%)
  * - Chain badge (top-left)
  * - Bundle badge with count (below chain)
- * - Listing badge (below bundle badge, if applicable)
  * - 3 thumbnail previews (bottom)
  * - Watchlist toggle (top-right)
  * - Action overlay on hover
@@ -62,7 +55,6 @@ export function BundleNFTCard({
   isOwner = false,
   className = ''
 }: BundleNFTCardProps) {
-  const heightClass = HEIGHT_CLASSES[size]
   const thumbnails = nft.bundlePreviewImages?.slice(0, 3) || []
 
   return (
@@ -71,7 +63,7 @@ export function BundleNFTCard({
       onClick={() => onClick?.(nft)}
     >
       {/* Bundle Background */}
-      <div className={`relative ${heightClass} overflow-hidden bg-gradient-to-br from-purple-900 via-black to-blue-900`}>
+      <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-purple-900 via-black to-blue-900">
         {/* FS Logo Watermark */}
         <div className="absolute inset-0 flex items-center justify-center opacity-20">
           <img
@@ -94,16 +86,6 @@ export function BundleNFTCard({
         {nft.bundleCount !== undefined && (
           <div className="absolute top-[40px] left-4">
             <BundleBadge count={nft.bundleCount} size={size === 'compact' ? 'xs' : 'sm'} />
-          </div>
-        )}
-
-        {/* Listing Badge - top-left, position 3 */}
-        {nft.listing && nft.listing.type !== 'none' && (
-          <div className="absolute top-[68px] left-4">
-            <ListingBadge
-              listingType={nft.listing.type}
-              size={size === 'compact' ? 'xs' : 'sm'}
-            />
           </div>
         )}
 

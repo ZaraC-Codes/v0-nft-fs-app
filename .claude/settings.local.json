@@ -69,7 +69,11 @@
       "Bash(git mv:*)",
       "Bash(env)",
       "Bash(vercel ls:*)",
-      "Read(//c/tmp/**)"
+      "Read(//c/tmp/**)",
+      "Bash(npx playwright codegen:*)",
+      "Bash(npx playwright install:*)",
+      "Bash(python:*)",
+      "Bash(del:*)"
     ],
     "deny": [],
     "ask": []
