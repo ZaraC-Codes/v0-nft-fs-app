@@ -354,6 +354,15 @@ export async function getRentalInfo(wrapperId: bigint): Promise<RentalInfo> {
     params: [wrapperId],
   });
 
+  console.log(`🔍 RAW rental info from contract for wrapper ${wrapperId}:`, result);
+  console.log(`   listing.wrapperId: ${result.listing?.wrapperId}`);
+  console.log(`   listing.owner: ${result.listing?.owner}`);
+  console.log(`   listing.pricePerDay: ${result.listing?.pricePerDay}`);
+  console.log(`   listing.minRentalDays: ${result.listing?.minRentalDays}`);
+  console.log(`   listing.maxRentalDays: ${result.listing?.maxRentalDays}`);
+  console.log(`   listing.isActive: ${result.listing?.isActive}`);
+  console.log(`   listing.createdAt: ${result.listing?.createdAt}`);
+
   // Handle case where listing doesn't exist or is empty
   if (!result || !result.listing) {
     return {
