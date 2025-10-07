@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Header } from "@/components/header"
 import { Footer } from "@/components/footer"
 import { ClearStorageButton } from "@/components/debug/clear-storage"
-import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import {
   ArrowRight,
@@ -120,7 +120,7 @@ export default function HomePage() {
       itemsListed: 892,
       verified: true,
       change24h: "+5.2",
-      chainId: apeChainCurtis.id,
+      chainId: apeChain.id,
       currency: "APE"
     },
     {
@@ -134,7 +134,7 @@ export default function HomePage() {
       itemsListed: 1243,
       verified: true,
       change24h: "-2.1",
-      chainId: apeChainCurtis.id,
+      chainId: apeChain.id,
       currency: "APE"
     },
     {
@@ -148,7 +148,7 @@ export default function HomePage() {
       itemsListed: 634,
       verified: true,
       change24h: "+3.7",
-      chainId: apeChainCurtis.id,
+      chainId: apeChain.id,
       currency: "APE"
     },
     {
@@ -162,7 +162,7 @@ export default function HomePage() {
       itemsListed: 723,
       verified: true,
       change24h: "+4.1",
-      chainId: apeChainCurtis.id,
+      chainId: apeChain.id,
       currency: "APE"
     },
     // Ethereum Sepolia Collections
@@ -246,7 +246,7 @@ export default function HomePage() {
 
   const totalBundles = filteredCollections.reduce((sum, c) => sum + c.bundlesCreated, 0)
   const totalTreasuries = 47 // Mock treasury count
-  const curtisCollections = collections.filter(c => c.chainId === apeChainCurtis.id).length
+  const curtisCollections = collections.filter(c => c.chainId === apeChain.id).length
   const sepoliaCollections = collections.filter(c => c.chainId === sepolia.id).length
 
   return (

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Eye } from "lucide-react"
 import Link from "next/link"
-import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 
 const relatedNFTs = [
   {
@@ -17,7 +17,7 @@ const relatedNFTs = [
     rarity: "Epic",
     likes: 189,
     views: 987,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
   },
   {
     id: "3",
@@ -39,7 +39,7 @@ const relatedNFTs = [
     rarity: "Legendary",
     likes: 298,
     views: 1456,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
   },
   {
     id: "5",

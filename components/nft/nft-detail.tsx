@@ -11,7 +11,7 @@ import { Heart, Share2, Eye, ShoppingCart, Zap, Clock, TrendingUp, ExternalLink,
 import { useToast } from "@/hooks/use-toast"
 import { BidModal } from "./bid-modal"
 import { OfferModal } from "./offer-modal"
-import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 
 interface NFTDetailProps {
   nft: {

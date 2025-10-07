@@ -12,7 +12,7 @@ import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 import { SwapModal } from "@/components/swap/swap-modal"
 import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { Header } from "@/components/header"
-import { apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 
 // Rarity color system
@@ -418,7 +418,7 @@ const mockCollectionBundles = [
     lastSalePrice: 115.0,
     isBundle: true,
     bundleCount: 3,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     bundleItems: [
       {
         contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -429,7 +429,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 48.5,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x60E4d786628Fea6478F785A6d7e704777c86a7c6",
@@ -440,7 +440,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 12.0,
         rarity: "2",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
@@ -451,7 +451,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 8.2,
         rarity: "3",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ],
     listing: {
@@ -518,7 +518,7 @@ const mockCollectionBundles = [
     lastSalePrice: 178.0,
     isBundle: true,
     bundleCount: 4,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     bundleItems: [
       {
         contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -529,7 +529,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 62.0,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
@@ -540,7 +540,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 95.5,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x23581767a106ae21c074b2276D25e5C3e136a68b",
@@ -551,7 +551,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 15.2,
         rarity: "2",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x1A92f7381B9F03921564a437210bB9396471050C",
@@ -562,7 +562,7 @@ const mockCollectionBundles = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 12.5,
         rarity: "3",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ],
     listing: {
@@ -588,7 +588,7 @@ const mockCollectionNFTs = [
     estimatedValue: 45.5,
     rarity: "2",
     lastSalePrice: 42.0,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "sale" as const,
       sale: {
@@ -627,7 +627,7 @@ const mockCollectionNFTs = [
     estimatedValue: 38.7,
     rarity: "3",
     lastSalePrice: 36.2,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "swap" as const,
       swap: {
@@ -662,7 +662,7 @@ const mockCollectionNFTs = [
     estimatedValue: 47.8,
     rarity: "2",
     lastSalePrice: 44.5,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "sale" as const,
       sale: {

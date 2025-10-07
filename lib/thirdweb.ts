@@ -9,25 +9,6 @@ export const client = createThirdwebClient({
   clientId: clientId,
 });
 
-// Define ApeChain Curtis testnet
-export const apeChainCurtis = defineChain({
-  id: 33111,
-  name: "ApeChain Curtis Testnet",
-  nativeCurrency: {
-    name: "ApeCoin",
-    symbol: "APE",
-    decimals: 18,
-  },
-  rpc: "https://curtis.rpc.caldera.xyz/http",
-  blockExplorers: [
-    {
-      name: "Curtis Explorer",
-      url: "https://curtis.explorer.caldera.xyz",
-    },
-  ],
-  testnet: true,
-});
-
 // Define ApeChain Mainnet
 export const apeChain = defineChain({
   id: 33139,
@@ -40,8 +21,8 @@ export const apeChain = defineChain({
   rpc: "https://apechain.calderachain.xyz/http",
   blockExplorers: [
     {
-      name: "ApeChain Explorer",
-      url: "https://apechain.calderachain.xyz",
+      name: "ApeScan",
+      url: "https://apescan.io",
     },
   ],
   testnet: false,
@@ -51,7 +32,7 @@ export const apeChain = defineChain({
 export { sepolia };
 
 // Supported chains for the marketplace
-export const SUPPORTED_CHAINS = [apeChain, apeChainCurtis, sepolia] as const;
+export const SUPPORTED_CHAINS = [apeChain, sepolia] as const;
 
 // Chain metadata for display (official ApeChain branding guidelines)
 export const CHAIN_METADATA = {
@@ -62,15 +43,6 @@ export const CHAIN_METADATA = {
     color: "from-[#e2f0ff] via-[#e2f0ff] to-[#e2f0ff]", // Official GM Blue
     bgColor: "#e2f0ff", // Official GM Blue background
     textColor: "#030a21", // Dark text on light background
-    nativeToken: "APE",
-  },
-  [apeChainCurtis.id]: {
-    name: "ApeChain Curtis",
-    shortName: "Curtis",
-    icon: "https://apescan.io/assets/ape/images/svg/brandassets/logo-symbol-light.svg", // Official ApeChain logo
-    color: "from-[#e2f0ff] via-[#e2f0ff] to-[#e2f0ff]", // Official GM Blue
-    bgColor: "#e2f0ff",
-    textColor: "#030a21",
     nativeToken: "APE",
   },
   [sepolia.id]: {
@@ -92,7 +64,7 @@ if (!MARKETPLACE_CONTRACT_ADDRESS) {
   console.error("Marketplace features will not work without this address configured in .env.local");
 }
 
-// APE token contract address on ApeChain Curtis testnet
+// APE token contract address on ApeChain mainnet
 // Note: This is a placeholder - replace with actual APE token address when available
 export const APE_TOKEN_ADDRESS = process.env.NEXT_PUBLIC_APE_TOKEN_ADDRESS || "0x0000000000000000000000000000000000000000";
 

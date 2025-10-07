@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { prepareCreateSwapListing } from "@/lib/swap"
 import { NFTWithTraits, validateSwapCriteria } from "@/lib/nft-matching"
 import { ArrowLeftRight, Plus, X } from "lucide-react"
@@ -34,7 +34,7 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
   const [wantedTokenId, setWantedTokenId] = useState("Any")
   const [wantedTraits, setWantedTraits] = useState<string[]>([])
   const [newTrait, setNewTrait] = useState("")
-  const [selectedChain, setSelectedChain] = useState<number>(apeChainCurtis.id)
+  const [selectedChain, setSelectedChain] = useState<number>(apeChain.id)
 
   const handleAddTrait = () => {
     if (newTrait.trim() && wantedTraits.length < 3) {
@@ -66,7 +66,7 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
     return criteria
   }
 
-  const chain = selectedChain === apeChainCurtis.id ? apeChainCurtis : sepolia
+  const chain = selectedChain === apeChain.id ? apeChain : sepolia
 
   if (!account) {
     return (
@@ -182,9 +182,9 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-black border-gray-700">
-                    <SelectItem value={apeChainCurtis.id.toString()}>
+                    <SelectItem value={apeChain.id.toString()}>
                       <span className="flex items-center gap-2">
-                        {CHAIN_METADATA[apeChainCurtis.id].icon} {CHAIN_METADATA[apeChainCurtis.id].name}
+                        {CHAIN_METADATA[apeChain.id].icon} {CHAIN_METADATA[apeChain.id].name}
                       </span>
                     </SelectItem>
                     <SelectItem value={sepolia.id.toString()}>

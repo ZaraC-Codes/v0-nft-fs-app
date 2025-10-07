@@ -6,7 +6,7 @@ import { prepareContractCall, getContract } from "thirdweb"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { client, apeChainCurtis, APE_TOKEN_ADDRESS } from "@/lib/thirdweb"
+import { client, apeChain, APE_TOKEN_ADDRESS } from "@/lib/thirdweb"
 import { sepolia } from "thirdweb/chains"
 import { ArrowRight, CheckCircle, Info, ExternalLink } from "lucide-react"
 import { useActiveAccount } from "thirdweb/react"
@@ -49,7 +49,7 @@ export function CrossChainNFTPurchase({
       try {
         if (step === "bridge") {
           // Switch to Curtis testnet for bridging
-          await switchChain(apeChainCurtis)
+          await switchChain(apeChain)
           console.log("✅ Switched to Curtis testnet for bridging")
         } else if (step === "purchase") {
           // Switch to Sepolia for NFT purchase

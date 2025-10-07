@@ -24,7 +24,7 @@ import {
 } from "lucide-react"
 import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
-import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA, client } from "@/lib/thirdweb"
+import { apeChain, apeChain, sepolia, CHAIN_METADATA, client } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import { generateBundleImage, uploadBundleImageToIPFS } from "@/lib/bundle-image"
@@ -53,7 +53,7 @@ const mockPortfolioNFTs = {
       collection: "Bored Ape Yacht Club",
       rarity: "2",
       estimatedValue: 45.5,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -63,7 +63,7 @@ const mockPortfolioNFTs = {
       collection: "Bored Ape Yacht Club",
       rarity: "1",
       estimatedValue: 52.3,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -73,7 +73,7 @@ const mockPortfolioNFTs = {
       collection: "Bored Ape Yacht Club",
       rarity: "3",
       estimatedValue: 38.7,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     }
   ],
   "Mutant Ape Yacht Club": [
@@ -107,7 +107,7 @@ const mockPortfolioNFTs = {
       collection: "Azuki",
       rarity: "3",
       estimatedValue: 8.2,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     },
     {
       contractAddress: "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
@@ -127,7 +127,7 @@ const mockPortfolioNFTs = {
       collection: "Azuki",
       rarity: "5",
       estimatedValue: 6.2,
-      chainId: apeChainCurtis.id
+      chainId: apeChain.id
     }
   ]
 }
@@ -141,7 +141,7 @@ const mockExistingBundles = [
     bundleCount: 2,
     totalValue: 97.8,
     createdAt: new Date("2024-01-15"),
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     items: [
       {
         contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -151,7 +151,7 @@ const mockExistingBundles = [
         collection: "Bored Ape Yacht Club",
         rarity: "1",
         estimatedValue: 48.9,
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -161,7 +161,7 @@ const mockExistingBundles = [
         collection: "Bored Ape Yacht Club",
         rarity: "2",
         estimatedValue: 48.9,
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ]
   },

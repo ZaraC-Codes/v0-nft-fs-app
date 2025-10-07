@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TransactionButton, useActiveAccount, useSwitchActiveWalletChain } from "thirdweb/react";
 import { buyFromListing } from "@/lib/marketplace";
-import { apeChain, apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb";
+import { apeChain, apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb";
 import { calculateTotalWithFee, formatFeePercentage } from "@/lib/platform-fees";
 import type { Chain } from "thirdweb/chains";
 
@@ -38,7 +38,7 @@ interface MarketplaceListingProps {
   chain?: Chain; // Optional chain - defaults to Curtis
 }
 
-export function MarketplaceListing({ listing, metadata, chain = apeChainCurtis }: MarketplaceListingProps) {
+export function MarketplaceListing({ listing, metadata, chain = apeChain }: MarketplaceListingProps) {
   const [quantity, setQuantity] = useState(1n);
   const account = useActiveAccount();
   const switchChain = useSwitchActiveWalletChain();

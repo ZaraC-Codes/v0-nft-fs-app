@@ -5,7 +5,7 @@ import { useActiveAccount } from 'thirdweb/react'
 import { TransactionButton } from 'thirdweb/react'
 import { prepareContractCall } from 'thirdweb'
 import { getContract } from 'thirdweb'
-import { client, apeChainCurtis } from '@/lib/thirdweb'
+import { client, apeChain } from '@/lib/thirdweb'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useToast } from '@/hooks/use-toast'
@@ -66,7 +66,7 @@ export default function MintPage() {
                       transaction={() => {
                         const contract = getContract({
                           client,
-                          chain: apeChainCurtis,
+                          chain: apeChain,
                           address: ERC721_CONTRACT,
                         })
 
@@ -134,7 +134,7 @@ export default function MintPage() {
                       transaction={() => {
                         const contract = getContract({
                           client,
-                          chain: apeChainCurtis,
+                          chain: apeChain,
                           address: ERC1155_CONTRACT,
                         })
 

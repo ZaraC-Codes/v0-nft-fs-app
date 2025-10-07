@@ -15,7 +15,7 @@ import {
   setApprovalForAll as setApprovalForAllERC1155,
   isApprovedForAll as isApprovedForAllERC1155,
 } from "thirdweb/extensions/erc1155"
-import { apeChainCurtis } from "@/lib/thirdweb"
+import { apeChain } from "@/lib/thirdweb"
 
 const FORTUNA_MARKETPLACE_ADDRESS = process.env.NEXT_PUBLIC_FORTUNA_MARKETPLACE_ADDRESS || ""
 
@@ -33,7 +33,7 @@ export function getFortunaMarketplaceContract() {
 
   return getContract({
     address: FORTUNA_MARKETPLACE_ADDRESS,
-    chain: apeChainCurtis,
+    chain: apeChain,
     client: {} as any, // Will be provided in transaction context
   })
 }

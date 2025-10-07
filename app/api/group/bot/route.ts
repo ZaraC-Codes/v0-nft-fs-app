@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     //   ],
     //   context: {
     //     from: sender,
-    //     chain_ids: [33111], // ApeChain Curtis
+    //     chain_ids: [33139], // ApeChain Curtis
     //   }
     // })
 

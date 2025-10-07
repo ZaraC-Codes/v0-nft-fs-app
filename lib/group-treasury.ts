@@ -1,6 +1,6 @@
 import { prepareContractCall, sendTransaction, readContract, getContract } from "thirdweb"
 import { client } from "./thirdweb"
-import { apeChainCurtis } from "./thirdweb"
+import { apeChain } from "./thirdweb"
 
 // Contract addresses (update after deployment)
 export const GROUP_TREASURY_ADDRESSES = {
@@ -113,7 +113,7 @@ export async function createGroup(
 ) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.groupNFT,
   })
 
@@ -139,7 +139,7 @@ export async function initializeGroup(
 ) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -161,7 +161,7 @@ export async function initializeGroup(
 export async function getGroupMetadata(groupId: bigint): Promise<GroupMetadata> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.groupNFT,
   })
 
@@ -178,7 +178,7 @@ export async function getGroupMetadata(groupId: bigint): Promise<GroupMetadata> 
 export async function getTokenBoundAccount(groupId: bigint): Promise<string> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.groupNFT,
   })
 
@@ -199,7 +199,7 @@ export async function makeDeposit(
 ) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -227,7 +227,7 @@ export async function createProposal(
 ) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -253,7 +253,7 @@ export async function voteOnProposal(
 ) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -275,7 +275,7 @@ export async function voteOnProposal(
 export async function executeProposal(account: any, proposalId: bigint) {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -297,7 +297,7 @@ export async function executeProposal(account: any, proposalId: bigint) {
 export async function getGroupMembers(groupId: bigint): Promise<string[]> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -314,7 +314,7 @@ export async function getGroupMembers(groupId: bigint): Promise<string[]> {
 export async function getMember(groupId: bigint, wallet: string): Promise<Member> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -331,7 +331,7 @@ export async function getMember(groupId: bigint, wallet: string): Promise<Member
 export async function getGroupProposals(groupId: bigint): Promise<bigint[]> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -348,7 +348,7 @@ export async function getGroupProposals(groupId: bigint): Promise<bigint[]> {
 export async function getProposal(proposalId: bigint): Promise<Proposal> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -379,7 +379,7 @@ export async function getProposal(proposalId: bigint): Promise<Proposal> {
 export async function hasVoted(proposalId: bigint, voter: string): Promise<boolean> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.manager,
   })
 
@@ -396,7 +396,7 @@ export async function hasVoted(proposalId: bigint, voter: string): Promise<boole
 export async function getGroupMessages(groupId: bigint): Promise<ChatMessage[]> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.chatRelay,
   })
 
@@ -417,7 +417,7 @@ export async function getGroupMessagesPaginated(
 ): Promise<ChatMessage[]> {
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: GROUP_TREASURY_ADDRESSES.chatRelay,
   })
 

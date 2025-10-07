@@ -12,7 +12,7 @@ export function WalletStatus() {
     return null;
   }
 
-  const isCorrectChain = chain?.id === 33111; // ApeChain Curtis testnet
+  const isCorrectChain = chain?.id === 33139; // ApeChain Curtis testnet
 
   return (
     <div className="flex items-center gap-2 text-sm">

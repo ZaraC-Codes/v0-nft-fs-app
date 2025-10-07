@@ -1,7 +1,7 @@
 import { prepareContractCall, readContract, getContract } from "thirdweb";
 import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
-import { apeChain, apeChainCurtis, sepolia } from "./thirdweb";
+import { apeChain, apeChain, sepolia } from "./thirdweb";
 import { encodeFunctionData } from "viem";
 
 /**
@@ -17,7 +17,7 @@ export const BUNDLE_CONTRACT_ADDRESSES = {
     accountImplementation: "0x76591D246caC5DFB0D31c65d0052a15f6A887e7f", // FortunaSquareBundleAccount with context-based auth
   },
   // ApeChain Curtis (testnet)
-  [apeChainCurtis.id]: {
+  [apeChain.id]: {
     bundleNFT: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // BundleNFTUnified with emergency unwrap - Oct 3, 2025
     bundleManager: "0xA3e7564D153cc7f45B8479E9891dbFF858B9155e", // Same as bundleNFT (unified contract)
     erc6551Registry: "0x000000006551c19487814612e58FE06813775758", // Standard ERC6551 Registry

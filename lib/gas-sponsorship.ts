@@ -1,6 +1,6 @@
 import { prepareContractCall, sendTransaction, getContract } from "thirdweb"
 import { client } from "./thirdweb"
-import { apeChainCurtis } from "./thirdweb"
+import { apeChain } from "./thirdweb"
 import { privateKeyToAccount } from "thirdweb/wallets"
 
 /**
@@ -95,7 +95,7 @@ export async function sendGaslessMessage(
   // Get contract
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: chatRelayAddress as `0x${string}`,
   })
 
@@ -137,7 +137,7 @@ export async function sendGaslessBotMessage(
   // Get contract
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: chatRelayAddress as `0x${string}`,
   })
 
@@ -171,7 +171,7 @@ export async function sendGaslessSystemMessage(
   // Get contract
   const contract = getContract({
     client,
-    chain: apeChainCurtis,
+    chain: apeChain,
     address: chatRelayAddress as `0x${string}`,
   })
 

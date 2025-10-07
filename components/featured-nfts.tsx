@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Heart, Eye, Zap } from "lucide-react"
-import { apeChainCurtis, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 
 const featuredNFTs = [
@@ -18,7 +18,7 @@ const featuredNFTs = [
     rarity: "Legendary",
     likes: 234,
     views: 1520,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     contractAddress: "0x1234567890123456789012345678901234567890",
     tokenId: "1",
     collection: "Cyber Samurai",
@@ -46,7 +46,7 @@ const featuredNFTs = [
     rarity: "Legendary",
     likes: 456,
     views: 2341,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     contractAddress: "0x3456789012345678901234567890123456789012",
     tokenId: "777",
     collection: "Neon Genesis",

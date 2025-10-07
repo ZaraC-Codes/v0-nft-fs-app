@@ -3,7 +3,7 @@
  */
 
 import { defineChain } from "thirdweb";
-import { apeChain, apeChainCurtis, sepolia } from "./thirdweb";
+import { apeChain, sepolia } from "./thirdweb";
 
 /**
  * Switch user's wallet to the specified chain
@@ -70,18 +70,7 @@ function getChainParams(chainId: number) {
         decimals: 18,
       },
       rpcUrls: ["https://apechain.calderachain.xyz/http"],
-      blockExplorerUrls: ["https://apechain.calderaexplorer.xyz"],
-    },
-    [apeChainCurtis.id]: {
-      chainId: `0x${apeChainCurtis.id.toString(16)}`,
-      chainName: "ApeChain Curtis Testnet",
-      nativeCurrency: {
-        name: "ApeCoin",
-        symbol: "APE",
-        decimals: 18,
-      },
-      rpcUrls: ["https://curtis.rpc.caldera.xyz/http"],
-      blockExplorerUrls: ["https://curtis.explorer.caldera.xyz"],
+      blockExplorerUrls: ["https://apescan.io"],
     },
     [sepolia.id]: {
       chainId: `0x${sepolia.id.toString(16)}`,

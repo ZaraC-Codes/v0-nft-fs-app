@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { apeChain, apeChainCurtis, sepolia, client, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, apeChain, sepolia, client, CHAIN_METADATA } from "@/lib/thirdweb"
 import { prepareUnwrapBundle } from "@/lib/bundle"
 import { Package, AlertCircle } from "lucide-react"
 import Image from "next/image"
@@ -33,7 +33,7 @@ export function UnwrapBundleButton({
   const account = useActiveAccount()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
-  const chain = chainId === apeChain.id ? apeChain : (chainId === apeChainCurtis.id ? apeChainCurtis : sepolia)
+  const chain = chainId === apeChain.id ? apeChain : (chainId === apeChain.id ? apeChain : sepolia)
 
   const handleUnwrap = () => {
     return {

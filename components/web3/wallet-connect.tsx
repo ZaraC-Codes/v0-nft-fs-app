@@ -1,7 +1,7 @@
 "use client";
 
 import { ConnectButton } from "thirdweb/react";
-import { client, apeChainCurtis } from "@/lib/thirdweb";
+import { client, apeChain } from "@/lib/thirdweb";
 import { inAppWallet } from "thirdweb/wallets";
 import { useActiveAccount } from "thirdweb/react";
 import { ChevronDown } from "lucide-react";
@@ -13,7 +13,7 @@ const embeddedWallet = inAppWallet({
     options: ["email", "google", "apple", "facebook", "x", "passkey"],
   },
   smartAccount: {
-    chain: apeChainCurtis,
+    chain: apeChain,
     sponsorGas: false,
   },
 });
@@ -26,7 +26,7 @@ export function WalletConnect() {
     return (
       <ConnectButton
         client={client}
-        chain={apeChainCurtis}
+        chain={apeChain}
         wallets={[embeddedWallet]}
         connectButton={{ label: "Connect Wallet" }}
         detailsButton={{
@@ -86,7 +86,7 @@ export function WalletConnect() {
   return (
     <ConnectButton
       client={client}
-      chain={apeChainCurtis}
+      chain={apeChain}
       wallets={[embeddedWallet]}
       connectButton={{
         label: "Sign In / Sign Up",

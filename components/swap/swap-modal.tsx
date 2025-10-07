@@ -8,7 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
 import { TransactionButton } from "thirdweb/react"
 import { useActiveAccount } from "thirdweb/react"
-import { apeChainCurtis, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { apeChain, sepolia, client, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
 import { prepareApproveNFT, prepareExecuteSwap, isNFTApprovedForSwap } from "@/lib/swap"
 import { findMatchingNFTs, getSwapCriteriaDescription, NFTWithTraits, SwapCriteria } from "@/lib/nft-matching"
 import { ArrowLeftRight, Check, AlertCircle } from "lucide-react"
@@ -31,7 +31,7 @@ export function SwapModal({ isOpen, onClose, listingId, listedNFT, swapCriteria 
   const [isApproved, setIsApproved] = useState(false)
   const [isCheckingApproval, setIsCheckingApproval] = useState(false)
 
-  const chain = swapCriteria.chainId === apeChainCurtis.id ? apeChainCurtis : sepolia
+  const chain = swapCriteria.chainId === apeChain.id ? apeChain : sepolia
 
   // Find matching NFTs from user's portfolio
   useEffect(() => {

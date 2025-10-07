@@ -63,7 +63,9 @@
       "Bash(del c:/Users/zarac/v0-nft-fs-app/temp-fix-avatar.js)",
       "Bash(del c:/Users/zarac/v0-nft-fs-app/fix-timestamps-and-bundle.js)",
       "Bash(del c:/Users/zarac/v0-nft-fs-app/update-bundle-provenance.js)",
-      "Bash(del c:Userszaracv0-nft-fs-appfix-timestamps-and-bundle.js)"
+      "Bash(del c:Userszaracv0-nft-fs-appfix-timestamps-and-bundle.js)",
+      "Bash(npx -y @smithery/cli install filesystem --client claude)",
+      "Bash(npx -y @smithery/cli search filesystem)"
     ],
     "deny": [],
     "ask": []

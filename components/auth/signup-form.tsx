@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { ConnectButton, useActiveAccount } from "thirdweb/react"
-import { client, apeChainCurtis } from "@/lib/thirdweb"
+import { client, apeChain } from "@/lib/thirdweb"
 import { inAppWallet } from "thirdweb/wallets"
 import { Mail } from "lucide-react"
 
@@ -27,7 +27,7 @@ export function SignupForm() {
       options: ["email", "google", "apple", "facebook", "x", "passkey"],
     },
     smartAccount: {
-      chain: apeChainCurtis,
+      chain: apeChain,
       sponsorGas: false,
     },
   })

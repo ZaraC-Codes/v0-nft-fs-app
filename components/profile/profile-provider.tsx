@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react"
 import { UserProfile, NFTWatchlistItem, UserFollow, ProfileTabData, PortfolioNFT, Treasury } from "@/types/profile"
-import { apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
+import { apeChain, apeChain, sepolia } from "@/lib/thirdweb"
 import { useActiveWalletChain } from "thirdweb/react"
 
 interface ProfileContextType {
@@ -70,7 +70,7 @@ const mockWatchlist: NFTWatchlistItem[] = [
     collection: "Bored Ape Yacht Club",
     addedAt: new Date("2024-01-15"),
     lastSalePrice: 52.3,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     rarity: "2",
     listing: {
       type: "sale",
@@ -112,7 +112,7 @@ const mockWatchlist: NFTWatchlistItem[] = [
     collection: "Moonbirds",
     addedAt: new Date("2024-01-25"),
     lastSalePrice: 15.2,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     rarity: "1",
     listing: {
       type: "swap",
@@ -145,7 +145,7 @@ const mockWatchlist: NFTWatchlistItem[] = [
     collection: "Doodles",
     addedAt: new Date("2024-02-05"),
     lastSalePrice: 3.8,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
   },
   {
     id: "w6",
@@ -169,7 +169,7 @@ const mockWatchlist: NFTWatchlistItem[] = [
     collection: "CryptoPunks",
     addedAt: new Date("2024-02-12"),
     lastSalePrice: 184.5,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
   },
   {
     id: "w8",
@@ -196,7 +196,7 @@ const mockPortfolio: PortfolioNFT[] = [
     estimatedValue: 45.5,
     rarity: "3",
     lastSalePrice: 42.0,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "sale",
       sale: {
@@ -235,7 +235,7 @@ const mockPortfolio: PortfolioNFT[] = [
     estimatedValue: 8.7,
     rarity: "2",
     lastSalePrice: 8.2,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "swap",
       swap: {
@@ -270,7 +270,7 @@ const mockPortfolio: PortfolioNFT[] = [
     acquiredAt: new Date("2023-08-01"),
     estimatedValue: 18.0,
     lastSalePrice: 16.5,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     isBundle: true,
     bundleCount: 3,
     bundleItems: [
@@ -283,7 +283,7 @@ const mockPortfolio: PortfolioNFT[] = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 6.0,
         rarity: "2",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x23581767a106ae21c074b2276D25e5C3e136a68b",
@@ -294,7 +294,7 @@ const mockPortfolio: PortfolioNFT[] = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 6.5,
         rarity: "3",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xED5AF388653567Af2F388E6224dC7C4b3241C544",
@@ -305,7 +305,7 @@ const mockPortfolio: PortfolioNFT[] = [
         acquiredAt: new Date("2023-08-01"),
         estimatedValue: 5.5,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ],
     listing: {
@@ -403,7 +403,7 @@ const mockPortfolio: PortfolioNFT[] = [
     acquiredAt: new Date("2023-06-10"),
     estimatedValue: 120.5,
     lastSalePrice: 115.0,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     isBundle: true,
     bundleCount: 2,
     bundleItems: [
@@ -416,7 +416,7 @@ const mockPortfolio: PortfolioNFT[] = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 62.0,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xb47e3cd837dDF8e4c57F05d70Ab865de6e193BBB",
@@ -427,7 +427,7 @@ const mockPortfolio: PortfolioNFT[] = [
         acquiredAt: new Date("2023-06-10"),
         estimatedValue: 58.5,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ],
     listing: {
@@ -731,11 +731,11 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               // Import bundle and rental utilities dynamically
               const { BUNDLE_CONTRACT_ADDRESSES, getBundleMetadata, getBundleAccountAddress } = await import("@/lib/bundle")
               const { bundlePreviewCache } = await import("@/lib/bundle-preview-cache")
-              const { client, apeChain, apeChainCurtis } = await import("@/lib/thirdweb")
+              const { client, apeChain, apeChain } = await import("@/lib/thirdweb")
               const { getOriginalNFT, getRentalInfo } = await import("@/lib/rental")
 
               // Determine which chain to use (mainnet or testnet)
-              const nftChain = chainId === apeChain.id ? apeChain : apeChainCurtis
+              const nftChain = chainId === apeChain.id ? apeChain : apeChain
 
               // Check if this is a bundle NFT
               const bundleNFTAddress = BUNDLE_CONTRACT_ADDRESSES[chainId]?.bundleNFT?.toLowerCase()

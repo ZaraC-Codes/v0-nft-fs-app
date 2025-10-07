@@ -38,7 +38,7 @@ import {
 import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
-import { apeChainCurtis, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 
 // Mock treasury data
 const mockTreasury = {
@@ -203,7 +203,7 @@ const mockTreasuryPortfolio = [
     estimatedValue: 48.5,
     rarity: "1",
     lastSalePrice: 45.2,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "none" as const
     }
@@ -237,7 +237,7 @@ const mockTreasuryPortfolio = [
     estimatedValue: 15.2,
     rarity: "3",
     lastSalePrice: 14.8,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     listing: {
       type: "rent" as const,
       rent: {
@@ -277,7 +277,7 @@ const mockTreasuryPortfolio = [
     estimatedValue: 185.2,
     isBundle: true,
     bundleCount: 4,
-    chainId: apeChainCurtis.id,
+    chainId: apeChain.id,
     bundleItems: [
       {
         contractAddress: "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
@@ -288,7 +288,7 @@ const mockTreasuryPortfolio = [
         acquiredAt: new Date("2024-02-08"),
         estimatedValue: 62.0,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6",
@@ -299,7 +299,7 @@ const mockTreasuryPortfolio = [
         acquiredAt: new Date("2024-02-08"),
         estimatedValue: 95.5,
         rarity: "1",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x23581767a106ae21c074b2276D25e5C3e136a68b",
@@ -310,7 +310,7 @@ const mockTreasuryPortfolio = [
         acquiredAt: new Date("2024-02-08"),
         estimatedValue: 15.2,
         rarity: "2",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       },
       {
         contractAddress: "0x1A92f7381B9F03921564a437210bB9396471050C",
@@ -321,7 +321,7 @@ const mockTreasuryPortfolio = [
         acquiredAt: new Date("2024-02-08"),
         estimatedValue: 12.5,
         rarity: "3",
-        chainId: apeChainCurtis.id
+        chainId: apeChain.id
       }
     ],
     listing: {

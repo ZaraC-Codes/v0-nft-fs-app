@@ -32,7 +32,7 @@ import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice } from "@/lib/marketplace"
 import { getNFTHistory, formatAddress as formatActivityAddress, formatPrice as formatActivityPrice, getActivityLabel, getActivityColor, NFTActivityEvent } from "@/lib/nft-history"
 import { getBundleActivity, getBundledContentsProvenance, getBundleActivityLabel, getBundleActivityColor, formatBundledNFTs, BundleActivityEvent, BundledNFTProvenance } from "@/lib/bundle-history"
-import { client, apeChain, apeChainCurtis, sepolia } from "@/lib/thirdweb"
+import { client, apeChain, apeChain, sepolia } from "@/lib/thirdweb"
 import { Input } from "@/components/ui/input"
 import { WrapNFTButton } from "@/components/rental/wrap-nft-button"
 import { CreateRentalListing } from "@/components/rental/create-rental-listing"
@@ -114,10 +114,10 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
     try {
       // Import bundle utilities
       const { getBundleAccountAddress } = await import("@/lib/bundle")
-      const { client, apeChain, apeChainCurtis, sepolia } = await import("@/lib/thirdweb")
+      const { client, apeChain, apeChain, sepolia } = await import("@/lib/thirdweb")
 
       // Determine the correct chain from NFT's chainId
-      const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChainCurtis)
+      const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChain)
       console.log(`🔗 Using chain: ${nftChain.name} (ID: ${nftChain.id})`)
 
       // Get the TBA address for this bundle
@@ -125,7 +125,7 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
       console.log(`📍 Bundle TBA address: ${tbaAddress}`)
 
       // Fetch NFTs owned by the TBA - use correct API endpoint
-      const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}`)
+      const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33139}`)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch bundle contents: ${response.status}`)
@@ -286,9 +286,9 @@ export function NFTDetailsModal({
         try {
           // Get bundle contents to extract NFT contract addresses and token IDs
           const { getBundleAccountAddress } = await import("@/lib/bundle")
-          const { client, apeChain, apeChainCurtis, sepolia } = await import("@/lib/thirdweb")
+          const { client, apeChain, apeChain, sepolia } = await import("@/lib/thirdweb")
 
-          const nftChain = nft.chainId === 33139 ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChainCurtis)
+          const nftChain = nft.chainId === 33139 ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChain)
           const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
 
           // Fetch NFTs from TBA
@@ -666,7 +666,7 @@ export function NFTDetailsModal({
                             const { prepareContractCall, sendTransaction } = await import("thirdweb")
 
                             // Determine the correct chain from NFT's chainId
-                            const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChainCurtis)
+                            const nftChain = nft.chainId === apeChain.id ? apeChain : (nft.chainId === sepolia.id ? sepolia : apeChain)
                             console.log(`🔗 Using chain for unwrap: ${nftChain.name} (ID: ${nftChain.id})`)
 
                             // Get the TBA address
@@ -688,7 +688,7 @@ export function NFTDetailsModal({
                             }
 
                             // Fetch bundled NFTs (bypass cache with timestamp)
-                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33111}&t=${Date.now()}`)
+                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33139}&t=${Date.now()}`)
                             const data = await response.json()
                             const bundledNFTs = data.nfts || []
                             console.log(`📦 Found ${bundledNFTs.length} NFTs in bundle`)

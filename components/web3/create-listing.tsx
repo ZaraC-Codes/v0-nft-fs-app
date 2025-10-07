@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TransactionButton } from "thirdweb/react";
 import { createDirectListing } from "@/lib/marketplace";
-import { apeChainCurtis } from "@/lib/thirdweb";
+import { apeChain } from "@/lib/thirdweb";
 
 export function CreateListing() {
   const [formData, setFormData] = useState({
