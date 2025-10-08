@@ -138,20 +138,24 @@ function MemberItem({ member, compact = false }: { member: Member; compact?: boo
           )}
         </div>
 
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <Badge
-            variant={member.role === 'creator' ? 'default' : 'outline'}
-            className="text-[10px] h-4 px-1.5"
-          >
-            {member.role === 'creator' ? 'Creator' : 'Holder'}
-          </Badge>
+        {(member.role === 'creator' || (member.nftCount && member.nftCount > 1)) && (
+          <div className="flex items-center gap-1.5 mt-0.5">
+            {member.role === 'creator' && (
+              <Badge
+                variant="default"
+                className="text-[10px] h-4 px-1.5"
+              >
+                Creator
+              </Badge>
+            )}
 
-          {member.nftCount && member.nftCount > 1 && (
-            <span className="text-[10px] text-muted-foreground">
-              {member.nftCount} NFTs
-            </span>
-          )}
-        </div>
+            {member.nftCount && member.nftCount > 1 && (
+              <span className="text-[10px] text-muted-foreground">
+                {member.nftCount} NFTs
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )
