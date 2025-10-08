@@ -4,11 +4,11 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Collection, CollectionStats } from "@/types/collection"
-import { getCollectionBySlug, getCollectionStats, getCollectionNFTs } from "@/lib/collection-service"
+import { getCollectionBySlug, getCollectionStats, getCollectionNFTs, getCollectionActivity } from "@/lib/collection-service"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle } from "lucide-react"
+import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, ShoppingCart, ArrowLeftRight, Palette } from "lucide-react"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 
 export default function CollectionPage() {
@@ -18,8 +18,10 @@ export default function CollectionPage() {
   const [collection, setCollection] = useState<Collection | null>(null)
   const [stats, setStats] = useState<CollectionStats | null>(null)
   const [nfts, setNfts] = useState<any[]>([])
+  const [activity, setActivity] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingNFTs, setLoadingNFTs] = useState(false)
+  const [loadingActivity, setLoadingActivity] = useState(false)
   const [selectedNFT, setSelectedNFT] = useState<any | null>(null)
 
   useEffect(() => {
@@ -44,6 +46,12 @@ export default function CollectionPage() {
         const nftsData = await getCollectionNFTs(collectionData.contractAddress, 1, 50)
         setNfts(nftsData)
         setLoadingNFTs(false)
+
+        // Load Activity
+        setLoadingActivity(true)
+        const activityData = await getCollectionActivity(collectionData.contractAddress)
+        setActivity(activityData)
+        setLoadingActivity(false)
       } catch (error) {
         console.error("Failed to load collection:", error)
       } finally {
@@ -242,9 +250,80 @@ export default function CollectionPage() {
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
-            <div className="text-center py-12 text-muted-foreground">
-              Activity feed coming soon...
-            </div>
+            {loadingActivity ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Loading activity...
+              </div>
+            ) : activity.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No activity found for this collection
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {activity.map((event, index) => (
+                  <Card key={`${event.txHash}-${index}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {/* Event Type Icon */}
+                          <div className={`p-2 rounded-lg ${
+                            event.type === 'sale' ? 'bg-purple-500/20 text-purple-400' :
+                            event.type === 'listing' ? 'bg-cyan-500/20 text-cyan-400' :
+                            event.type === 'mint' ? 'bg-green-500/20 text-green-400' :
+                            'bg-blue-500/20 text-blue-400'
+                          }`}>
+                            {event.type === 'sale' ? <TrendingUp className="w-4 h-4" /> :
+                             event.type === 'listing' ? <ShoppingCart className="w-4 h-4" /> :
+                             event.type === 'mint' ? <Palette className="w-4 h-4" /> :
+                             <ArrowLeftRight className="w-4 h-4" />}
+                          </div>
+
+                          {/* Event Details */}
+                          <div>
+                            <p className="font-semibold">
+                              {event.type === 'sale' ? 'Sold' :
+                               event.type === 'listing' ? 'Listed' :
+                               event.type === 'mint' ? 'Minted' :
+                               'Transferred'}
+                            </p>
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                              <span>Token #{event.tokenId}</span>
+                              {event.price && (
+                                <>
+                                  <span>•</span>
+                                  <span className="text-purple-400 font-semibold">
+                                    {(Number(event.price) / 1e18).toFixed(2)} APE
+                                  </span>
+                                </>
+                              )}
+                              {event.marketplace && (
+                                <>
+                                  <span>•</span>
+                                  <span>on {event.marketplace}</span>
+                                </>
+                              )}
+                            </div>
+                            {event.from && event.to && (
+                              <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1">
+                                <span>{event.from.slice(0, 6)}...{event.from.slice(-4)}</span>
+                                <span>→</span>
+                                <span>{event.to.slice(0, 6)}...{event.to.slice(-4)}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Timestamp */}
+                        <div className="text-right text-sm text-muted-foreground">
+                          <p>{event.timestamp.toLocaleDateString()}</p>
+                          <p>{event.timestamp.toLocaleTimeString()}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="news" className="mt-6">
