@@ -44,7 +44,26 @@ export async function GET(
     // Fetch messages from contract
     const messages = await readContract({
       contract,
-      method: "function getGroupMessages(uint256 groupId) view returns ((uint256 id, uint256 groupId, address sender, string content, uint256 timestamp, uint8 messageType, bool isBot)[])",
+      method: {
+        type: "function",
+        name: "getGroupMessages",
+        inputs: [{ name: "groupId", type: "uint256", internalType: "uint256" }],
+        outputs: [{
+          name: "",
+          type: "tuple[]",
+          internalType: "struct GroupChatRelay.Message[]",
+          components: [
+            { name: "id", type: "uint256", internalType: "uint256" },
+            { name: "groupId", type: "uint256", internalType: "uint256" },
+            { name: "sender", type: "address", internalType: "address" },
+            { name: "content", type: "string", internalType: "string" },
+            { name: "timestamp", type: "uint256", internalType: "uint256" },
+            { name: "messageType", type: "uint8", internalType: "enum GroupChatRelay.MessageType" },
+            { name: "isBot", type: "bool", internalType: "bool" }
+          ]
+        }],
+        stateMutability: "view"
+      },
       params: [groupId],
     })
 
