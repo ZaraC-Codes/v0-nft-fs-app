@@ -316,8 +316,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
                           border-x-0 sm:border-x rounded-none sm:rounded-xl overflow-hidden">
 
             {/* Header */}
-            <CardHeader className="sticky top-0 z-10
-                                  bg-card/95 backdrop-blur-md
+            <CardHeader className="bg-card/95 backdrop-blur-md
                                   border-b py-3 sm:py-4 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
@@ -375,8 +374,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             </CardContent>
 
             {/* Input */}
-            <div className="sticky bottom-0 border-t
-                            bg-card/95 backdrop-blur-md
+            <div className="border-t bg-card/95 backdrop-blur-md
                             p-3 sm:p-4 safe-bottom flex-shrink-0">
               {hasNFT ? (
                 <ChatInput

@@ -131,8 +131,9 @@ export function ChatMessages({ chat }: ChatMessagesProps) {
   }
 
   return (
-    <ScrollArea className="flex-1 p-4">
-      <div className="space-y-4">
+    <div className="flex-1 min-h-0 flex flex-col">
+      <ScrollArea className="h-full">
+        <div className="p-4 space-y-4">
         {mockMessages.map((message, index) => {
           const isCurrentUser = message.sender.id === "2" // Mock current user
           const showAvatar = index === 0 || mockMessages[index - 1].sender.id !== message.sender.id
@@ -201,7 +202,8 @@ export function ChatMessages({ chat }: ChatMessagesProps) {
             </div>
           )
         })}
-      </div>
-    </ScrollArea>
+        </div>
+      </ScrollArea>
+    </div>
   )
 }

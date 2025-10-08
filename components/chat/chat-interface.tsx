@@ -186,7 +186,7 @@ export function ChatInterface() {
         {selectedChat ? (
           <>
             {/* Chat Header */}
-            <div className="p-4 border-b border-border/50 bg-card/30">
+            <div className="p-4 border-b border-border/50 bg-card/30 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <Avatar className="w-10 h-10">
@@ -236,7 +236,7 @@ export function ChatInterface() {
             <ChatMessages chat={selectedChat} />
 
             {/* Message Input */}
-            <div className="p-4 border-t border-border/50 bg-card/30">
+            <div className="p-4 border-t border-border/50 bg-card/30 flex-shrink-0">
               <div className="flex items-center space-x-2">
                 <Button size="icon" variant="ghost" className="hover:bg-primary/10">
                   <Paperclip className="h-4 w-4" />
