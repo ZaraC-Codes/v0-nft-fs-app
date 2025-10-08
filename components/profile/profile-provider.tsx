@@ -755,7 +755,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
               // Extract collection name - prefer API collectionName, then extract from name, finally use full name
-              let collectionName: string
+              let collectionName: string = `Token #${nft.tokenId}` // Default fallback
+
               if (isBundleNFT) {
                 collectionName = 'Fortuna Square Bundle NFTs'
               } else if (nft.collectionName && nft.collectionName.trim()) {
@@ -772,9 +773,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   // If extraction failed or resulted in same string, use full name
                   collectionName = nft.name
                 }
-              } else {
-                // Absolute fallback if no name exists
-                collectionName = `Token #${nft.tokenId}`
               }
 
               // Base NFT data
