@@ -156,10 +156,10 @@ export function LinkExternalWallet() {
 
       const walletAddress = accounts[0]
 
-      // Check if this is the embedded wallet (primary wallet)
+      // Check if this is the profile wallet (primary wallet)
       const isPrimaryWallet = walletAddress.toLowerCase() === userProfile.walletAddress?.toLowerCase()
       if (isPrimaryWallet) {
-        toast.error("This is your primary embedded wallet, already linked to your account")
+        toast.error("This is your Profile Wallet, already linked to your account")
         return
       }
 
@@ -241,7 +241,7 @@ export function LinkExternalWallet() {
                           {wallet.slice(0, 8)}...{wallet.slice(-6)}
                         </p>
                         {isPrimary && (
-                          <p className="text-xs text-muted-foreground">Primary (Embedded Wallet)</p>
+                          <p className="text-xs text-muted-foreground">Profile Wallet (Gasless)</p>
                         )}
                       </div>
                     </div>

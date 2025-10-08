@@ -31,12 +31,28 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
   const availableWallets = userProfile
     ? (userProfile.wallets || []).map((wallet) => {
         const isPrimary = wallet.type === 'embedded'
-        const name = isPrimary ? "Embedded Wallet" : "MetaMask"
+
+        // Determine wallet name based on type
+        let name = "Unknown Wallet"
+        if (wallet.type === 'embedded') {
+          name = "Profile Wallet"
+        } else if (wallet.type === 'metamask') {
+          name = "MetaMask"
+        } else if (wallet.type === 'glyph') {
+          name = "Glyph"
+        } else if (wallet.type === 'rabby') {
+          name = "Rabby"
+        } else if (wallet.type === 'coinbase') {
+          name = "Coinbase Wallet"
+        } else if (wallet.type === 'external') {
+          name = "External Wallet"
+        }
 
         return {
           address: wallet.address,
           name,
-          isPrimary
+          isPrimary,
+          type: wallet.type
         }
       })
     : []

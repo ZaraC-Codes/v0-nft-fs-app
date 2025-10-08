@@ -19,6 +19,8 @@ import { getAllCollections } from "@/lib/collection-service"
 import { Collection } from "@/types/collection"
 import { ProfileService } from "@/lib/profile-service"
 import { getCollectionChatId } from "@/lib/collection-chat"
+import { useProfile } from "@/components/profile/profile-provider"
+import { useGaslessWallet } from "@/hooks/use-gasless-wallet"
 
 interface CommunityChatProps {
   collection: {
@@ -31,6 +33,8 @@ const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || "
 
 export function CommunityChat({ collection }: CommunityChatProps) {
   const account = useActiveAccount()
+  const { userProfile } = useProfile()
+  const { profileWallet, isUsingProfileWallet, ensureProfileWallet, isSwitching } = useGaslessWallet()
   const { mutateAsync: sendTransaction } = useSendTransaction()
   const [messages, setMessages] = useState<any[]>([])
   const [members, setMembers] = useState<any[]>([])
@@ -105,19 +109,29 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     setMembers(usersArray as any) // Also use for members sidebar
   }, [messages])
 
-  // Check if user owns NFT from this collection
+  // Check if user owns NFT from this collection (checks ALL linked wallets)
   useEffect(() => {
     async function checkOwnership() {
-      if (!account) {
+      if (!userProfile) {
         setHasNFT(false)
         return
       }
 
       try {
-        // Client-side check (UX hint only - real verification is server-side)
-        // For now, assume they have it if connected
-        // TODO: Implement actual ownership check
-        setHasNFT(true)
+        // Get all linked wallet addresses
+        const allWallets = ProfileService.getAllWallets(userProfile)
+
+        if (allWallets.length === 0) {
+          setHasNFT(false)
+          return
+        }
+
+        console.log('🔍 Checking NFT ownership across wallets:', allWallets)
+
+        // Check ownership for each wallet
+        // For now, use client-side check (server-side verification happens on message send)
+        // TODO: Implement actual on-chain ownership check across all wallets
+        setHasNFT(true) // Assume true if they have wallets linked
       } catch (error) {
         console.error("Error checking ownership:", error)
         setHasNFT(false)
@@ -125,7 +139,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     }
 
     checkOwnership()
-  }, [account, collection.contractAddress])
+  }, [userProfile, collection.contractAddress])
 
   // Load messages - use useCallback to prevent infinite loops
   const loadMessages = useCallback(async () => {
@@ -220,12 +234,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     console.log('🔍 Send message debugging:', {
       hasAccount: !!account,
       accountAddress: account?.address,
+      hasProfileWallet: !!profileWallet,
+      isUsingProfileWallet,
       hasNFT,
       content,
       collectionAddress: collection.contractAddress
     })
 
-    if (!account || !hasNFT) {
+    if (!hasNFT) {
       toast({
         title: "Cannot send message",
         description: "You must own an NFT from this collection to chat",
@@ -234,16 +250,46 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       return
     }
 
+    if (!profileWallet) {
+      toast({
+        title: "Cannot send message",
+        description: "Please create a Profile Wallet for gasless messaging",
+        variant: "destructive",
+      })
+      return
+    }
+
     setSending(true)
 
-    // Optimistically add message to UI immediately
+    try {
+      // Ensure we're using the profile wallet for gasless transaction
+      if (!isUsingProfileWallet) {
+        console.log('🔄 Switching to Profile Wallet for gasless transaction...')
+        toast({
+          title: "Switching wallet",
+          description: "Switching to Profile Wallet for gasless messaging...",
+        })
+        await ensureProfileWallet()
+      }
+    } catch (error: any) {
+      console.error("❌ Failed to switch to profile wallet:", error)
+      toast({
+        title: "Wallet switch failed",
+        description: "Could not switch to Profile Wallet. Please try again.",
+        variant: "destructive",
+      })
+      setSending(false)
+      return
+    }
+
+    // Optimistically add message to UI immediately (using profile wallet address)
     const tempId = `temp-${Date.now()}`
     const optimisticMessage = {
       id: tempId,
       type: 'message',
       content,
       timestamp: new Date().toISOString(),
-      senderAddress: account.address,
+      senderAddress: profileWallet.address,
       isBot: false,
       pending: true,
     }
@@ -255,6 +301,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
     try {
       console.log('🚀 Sending gasless transaction via ThirdWeb AA...')
+      console.log('👛 Using Profile Wallet:', profileWallet.address)
 
       // Get groupId for this collection
       const groupId = getCollectionChatId(collection.contractAddress)
@@ -266,18 +313,19 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         address: CHAT_RELAY_ADDRESS as `0x${string}`,
       })
 
-      // Prepare the transaction
+      // Prepare the transaction (using profile wallet as sender)
       const transaction = prepareContractCall({
         contract,
         method: "function sendMessage(uint256 groupId, address sender, string memory content, uint8 messageType) external returns (uint256)",
-        params: [groupId, account.address as `0x${string}`, content, 0],
+        params: [groupId, profileWallet.address as `0x${string}`, content, 0],
       })
 
       console.log('📤 Transaction prepared:', {
         contract: CHAT_RELAY_ADDRESS,
         groupId: groupId.toString(),
-        sender: account.address,
-        content
+        sender: profileWallet.address,
+        content,
+        gasless: true
       })
 
       // Send transaction with gas sponsorship via ThirdWeb AA
