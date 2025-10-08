@@ -703,6 +703,160 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 
 ## Recent Updates
 
+### Token-Gated Community Chat for Collections - PLANNED 📋 (October 8, 2025)
+**What**: Implementing gasless, token-gated community chat for NFT collection pages. Only holders of NFTs from a collection can participate in the community chat.
+
+**Why**:
+- Build community engagement directly on FortunaSquare
+- Leverage cheap ApeChain gas for gasless messaging
+- Reuse existing group chat infrastructure
+- Mobile-first design for best UX
+
+**Architecture Decision**: ✅ **REUSE GroupChatRelay.sol**
+After consultation with Full-Stack Developer and Blockchain experts, we're reusing the existing `GroupChatRelay.sol` contract instead of creating a new one.
+
+**Mapping Strategy**:
+- Each collection gets a deterministic `groupId` generated from contract address
+- Prefix with "1" to avoid collision with treasury groups
+- Formula: `groupId = BigInt("1" + (contractAddress % 10^18))`
+
+**Expert Consultations**:
+
+**1. Full-Stack Developer** - Backend Architecture
+- ✅ Reuse `GroupChatRelay.sol` contract (already deployed)
+- ✅ Create `lib/collection-chat.ts` for token verification
+- ✅ API routes: `/api/collections/[contractAddress]/chat/messages` (GET) and `/send-message` (POST)
+- ✅ Server-side NFT ownership verification using GoldRush API + blockchain fallback
+- ✅ Reuse existing gas sponsorship system (`lib/gas-sponsorship.ts`)
+- ✅ Same rate limits as groups (100 msg/user/day, 1000 msg/collection/day)
+
+**2. Blockchain Expert** - Token Verification
+- ✅ `verifyCollectionOwnership()` - Check if wallet owns ≥1 NFT
+- ✅ Primary: GoldRush API (faster, cached)
+- ✅ Fallback: Blockchain `balanceOf()` call
+- ✅ Security: Verify server-side only, fail closed on errors
+
+**3. Frontend Expert** - Desktop UI/UX
+- ✅ Adapt group chat component for collection pages
+- ✅ Same 3-column layout (chat + sidebar)
+- ✅ Real-time polling every 3 seconds
+- ✅ NFT gate message component for non-holders
+
+**4. Mobile Expert** - Responsive Design
+- ✅ Mobile-first chat layout with slide-out members drawer
+- ✅ Sticky input with keyboard safe area handling
+- ✅ Responsive message bubbles (compact on mobile)
+- ✅ Touch interactions (long-press for actions)
+- ✅ Pull-to-refresh for loading older messages
+- ✅ Adaptive spacing: `text-xs` → `sm:text-sm` → `lg:text-base`
+
+**Implementation Plan**:
+
+**Phase 1: Backend (lib + API routes)**
+1. Create `lib/collection-chat.ts`:
+   - `getCollectionChatId(contractAddress)` - Generate deterministic groupId
+   - `verifyCollectionOwnership(wallet, collection)` - NFT ownership check
+   - `getCollectionNFTCount(wallet, collection)` - Count user's NFTs
+   - Helper utilities (formatAddress, getAvatarUrl, etc.)
+
+2. Create API routes:
+   - `app/api/collections/[contractAddress]/chat/messages/route.ts` - GET messages
+   - `app/api/collections/[contractAddress]/chat/send-message/route.ts` - POST message with token-gating
+
+**Phase 2: Frontend Components**
+1. Create reusable chat components:
+   - `components/chat/chat-input.tsx` - Mobile-optimized input with keyboard handling
+   - `components/chat/message-bubble.tsx` - Responsive message bubbles
+   - `components/chat/members.tsx` - Drawer (mobile) + Sidebar (desktop)
+   - `components/chat/nft-gate-message.tsx` - Token-gating banner
+   - `components/chat/chat-container.tsx` - Scroll management + pull-to-refresh
+
+2. Create collection-specific component:
+   - `app/collections/[slug]/community-chat.tsx` - Main chat component
+   - Integrate into collection page "Community" tab
+
+**Phase 3: Mobile Optimization**
+1. Add responsive breakpoints (xs, sm, md, lg, xl)
+2. Safe area CSS for notched devices
+3. Touch-friendly tap targets (44px minimum)
+4. Smooth scroll with momentum (`-webkit-overflow-scrolling: touch`)
+5. Create `hooks/use-media-query.ts` for responsive logic
+
+**Phase 4: Testing**
+1. Test token verification (holder vs non-holder)
+2. Test gasless message sending
+3. Test rate limiting (100 msg/user/day)
+4. Test on mobile devices (iOS Safari, Android Chrome)
+5. Test keyboard behavior and safe areas
+
+**Technical Specifications**:
+
+**Token Verification Flow**:
+```typescript
+1. User opens collection page
+2. Frontend checks NFT ownership (UX hint only)
+3. User types message → POST to API
+4. API calls verifyCollectionOwnership() server-side
+5. If verified → sendGaslessMessage() via relayer
+6. If denied → Return 403 error
+7. Frontend polls GET /messages every 3s
+```
+
+**Security Model**:
+- ✅ All verification happens server-side
+- ✅ Frontend checks are UX hints only (not security)
+- ✅ Relayer private key never exposed
+- ✅ Rate limiting enforced per wallet + collection
+- ✅ Fail closed on verification errors
+
+**Mobile Optimizations**:
+- ✅ Full-width chat on mobile, sidebar drawer on demand
+- ✅ Sticky input with keyboard push-up handling
+- ✅ Compact message spacing on small screens
+- ✅ Touch actions (long-press to copy/react)
+- ✅ Scroll-to-bottom FAB when not at bottom
+- ✅ Pull-to-refresh for loading history
+
+**Files to Create**:
+- `lib/collection-chat.ts` - Token verification + chat utilities
+- `app/api/collections/[contractAddress]/chat/messages/route.ts` - GET endpoint
+- `app/api/collections/[contractAddress]/chat/send-message/route.ts` - POST endpoint
+- `components/chat/chat-input.tsx` - Message input component
+- `components/chat/message-bubble.tsx` - Message display component
+- `components/chat/members.tsx` - Members list (drawer + sidebar)
+- `components/chat/nft-gate-message.tsx` - Token-gating UI
+- `components/chat/chat-container.tsx` - Scroll management
+- `app/collections/[slug]/community-chat.tsx` - Main chat component
+- `hooks/use-media-query.ts` - Responsive breakpoint hook
+
+**Files to Modify**:
+- `app/collections/[slug]/page.tsx` - Integrate CommunityChat component in "Community" tab
+- `app/globals.css` - Add mobile-specific CSS (safe areas, touch targets, smooth scroll)
+- `tailwind.config.ts` - Add xs breakpoint (375px)
+
+**Environment Variables** (Already configured):
+```bash
+NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS=0x... # Reused from groups
+RELAYER_PRIVATE_KEY=0x...
+RELAYER_WALLET_ADDRESS=0x...
+```
+
+**Cost Estimate**:
+- ~0.00005 APE per message (50,000 gas × 1 gwei)
+- 1000 messages/day = ~0.05 APE/day per collection
+- Monthly: ~1.5 APE per active collection
+- 100 APE relayer funding = ~2000 messages
+
+**Next Steps** (Ready to implement):
+1. Start with backend (`lib/collection-chat.ts` + API routes)
+2. Test token verification with real wallets
+3. Build frontend components (reuse group chat UI)
+4. Integrate into collection page
+5. Test on mobile devices
+6. Deploy and monitor relayer balance
+
+---
+
 ### Collection Pages API Integration - IN PROGRESS ⚠️ (October 8, 2025)
 **What**: Attempted to integrate GoldRush API (formerly Covalent) for cross-marketplace NFT data on collection pages.
 
