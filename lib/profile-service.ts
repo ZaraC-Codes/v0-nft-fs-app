@@ -54,11 +54,14 @@ export class ProfileService {
   }
 
   /**
-   * Get a profile by wallet address
+   * Get a profile by wallet address (case-insensitive)
    */
   static getProfileByWallet(walletAddress: string): UserProfile | null {
+    if (!walletAddress) return null
     const profiles = this.getProfiles()
-    return profiles.find(p => p.walletAddress === walletAddress) || null
+    return profiles.find(p =>
+      p.walletAddress?.toLowerCase() === walletAddress.toLowerCase()
+    ) || null
   }
 
   /**
