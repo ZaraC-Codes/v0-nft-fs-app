@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendGaslessMessage } from "@/lib/gas-sponsorship"
 import { verifyCollectionOwnership, getCollectionChatId } from "@/lib/collection-chat"
+import { ProfileService } from "@/lib/profile-service"
 
 const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
 
@@ -17,7 +18,7 @@ export async function POST(
   try {
     const { contractAddress } = params
     const body = await request.json()
-    const { sender, content, messageType = 0 } = body
+    const { sender, content, messageType = 0, linkedWallets } = body
 
     // Validate inputs
     if (!content || !sender) {
@@ -49,14 +50,21 @@ export async function POST(
       )
     }
 
-    console.log(`🔐 Verifying NFT ownership for ${sender} in collection ${contractAddress}`)
+    console.log(`🔐 Verifying NFT ownership for sender and linked wallets in collection ${contractAddress}`)
 
-    // CRITICAL: Verify NFT ownership server-side
+    // CRITICAL: Verify NFT ownership server-side across ALL linked wallets
     // This prevents unauthorized users from chatting
-    const hasNFT = await verifyCollectionOwnership(sender, contractAddress)
+    // Check sender wallet + any provided linked wallets
+    const walletsToCheck = linkedWallets && Array.isArray(linkedWallets) && linkedWallets.length > 0
+      ? [sender, ...linkedWallets] // Check sender + linked wallets
+      : [sender] // Fallback to just sender if no linked wallets provided
+
+    console.log(`📍 Checking NFT ownership across ${walletsToCheck.length} wallet(s):`, walletsToCheck)
+
+    const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
 
     if (!hasNFT) {
-      console.log(`❌ Access denied: ${sender} does not own NFTs from ${contractAddress}`)
+      console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
       return NextResponse.json(
         {
           error: "Access denied",
@@ -67,7 +75,7 @@ export async function POST(
       )
     }
 
-    console.log(`✅ Ownership verified: ${sender} owns NFT(s) from ${contractAddress}`)
+    console.log(`✅ Ownership verified: User owns NFT(s) from ${contractAddress} in one of their wallets`)
 
     // Get collection's deterministic chat ID
     const groupId = getCollectionChatId(contractAddress)

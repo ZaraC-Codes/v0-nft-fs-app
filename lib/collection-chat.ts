@@ -26,53 +26,64 @@ export function getCollectionChatId(contractAddress: string): bigint {
 }
 
 /**
- * Verify that a wallet owns at least 1 NFT from a collection
+ * Verify that a wallet (or multiple wallets) owns at least 1 NFT from a collection
  * Uses GoldRush API as primary source, falls back to blockchain
  *
  * SECURITY: This should ONLY be called server-side (API routes)
  * Never trust frontend ownership checks!
  *
- * @param walletAddress - User's wallet address
+ * @param walletAddresses - Single wallet address or array of wallet addresses to check
  * @param contractAddress - NFT collection contract address
- * @returns true if wallet owns ≥1 NFT, false otherwise
+ * @returns true if ANY wallet owns ≥1 NFT, false otherwise
  */
 export async function verifyCollectionOwnership(
-  walletAddress: string,
+  walletAddresses: string | string[],
   contractAddress: string
 ): Promise<boolean> {
   try {
-    console.log(`🔍 Verifying ownership: ${walletAddress} for collection ${contractAddress}`)
+    // Normalize to array
+    const addresses = Array.isArray(walletAddresses) ? walletAddresses : [walletAddresses]
 
-    // Try GoldRush API first (faster, more reliable)
-    const nfts = await getGoldRushNFTs(
-      walletAddress,
-      "apechain-mainnet",
-      contractAddress
-    )
+    console.log(`🔍 Verifying ownership for ${addresses.length} wallet(s) in collection ${contractAddress}`)
+    console.log(`📍 Checking wallets:`, addresses)
 
-    if (nfts && nfts.length > 0) {
-      // Check if any NFT matches the contract address
-      const hasNFT = nfts.some((nft: any) => {
-        const nftContract = (nft.contract_address || nft.token_address || "").toLowerCase()
-        return nftContract === contractAddress.toLowerCase()
-      })
+    // Check each wallet
+    for (const walletAddress of addresses) {
+      console.log(`🔎 Checking wallet: ${walletAddress}`)
 
-      if (hasNFT) {
-        console.log(`✅ Verified ownership via GoldRush: ${walletAddress} owns ${nfts.length} NFT(s) from ${contractAddress}`)
+      // Try GoldRush API first (faster, more reliable)
+      const nfts = await getGoldRushNFTs(
+        walletAddress,
+        "apechain-mainnet",
+        contractAddress
+      )
+
+      if (nfts && nfts.length > 0) {
+        // Check if any NFT matches the contract address
+        const hasNFT = nfts.some((nft: any) => {
+          const nftContract = (nft.contract_address || nft.token_address || "").toLowerCase()
+          return nftContract === contractAddress.toLowerCase()
+        })
+
+        if (hasNFT) {
+          console.log(`✅ Verified ownership via GoldRush: ${walletAddress} owns ${nfts.length} NFT(s) from ${contractAddress}`)
+          return true
+        }
+      }
+
+      // Fallback: Check blockchain directly
+      console.log(`⚠️ GoldRush returned no results for ${walletAddress}, checking blockchain...`)
+      const hasNFTOnChain = await verifyOwnershipOnChain(walletAddress, contractAddress)
+
+      if (hasNFTOnChain) {
+        console.log(`✅ Verified ownership via blockchain: ${walletAddress} owns NFT(s) from ${contractAddress}`)
         return true
       }
+
+      console.log(`❌ No NFTs found for ${walletAddress}`)
     }
 
-    // Fallback: Check blockchain directly
-    console.log("⚠️ GoldRush returned no results, checking blockchain...")
-    const hasNFTOnChain = await verifyOwnershipOnChain(walletAddress, contractAddress)
-
-    if (hasNFTOnChain) {
-      console.log(`✅ Verified ownership via blockchain: ${walletAddress} owns NFT(s) from ${contractAddress}`)
-      return true
-    }
-
-    console.log(`❌ No ownership verified: ${walletAddress} does not own NFTs from ${contractAddress}`)
+    console.log(`❌ No ownership verified: None of the ${addresses.length} wallet(s) own NFTs from ${contractAddress}`)
     return false
   } catch (error) {
     console.error("Error verifying collection ownership:", error)

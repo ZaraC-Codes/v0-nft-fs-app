@@ -128,10 +128,10 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
         console.log('🔍 Checking NFT ownership across wallets:', allWallets)
 
-        // Check ownership for each wallet
-        // For now, use client-side check (server-side verification happens on message send)
-        // TODO: Implement actual on-chain ownership check across all wallets
-        setHasNFT(true) // Assume true if they have wallets linked
+        // Client-side check for UX hint only - server verifies on message send
+        // For now, assume they have access if they have wallets
+        // The server will do the real verification across all wallets
+        setHasNFT(true)
       } catch (error) {
         console.error("Error checking ownership:", error)
         setHasNFT(false)
@@ -300,8 +300,29 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     })
 
     try {
-      console.log('🚀 Sending gasless transaction via ThirdWeb AA...')
+      console.log('🚀 Preparing to send gasless transaction via ThirdWeb AA...')
       console.log('👛 Using Profile Wallet:', profileWallet.address)
+
+      // SECURITY: Verify NFT ownership server-side BEFORE sending transaction
+      // Check ownership across ALL linked wallets
+      const allWallets = ProfileService.getAllWallets(userProfile)
+      console.log('🔐 Verifying NFT ownership across all linked wallets before transaction...')
+
+      const verifyResponse = await fetch(
+        `/api/collections/${collection.contractAddress}/chat/verify-access`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ wallets: allWallets })
+        }
+      )
+
+      if (!verifyResponse.ok) {
+        const errorData = await verifyResponse.json()
+        throw new Error(errorData.message || 'NFT ownership verification failed')
+      }
+
+      console.log('✅ NFT ownership verified server-side')
 
       // Get groupId for this collection
       const groupId = getCollectionChatId(collection.contractAddress)

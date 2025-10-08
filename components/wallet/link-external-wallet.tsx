@@ -186,8 +186,17 @@ export function LinkExternalWallet() {
 
       console.log("✅ Wallet signature verified:", signature.slice(0, 20) + "...")
 
-      // Link wallet to profile with wallet type 'metamask' (we know it's MetaMask since we detected it)
-      await ProfileService.linkAdditionalWallet(userProfile.id, walletAddress, 'metamask')
+      // Convert wallet name to WalletType
+      let walletType: 'metamask' | 'glyph' | 'rabby' | 'coinbase' | 'external' = 'external'
+      if (walletName === "MetaMask") walletType = 'metamask'
+      else if (walletName === "Glyph") walletType = 'glyph'
+      else if (walletName === "Rabby") walletType = 'rabby'
+      else if (walletName === "Coinbase Wallet") walletType = 'coinbase'
+
+      console.log(`🔗 Linking wallet as type: ${walletType}`)
+
+      // Link wallet to profile with detected wallet type
+      await ProfileService.linkAdditionalWallet(userProfile.id, walletAddress, walletType)
 
       // Refresh profile data
       await refreshProfile()
