@@ -63,18 +63,17 @@ export function ChatContainer({ messages, children }: ChatContainerProps) {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col min-h-0">
+    <div className="flex flex-col h-full min-h-0">
       {/* Messages container */}
       <div
         ref={messagesRef}
         onScroll={handleScroll}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
-        className="flex-1 overflow-y-auto overscroll-contain
-                   scroll-smooth will-change-scroll"
+        className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth"
         style={{
-          // Performance optimization
-          transform: 'translateZ(0)',
+          scrollBehavior: 'smooth',
+          scrollbarGutter: 'stable',
           WebkitOverflowScrolling: 'touch'
         }}
       >

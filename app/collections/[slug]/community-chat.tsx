@@ -312,7 +312,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
         {/* Chat Section */}
         <div className="lg:col-span-3 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0
+          <Card className="flex-1 flex flex-col h-full max-h-[600px] min-h-0
                           border-x-0 sm:border-x rounded-none sm:rounded-xl overflow-hidden">
 
             {/* Header */}
@@ -343,7 +343,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             </CardHeader>
 
             {/* Messages */}
-            <CardContent className="flex-1 min-h-0 p-0">
+            <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
               {loading ? (
                 <div className="flex h-full items-center justify-center">
                   <p className="text-muted-foreground text-sm">Loading messages...</p>
