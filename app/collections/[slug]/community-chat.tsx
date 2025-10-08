@@ -297,33 +297,35 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             </CardHeader>
 
             {/* Messages */}
-            {loading ? (
-              <div className="flex-1 flex items-center justify-center">
-                <p className="text-muted-foreground text-sm">Loading messages...</p>
-              </div>
-            ) : (
-              <ChatContainer messages={messages}>
-                <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
-                  {messages.length === 0 ? (
-                    <div className="text-center py-12">
-                      <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
-                      <p className="text-muted-foreground text-sm">
-                        No messages yet. Be the first to say hello!
-                      </p>
-                    </div>
-                  ) : (
-                    messages.map((msg) => (
-                      <MessageBubble
-                        key={msg.id}
-                        message={msg}
-                        isMobile={isMobile}
-                        collectionAddress={collection.contractAddress}
-                      />
-                    ))
-                  )}
+            <CardContent className="flex-1 min-h-0 p-0">
+              {loading ? (
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-muted-foreground text-sm">Loading messages...</p>
                 </div>
-              </ChatContainer>
-            )}
+              ) : (
+                <ChatContainer messages={messages}>
+                  <div className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+                    {messages.length === 0 ? (
+                      <div className="text-center py-12">
+                        <MessageCircle className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-50" />
+                        <p className="text-muted-foreground text-sm">
+                          No messages yet. Be the first to say hello!
+                        </p>
+                      </div>
+                    ) : (
+                      messages.map((msg) => (
+                        <MessageBubble
+                          key={msg.id}
+                          message={msg}
+                          isMobile={isMobile}
+                          collectionAddress={collection.contractAddress}
+                        />
+                      ))
+                    )}
+                  </div>
+                </ChatContainer>
+              )}
+            </CardContent>
 
             {/* Input */}
             <div className="sticky bottom-0 border-t
