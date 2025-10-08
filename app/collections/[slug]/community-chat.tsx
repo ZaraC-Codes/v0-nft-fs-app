@@ -15,6 +15,7 @@ import { useMediaQuery } from "@/hooks/use-media-query"
 import { useToast } from "@/components/ui/use-toast"
 import { getAllCollections } from "@/lib/collection-service"
 import { Collection } from "@/types/collection"
+import { ProfileService } from "@/lib/profile-service"
 
 interface CommunityChatProps {
   collection: {
@@ -66,20 +67,29 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     loadCollections()
   }, [])
 
-  // Extract unique users from messages for autocomplete
+  // Extract unique users from messages for autocomplete AND members list
   useEffect(() => {
     const uniqueUsers = new Map()
     messages.forEach(msg => {
-      if (!msg.sender.isBot && !uniqueUsers.has(msg.sender.id)) {
-        uniqueUsers.set(msg.sender.id, {
-          id: msg.sender.id,
-          username: msg.sender.username,
-          avatar: msg.sender.avatar,
-          address: msg.sender.id
-        })
+      if (!msg.isBot && !uniqueUsers.has(msg.senderAddress)) {
+        // Lookup profile
+        const profile = ProfileService.getProfileByWallet(msg.senderAddress)
+
+        const userData = {
+          id: msg.senderAddress,
+          username: profile?.username || `${msg.senderAddress.slice(0, 6)}...${msg.senderAddress.slice(-4)}`,
+          avatar: profile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderAddress}`,
+          address: msg.senderAddress,
+          isOnline: false, // Could implement presence detection later
+        }
+
+        uniqueUsers.set(msg.senderAddress, userData)
       }
     })
-    setAutocompleteUsers(Array.from(uniqueUsers.values()))
+
+    const usersArray = Array.from(uniqueUsers.values())
+    setAutocompleteUsers(usersArray)
+    setMembers(usersArray as any) // Also use for members sidebar
   }, [messages])
 
   // Check if user owns NFT from this collection
@@ -144,6 +154,18 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
     setSending(true)
 
+    // Optimistically add message to UI immediately
+    const optimisticMessage = {
+      id: `temp-${Date.now()}`,
+      type: 'message',
+      content,
+      timestamp: new Date().toISOString(),
+      senderAddress: account.address,
+      isBot: false,
+      pending: true,
+    }
+    setMessages(prev => [...prev, optimisticMessage])
+
     try {
       const response = await fetch(
         `/api/collections/${collection.contractAddress}/chat/send-message`,
@@ -163,6 +185,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       const data = await response.json()
 
       if (!response.ok) {
+        // Remove optimistic message on error
+        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+
         if (data.requiresNFT) {
           setHasNFT(false)
           toast({
@@ -176,7 +201,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         return
       }
 
-      // Reload messages immediately
+      // Reload messages to get the real message from chain
       await loadMessages()
 
       toast({
@@ -185,6 +210,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       })
     } catch (error: any) {
       console.error("Error sending message:", error)
+      // Remove optimistic message on error
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+
       toast({
         title: "Error",
         description: error.message || "Failed to send message",

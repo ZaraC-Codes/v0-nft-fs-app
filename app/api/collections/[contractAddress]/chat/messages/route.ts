@@ -49,18 +49,14 @@ export async function GET(
     })
 
     // Transform to frontend format
+    // Frontend will lookup user profile for username/avatar
     const formattedMessages = messages.map((msg: any) => ({
       id: msg.id.toString(),
       type: getMessageType(Number(msg.messageType)),
       content: msg.content,
       timestamp: new Date(Number(msg.timestamp) * 1000).toISOString(),
-      sender: {
-        id: msg.sender,
-        username: msg.isBot ? "Collection Bot" : formatAddress(msg.sender),
-        avatar: msg.isBot ? "/bot-avatar.svg" : getAvatarUrl(msg.sender),
-        isBot: msg.isBot,
-        verified: !msg.isBot, // All holders are verified
-      },
+      senderAddress: msg.sender, // Raw address for frontend profile lookup
+      isBot: msg.isBot,
     }))
 
     console.log(`✅ Fetched ${formattedMessages.length} messages for collection ${contractAddress}`)
