@@ -222,10 +222,11 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       })
 
       // Wait for blockchain confirmation, then clear optimistic message
+      // Using longer timeout to ensure blockchain has time to confirm
       setTimeout(async () => {
         setOptimisticMessageId(null)
         await loadMessages()
-      }, 2000)
+      }, 5000)
     } catch (error: any) {
       console.error("Error sending message:", error)
       // Remove optimistic message on error
