@@ -712,6 +712,20 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 - **Solution**: Implemented regex extraction `nft.name.replace(/\s*#\d+\s*$/, '').trim()` with validation
 - **Result**: Collection names now display cleanly without token IDs
 
+**Activity Feed - Complete Blockchain History**:
+- **Issue**: Activity feed only showed FortunaSquare marketplace events, missing sales from OpenSea, Blur, LooksRare, etc.
+- **Root Cause**: `getNFTHistory()` only fetched Transfer events + FortunaSquare events, didn't integrate cross-marketplace detection
+- **Solution**:
+  - Integrated `getAllSaleHistory()` from `cross-marketplace-sales.ts` into activity feed
+  - Implemented deduplication logic (prioritizes sale events over generic transfers)
+  - Same transaction can appear as both Transfer and Sale - now shows only Sale with price
+- **Result**: Activity feed now shows ALL blockchain transactions:
+  - Sales from any marketplace (OpenSea, Blur, LooksRare, Magic Eden, etc.) with prices
+  - Fortuna Square listings, sales, and cancellations
+  - Generic transfers (no payment)
+  - Mints (first transfer from 0x0)
+  - All events sorted newest first with accurate timestamps
+
 **Activity Timestamps**:
 - **Issue**: All NFT activity showed today's date instead of actual blockchain timestamps
 - **Root Cause**: ThirdWeb v5 uses `event.blockTimestamp` not `event.block.timestamp`
@@ -727,15 +741,18 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 
 **Files Modified**:
 - `components/profile/profile-provider.tsx` - Collection name extraction logic
-- `lib/nft-history.ts` - ThirdWeb v5 timestamp parsing
+- `lib/nft-history.ts` - ThirdWeb v5 timestamp parsing, cross-marketplace integration, deduplication
 - `components/nft/nft-details-modal.tsx` - Rental duration display
 - `lib/marketplace.ts` - Sale price debugging
+- `lib/cross-marketplace-sales.ts` - Blockchain-wide sale detection
 
 **Testing Guidelines**:
 - Collection names: Test various formats ("Name #123", "Single Word", "#123")
+- Activity feed: Verify shows sales from OpenSea/Blur with prices, not just "Transfer"
 - Timestamps: Verify activity shows correct historical dates
 - Rental listings: Check duration displays proper day ranges
 - Sale prices: Confirm blockchain-wide sale detection works
+- Deduplication: Verify no duplicate events for same transaction
 
 ### OAuth Profile Auto-Population ✅ (October 5, 2025)
 **What**: Users who sign up with Google, Discord, Twitter, Facebook, or Apple automatically get their profile picture and info pulled from their social account.
