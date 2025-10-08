@@ -287,6 +287,20 @@ export async function getCollectionWithStats(slug: string): Promise<CollectionWi
 }
 
 /**
+ * Get collection slug by collection name
+ * Returns the slug if found in curated collections, null otherwise
+ */
+export function getCollectionSlugByName(collectionName: string): string | null {
+  if (!collectionName) return null
+
+  const collections = collectionsData.collections as Collection[]
+  const collection = collections.find(c =>
+    c.name.toLowerCase() === collectionName.toLowerCase()
+  )
+  return collection?.slug || null
+}
+
+/**
  * Get NFTs from a collection with pagination
  */
 export async function getCollectionNFTs(

@@ -1,7 +1,9 @@
 import { CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import Link from "next/link"
 import type { CardSize } from "@/types/nft"
 import type { ListingType, PortfolioNFT } from "@/types/profile"
+import { getCollectionSlugByName } from "@/lib/collection-service"
 
 interface NFTCardContentProps {
   title: string
@@ -64,13 +66,26 @@ export function NFTCardContent({
   const listing = nft.listing
   const listingType = listing?.type
 
+  // Get collection slug for linking
+  const collectionSlug = collection ? getCollectionSlugByName(collection) : null
+
   return (
     <CardContent className={`${paddingClass} ${className}`}>
       {/* Header Row - Collection Name / Token ID */}
       <div className="mb-1">
-        <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
-          {collection || title}
-        </h3>
+        {collectionSlug ? (
+          <Link
+            href={`/collections/${collectionSlug}`}
+            onClick={(e) => e.stopPropagation()}
+            className={`font-semibold text-foreground hover:text-primary transition-colors truncate block ${textClasses.title}`}
+          >
+            {collection}
+          </Link>
+        ) : (
+          <h3 className={`font-semibold text-foreground group-hover:text-primary transition-colors truncate ${textClasses.title}`}>
+            {collection || title}
+          </h3>
+        )}
         <p className={`text-muted-foreground truncate ${textClasses.subtitle}`}>
           #{nft.tokenId}
           {bundleCount && (

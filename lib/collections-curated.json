@@ -35,6 +35,54 @@
       "verified": true,
       "category": "Art",
       "chainId": 33139
+    },
+    {
+      "contractAddress": "0xb3443b6bd585ba4118cae2bedb61c7ec4a8281df",
+      "slug": "gs-on-ape",
+      "name": "Gs on Ape",
+      "symbol": "GS",
+      "description": "Top ApeChain collection with strong community and high trading volume.",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "PFP",
+      "chainId": 33139
+    },
+    {
+      "contractAddress": "0xBEbaa24108d6a03C7331464270b95278bBBE6Ff7",
+      "slug": "gobs-on-ape",
+      "name": "Gobs on Ape",
+      "symbol": "GOBS",
+      "description": "2,222 unique PFP avatars released January 2025. Part of ApeChain's Spotlight Loyalty Program.",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "PFP",
+      "chainId": 33139
+    },
+    {
+      "contractAddress": "0x41232b4b2c6c1abe0238e590f4bd433c166a6b01",
+      "slug": "nightglyders",
+      "name": "NightGlyders",
+      "symbol": "NIGHTGLYDERS",
+      "description": "3,333 NFTs rooted in the magic of the Notca Fruit's rupture. Unique traits and mystical powers.",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "Art",
+      "chainId": 33139
+    },
+    {
+      "contractAddress": "0x91417bd88af5071ccea8d3bf3af410660e356b06",
+      "slug": "zards",
+      "name": "Zards",
+      "symbol": "ZARDS",
+      "description": "5,000 pixelated wizards with magical powers. Soft stake to earn Magic Points and boost rarity!",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "Gaming",
+      "chainId": 33139
     }
   ]
 }

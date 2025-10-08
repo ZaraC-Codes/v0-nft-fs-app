@@ -42,6 +42,7 @@ export default function HomePage() {
   const featuredCollections = [
     {
       name: "Gs on Ape",
+      slug: "gs-on-ape",
       image: "https://img.reservoir.tools/images/v2/apechain/khnv7QtJSsXhx7z5lxeoZ%2BmzCCQGhdyVqrJE1owET60HbyBkWWTaY21CXMSoiGCmcgYw%2Bcd%2BAar2SvDz%2FjghdmVXHZIkRerllKXYROZFSzfoSIPVzVfZUAkUJQ66rEUW8Y4ZiC%2Bejmjp%2BPbbJ8Tei8xYX%2Fk4H5r9OPp8lBsN8iGA51FqLezPvR3u%2BYyogGpzUT03ggnVTyz2BQkvEALHyQ%3D%3D",
       description: "Top ApeChain collection with strong community and high trading volume.",
       floorPrice: "933 APE",
@@ -52,6 +53,7 @@ export default function HomePage() {
     },
     {
       name: "Gobs on Ape",
+      slug: "gobs-on-ape",
       image: "https://img.reservoir.tools/images/v2/apechain/DncmTLTvq%2BRfs1SNWS7xb3W80HdqFd%2BoYMeOUwTra2ye%2BUwz1y9U8W5XFAoxDsUlPLNNkWoEVMZnAoBlOkC5LxSYrDbzN2R1xVehQq1ycL5EK9FRylVwRFKnGPxGwW25",
       description: "2,222 unique PFP avatars released January 2025. Part of ApeChain's Spotlight Loyalty Program.",
       floorPrice: "878 APE",
@@ -62,6 +64,7 @@ export default function HomePage() {
     },
     {
       name: "NightGlyders",
+      slug: "nightglyders",
       image: "https://img.reservoir.tools/images/v2/apechain/PZM0PawAvg1wACQh74OVUNpeZ1BHv09aPUzMjOBb0BiV674czOLfcFGFDOovprNYhSo%2BvA8WRGvg2PgniGTqKA%3D%3D",
       description: "3,333 NFTs rooted in the magic of the Notca Fruit's rupture. Unique traits and mystical powers.",
       floorPrice: "170 APE",
@@ -72,6 +75,7 @@ export default function HomePage() {
     },
     {
       name: "Zards",
+      slug: "zards",
       image: "https://img.reservoir.tools/images/v2/apechain/WOC71RNEaE4WFlvhixBQzuChqBni4cdl%2BREGqHDpEpJ%2B59gK6eLhYwtBlJyqxC8ug%2BAnh6nQzlQYitiXWtDo0g%3D%3D",
       description: "5,000 pixelated wizards with magical powers. Soft stake to earn Magic Points and boost rarity!",
       floorPrice: "66 APE",
@@ -308,7 +312,7 @@ export default function HomePage() {
                         className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
                         asChild
                       >
-                        <Link href="/collections">
+                        <Link href={`/collections/${collection.slug}`}>
                           View Collection
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Link>

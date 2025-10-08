@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Heart, Eye } from "lucide-react"
 import Link from "next/link"
 import { apeChain, sepolia, CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { getCollectionSlugByName } from "@/lib/collection-service"
 
 const relatedNFTs = [
   {
@@ -67,18 +68,33 @@ interface RelatedNFTsProps {
 }
 
 export function RelatedNFTs({ collectionId, currentNFTId }: RelatedNFTsProps) {
+  const collectionSlug = getCollectionSlugByName(collectionId)
+
   return (
     <section className="py-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
           More from this collection
         </h2>
-        <Button
-          variant="outline"
-          className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary bg-transparent"
-        >
-          View Collection
-        </Button>
+        {collectionSlug ? (
+          <Button
+            variant="outline"
+            className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary bg-transparent"
+            asChild
+          >
+            <Link href={`/collections/${collectionSlug}`}>
+              View Collection
+            </Link>
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            className="border-primary/50 text-primary hover:bg-primary/10 hover:border-primary bg-transparent"
+            disabled
+          >
+            View Collection
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

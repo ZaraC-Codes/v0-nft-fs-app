@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
+import Link from "next/link"
 import {
   Calendar,
   ArrowLeftRight,
@@ -39,6 +40,7 @@ import { CreateRentalListing } from "@/components/rental/create-rental-listing"
 import { UnwrapNFTButton } from "@/components/rental/unwrap-nft-button"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { useProfile } from "@/components/profile/profile-provider"
+import { getCollectionSlugByName } from "@/lib/collection-service"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -384,6 +386,9 @@ export function NFTDetailsModal({
 
   if (!nft) return null
 
+  // Get collection slug for linking
+  const collectionSlug = nft.collection ? getCollectionSlugByName(nft.collection) : null
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text)
     toast({
@@ -437,7 +442,17 @@ export function NFTDetailsModal({
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/95 backdrop-blur-xl border-border/50">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold flex items-center justify-between">
-              <span>{nft.collection || nft.name}</span>
+              {collectionSlug ? (
+                <Link
+                  href={`/collections/${collectionSlug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="hover:text-primary transition-colors hover:underline"
+                >
+                  {nft.collection || nft.name}
+                </Link>
+              ) : (
+                <span>{nft.collection || nft.name}</span>
+              )}
               <div className="flex items-center gap-2">
                 {nft.chainId && (
                   <ChainBadge chainId={nft.chainId} size="md" />
