@@ -703,6 +703,91 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 
 ## Recent Updates
 
+### Collection Pages - Full Implementation ✅ (October 7, 2025)
+**What**: Complete collection pages for ApeChain NFT collections with real blockchain data, statistics, and 5-tab structure.
+
+**Features Implemented**:
+
+**Collection Discovery & Routing**:
+- Dynamic collection pages at `/collections/[slug]` (e.g., `/collections/glitch-on-ape`)
+- Curated list of featured ApeChain collections
+- URL slug generation from collection names
+- Collection lookup by slug or contract address
+
+**Collection Stats (Real Blockchain Data)**:
+- **Total Supply**: Fetched from contract `totalSupply()` or counted from Transfer events
+- **Owners**: Unique holder count from Transfer events
+- **Floor Price**: Lowest active listing price from marketplace
+- **Total Volume**: Aggregated sale volume from marketplace Sale events
+- **24h Volume**: Sales in last 24 hours
+- **Listed Count**: Number of active listings
+
+**Tab 1: Items** (NFT Grid):
+- Fetches all NFTs from collection contract via Transfer events
+- Retrieves metadata from `tokenURI` (IPFS support)
+- Same dense 10-column grid as profile portfolios
+- Shows NFT images, names, token IDs
+- Click to open NFT details modal
+- Pagination support (50 NFTs per page)
+
+**Tab 2: Bundles**:
+- Queries all bundle NFTs from FortunaSquare Bundle contract
+- Checks each bundle's TBA (Token Bound Account) contents
+- Filters bundles containing at least one NFT from collection
+- Displays bundles with orange "Bundle" badge
+- Shows bundle name and NFT count
+- Click to open bundle details modal
+
+**Tab 3: Activity** (Collection-wide Transactions):
+- Fetches ALL Transfer events for collection (mints + transfers)
+- Fetches FortunaSquare marketplace events (listings + sales)
+- Color-coded event types:
+  - Purple: Sales
+  - Cyan: Listings
+  - Green: Mints
+  - Blue: Transfers
+- Shows token ID, price, marketplace, from/to addresses
+- Sorted newest first with timestamps
+- Ready for cross-marketplace integration
+
+**Tab 4: News Feed** (Placeholder - Future Feature):
+- UI mockup for Twitter-like feed
+- Collection owners will post updates/announcements
+- "Coming Soon - Gasless Feature!" message
+- Shows intended functionality
+
+**Tab 5: Community** (Placeholder - Future Feature):
+- Token-gated chat UI
+- Only collection holders can access
+- Non-holders see: "🎨 Own an NFT from this collection to join the conversation!"
+- Gasless messaging planned
+- Shows placeholder UI
+
+**Data Architecture**:
+- `lib/collection-service.ts` - Core data layer with 10+ functions
+- `lib/collections-curated.json` - Featured collections list (3 collections: GLITCH ON APE, Curtis, Glitch On Ape Transformers)
+- `types/collection.ts` - TypeScript interfaces
+- `lib/slug-utils.ts` - URL slug utilities
+
+**Files Created**:
+- `types/collection.ts` - Collection interfaces
+- `lib/collections-curated.json` - Curated collections
+- `lib/collection-service.ts` - Data fetching layer
+- `lib/slug-utils.ts` - Slug generation
+- `app/collections/[slug]/page.tsx` - Dynamic collection page
+
+**Performance Optimizations**:
+- Pagination for NFT fetching (50 per page)
+- Efficient bundle filtering (checks TBA contents)
+- Stats caching recommended (floor: 5min, volume/holders: 1hr)
+
+**Future Enhancements**:
+- Collection owner verification (sign message with owner wallet)
+- News Feed backend with gasless posting
+- Community chat with gasless messaging
+- Auto-discovery of all ApeChain collections
+- Advanced filtering and sorting
+
 ### NFT Display Bug Fixes ✅ (October 7, 2025)
 **What**: Fixed multiple critical bugs affecting NFT data display and user experience.
 
