@@ -269,15 +269,17 @@ export default function HomePage() {
                 <div
                   key={index}
                   className={`absolute inset-0 transition-opacity duration-1000 ${
-                    index === currentSlide ? "opacity-100" : "opacity-0"
+                    index === currentSlide ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
                   }`}
                 >
-                  <img
-                    src={collection.image}
-                    alt={collection.name}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                  <Link href={`/collections/${collection.slug}`} className="block w-full h-full">
+                    <img
+                      src={collection.image}
+                      alt={collection.name}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
+                  </Link>
 
                   {/* Slide Content */}
                   <div className="absolute bottom-0 left-0 right-0 p-6 md:p-12">
