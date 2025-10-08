@@ -32,6 +32,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [hasNFT, setHasNFT] = useState(false)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
+  const [optimisticMessageId, setOptimisticMessageId] = useState<string | null>(null)
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
 
@@ -134,7 +135,18 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       }
 
       const data = await response.json()
-      setMessages(data.messages || [])
+
+      // Preserve optimistic message if it exists
+      setMessages(prev => {
+        if (optimisticMessageId) {
+          const optimisticMsg = prev.find(m => m.id === optimisticMessageId)
+          if (optimisticMsg) {
+            // Keep optimistic message at the end
+            return [...(data.messages || []), optimisticMsg]
+          }
+        }
+        return data.messages || []
+      })
     } catch (error) {
       console.error("Error loading messages:", error)
     } finally {
@@ -155,8 +167,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     setSending(true)
 
     // Optimistically add message to UI immediately
+    const tempId = `temp-${Date.now()}`
     const optimisticMessage = {
-      id: `temp-${Date.now()}`,
+      id: tempId,
       type: 'message',
       content,
       timestamp: new Date().toISOString(),
@@ -164,6 +177,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       isBot: false,
       pending: true,
     }
+    setOptimisticMessageId(tempId)
     setMessages(prev => [...prev, optimisticMessage])
 
     try {
@@ -186,7 +200,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
       if (!response.ok) {
         // Remove optimistic message on error
-        setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+        setOptimisticMessageId(null)
+        setMessages(prev => prev.filter(m => m.id !== tempId))
 
         if (data.requiresNFT) {
           setHasNFT(false)
@@ -201,22 +216,21 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         return
       }
 
-      // Remove optimistic message and reload to get real one from chain
-      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
-
-      // Wait a bit for blockchain confirmation
-      setTimeout(async () => {
-        await loadMessages()
-      }, 1000)
-
       toast({
         title: "Message sent!",
         description: "Your message was sent gaslessly",
       })
+
+      // Wait for blockchain confirmation, then clear optimistic message
+      setTimeout(async () => {
+        setOptimisticMessageId(null)
+        await loadMessages()
+      }, 2000)
     } catch (error: any) {
       console.error("Error sending message:", error)
       // Remove optimistic message on error
-      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+      setOptimisticMessageId(null)
+      setMessages(prev => prev.filter(m => m.id !== tempId))
 
       toast({
         title: "Error",
