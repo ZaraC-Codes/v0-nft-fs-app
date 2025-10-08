@@ -726,6 +726,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             const data = await response.json()
             console.log(`Fetched ${data.nfts?.length || 0} NFTs for wallet ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`)
 
+            // DEBUG: Log first NFT to see data structure
+            if (data.nfts?.length > 0) {
+              console.log('🔍 FIRST NFT DATA FROM API:', {
+                name: data.nfts[0].name,
+                collectionName: data.nfts[0].collectionName,
+                contractAddress: data.nfts[0].contractAddress,
+              })
+            }
+
             // Map the NFT data to our PortfolioNFT format with owner wallet
             const nfts = await Promise.all((data.nfts || []).map(async (nft: any) => {
               // Import bundle and rental utilities dynamically
@@ -763,6 +772,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 ownerWallet: walletAddress,
                 isBundle: false,
               }
+
+              // DEBUG: Log what collection we're setting
+              console.log(`📦 NFT ${nft.tokenId}:`, {
+                name: nft.name,
+                collectionName: nft.collectionName,
+                finalCollection: baseNFT.collection,
+                isBundleNFT,
+              })
 
               // If it's a wrapper NFT (rental), fetch original NFT metadata
               if (isWrapperNFT) {
