@@ -975,11 +975,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               }
             }
 
-            // For unlisted NFTs, fetch last sale price from marketplace events
+            // For unlisted NFTs, fetch last sale price from ALL marketplaces (cross-marketplace tracking)
             try {
-              console.log(`🔍 [ProfileProvider] Fetching last sale price for ${nft.name} (${nft.contractAddress}/${nft.tokenId})`);
-              const lastSalePrice = await getLastSalePrice(nft.contractAddress, nft.tokenId)
-              console.log(`📊 [ProfileProvider] Last sale price result for ${nft.name}:`, lastSalePrice);
+              console.log(`🔍 [ProfileProvider] Fetching cross-marketplace sale price for ${nft.name} (${nft.contractAddress}/${nft.tokenId})`);
+
+              // Import cross-marketplace sale tracking
+              const { getLastSalePriceCrossMarketplace } = await import('@/lib/cross-marketplace-sales')
+              const lastSalePrice = await getLastSalePriceCrossMarketplace(nft.contractAddress, nft.tokenId, nft.chainId || chainId)
+
+              console.log(`📊 [ProfileProvider] Cross-marketplace sale price result for ${nft.name}:`, lastSalePrice);
 
               if (lastSalePrice) {
                 const parsedPrice = parseFloat(lastSalePrice);
@@ -989,10 +993,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                   lastSalePrice: parsedPrice
                 }
               } else {
-                console.log(`📊 [ProfileProvider] No last sale price for ${nft.name}`);
+                console.log(`📊 [ProfileProvider] No sale history found for ${nft.name}`);
               }
             } catch (error) {
-              console.error(`❌ [ProfileProvider] Could not fetch last sale price for ${nft.contractAddress}/${nft.tokenId}:`, error)
+              console.error(`❌ [ProfileProvider] Could not fetch cross-marketplace sale price for ${nft.contractAddress}/${nft.tokenId}:`, error)
             }
 
             return nft
