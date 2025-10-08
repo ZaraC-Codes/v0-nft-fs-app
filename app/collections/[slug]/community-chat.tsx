@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Users, Shield } from "lucide-react"
-import { useActiveAccount } from "thirdweb/react"
+import { useActiveAccount, useSendTransaction } from "thirdweb/react"
+import { getContract, prepareContractCall } from "thirdweb"
+import { client, apeChain } from "@/lib/thirdweb"
 import { ChatInput } from "@/components/chat/chat-input"
 import { MessageBubble } from "@/components/chat/message-bubble"
 import { MembersDrawer, MembersSidebar } from "@/components/chat/members"
@@ -16,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast"
 import { getAllCollections } from "@/lib/collection-service"
 import { Collection } from "@/types/collection"
 import { ProfileService } from "@/lib/profile-service"
+import { getCollectionChatId } from "@/lib/collection-chat"
 
 interface CommunityChatProps {
   collection: {
@@ -24,8 +27,11 @@ interface CommunityChatProps {
   }
 }
 
+const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || "0xC75255aB6eeBb6995718eBa64De276d5B110fb7f"
+
 export function CommunityChat({ collection }: CommunityChatProps) {
   const account = useActiveAccount()
+  const { mutateAsync: sendTransaction } = useSendTransaction()
   const [messages, setMessages] = useState<any[]>([])
   const [members, setMembers] = useState<any[]>([])
   const [showMembersDrawer, setShowMembersDrawer] = useState(false)
@@ -248,54 +254,41 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     })
 
     try {
-      console.log('📡 Sending message to API...')
-      const response = await fetch(
-        `/api/collections/${collection.contractAddress}/chat/send-message`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            sender: account.address,
-            content,
-            messageType: 0,
-          }),
-        }
-      )
+      console.log('🚀 Sending gasless transaction via ThirdWeb AA...')
 
-      const data = await response.json()
+      // Get groupId for this collection
+      const groupId = getCollectionChatId(collection.contractAddress)
 
-      console.log('📡 Send API Response:', {
-        ok: response.ok,
-        status: response.status,
-        data,
-        transactionHash: data.transactionHash
+      // Get chat relay contract
+      const contract = getContract({
+        client,
+        chain: apeChain,
+        address: CHAT_RELAY_ADDRESS as `0x${string}`,
       })
 
-      console.log('🔗 Transaction URL:', `https://curtis.explorer.apechain.com/tx/${data.transactionHash}`)
+      // Prepare the transaction
+      const transaction = prepareContractCall({
+        contract,
+        method: "function sendMessage(uint256 groupId, address sender, string memory content, uint8 messageType) external returns (uint256)",
+        params: [groupId, account.address as `0x${string}`, content, 0],
+      })
 
-      if (!response.ok) {
-        // Remove optimistic message on error
-        setOptimisticMessageId(null)
-        setMessages(prev => prev.filter(m => m.id !== tempId))
+      console.log('📤 Transaction prepared:', {
+        contract: CHAT_RELAY_ADDRESS,
+        groupId: groupId.toString(),
+        sender: account.address,
+        content
+      })
 
-        if (data.requiresNFT) {
-          setHasNFT(false)
-          toast({
-            title: "Access Denied",
-            description: data.message || "You must own an NFT from this collection to chat",
-            variant: "destructive",
-          })
-        } else {
-          throw new Error(data.error || 'Failed to send message')
-        }
-        return
-      }
+      // Send transaction with gas sponsorship via ThirdWeb AA
+      const result = await sendTransaction(transaction)
+
+      console.log('✅ Transaction sent:', result.transactionHash)
+      console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
       toast({
         title: "Message sent!",
-        description: "Your message was sent gaslessly",
+        description: "Your message was sent gaslessly via ThirdWeb AA",
       })
 
       // The 3-second polling will automatically detect when the real message appears
