@@ -297,7 +297,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             </CardHeader>
 
             {/* Messages */}
-            <CardContent className="flex-1 min-h-0 p-0">
+            <CardContent className="flex-1 min-h-0 p-0 overflow-hidden">
               {loading ? (
                 <div className="flex h-full items-center justify-center">
                   <p className="text-muted-foreground text-sm">Loading messages...</p>
