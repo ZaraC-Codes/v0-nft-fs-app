@@ -72,7 +72,17 @@ export async function POST(
     // Get collection's deterministic chat ID
     const groupId = getCollectionChatId(contractAddress)
 
-    console.log(`💬 Sending gasless message for collection ${contractAddress}, groupId: ${groupId}`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`📤 SEND MESSAGE DEBUG`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`- Collection Address: ${contractAddress}`)
+    console.log(`- Group ID: ${groupId}`)
+    console.log(`- Group ID Type: ${typeof groupId}`)
+    console.log(`- Group ID String: ${groupId.toString()}`)
+    console.log(`- Contract Address: ${CHAT_RELAY_ADDRESS}`)
+    console.log(`- Sender: ${sender}`)
+    console.log(`- Content: ${content}`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
 
     // Send gasless message via relayer
     const result = await sendGaslessMessage(

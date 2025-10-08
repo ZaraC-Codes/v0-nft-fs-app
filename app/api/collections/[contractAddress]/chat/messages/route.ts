@@ -32,7 +32,16 @@ export async function GET(
 
     // Get collection's deterministic chat ID
     const groupId = getCollectionChatId(contractAddress)
-    console.log(`📬 Fetching messages for collection ${contractAddress}, groupId: ${groupId}`)
+
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`📥 READ MESSAGES DEBUG`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`- Collection Address: ${contractAddress}`)
+    console.log(`- Group ID: ${groupId}`)
+    console.log(`- Group ID Type: ${typeof groupId}`)
+    console.log(`- Group ID String: ${groupId.toString()}`)
+    console.log(`- Contract Address: ${CHAT_RELAY_ADDRESS}`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
 
     // Get GroupChatRelay contract
     const contract = getContract({
