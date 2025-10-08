@@ -44,7 +44,7 @@ export async function GET(
     // Fetch messages from contract
     const messages = await readContract({
       contract,
-      method: "function getGroupMessages(uint256 groupId) external view returns (tuple(uint256 id, uint256 groupId, address sender, string content, uint256 timestamp, uint8 messageType, bool isBot)[])",
+      method: "function getGroupMessages(uint256 groupId) view returns ((uint256 id, uint256 groupId, address sender, string content, uint256 timestamp, uint8 messageType, bool isBot)[])",
       params: [groupId],
     })
 
