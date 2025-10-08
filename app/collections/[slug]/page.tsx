@@ -4,11 +4,12 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Collection, CollectionStats } from "@/types/collection"
-import { getCollectionBySlug, getCollectionStats } from "@/lib/collection-service"
+import { getCollectionBySlug, getCollectionStats, getCollectionNFTs } from "@/lib/collection-service"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle } from "lucide-react"
+import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 
 export default function CollectionPage() {
   const params = useParams()
@@ -16,7 +17,10 @@ export default function CollectionPage() {
 
   const [collection, setCollection] = useState<Collection | null>(null)
   const [stats, setStats] = useState<CollectionStats | null>(null)
+  const [nfts, setNfts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingNFTs, setLoadingNFTs] = useState(false)
+  const [selectedNFT, setSelectedNFT] = useState<any | null>(null)
 
   useEffect(() => {
     async function loadCollection() {
@@ -34,6 +38,12 @@ export default function CollectionPage() {
         // Load stats
         const statsData = await getCollectionStats(collectionData.contractAddress)
         setStats(statsData)
+
+        // Load NFTs
+        setLoadingNFTs(true)
+        const nftsData = await getCollectionNFTs(collectionData.contractAddress, 1, 50)
+        setNfts(nftsData)
+        setLoadingNFTs(false)
       } catch (error) {
         console.error("Failed to load collection:", error)
       } finally {
@@ -177,9 +187,52 @@ export default function CollectionPage() {
           </TabsList>
 
           <TabsContent value="items" className="mt-6">
-            <div className="text-center py-12 text-muted-foreground">
-              Items grid coming soon...
-            </div>
+            {loadingNFTs ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Loading NFTs...
+              </div>
+            ) : nfts.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No NFTs found in this collection
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+                {nfts.map((nft) => (
+                  <Card
+                    key={`${nft.contractAddress}-${nft.tokenId}`}
+                    className="group cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                    onClick={() => setSelectedNFT(nft)}
+                  >
+                    <CardContent className="p-2">
+                      {/* NFT Image */}
+                      <div className="aspect-square bg-muted rounded-lg mb-2 overflow-hidden">
+                        {nft.image ? (
+                          <img
+                            src={nft.image}
+                            alt={nft.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            <Package className="w-8 h-8" />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* NFT Name */}
+                      <p className="text-xs font-semibold truncate">
+                        {nft.name}
+                      </p>
+
+                      {/* Token ID */}
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        #{nft.tokenId}
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="bundles" className="mt-6">
@@ -224,6 +277,20 @@ export default function CollectionPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* NFT Details Modal */}
+      {selectedNFT && (
+        <NFTDetailsModal
+          nft={{
+            ...selectedNFT,
+            collection: collection?.name || '',
+            chainId: collection?.chainId || 33139,
+            listing: { type: "none" as const }
+          }}
+          isOpen={!!selectedNFT}
+          onClose={() => setSelectedNFT(null)}
+        />
+      )}
     </div>
   )
 }

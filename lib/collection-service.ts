@@ -285,3 +285,88 @@ export async function getCollectionWithStats(slug: string): Promise<CollectionWi
     stats
   }
 }
+
+/**
+ * Get NFTs from a collection with pagination
+ */
+export async function getCollectionNFTs(
+  contractAddress: string,
+  page: number = 1,
+  limit: number = 50
+): Promise<any[]> {
+  try {
+    const chain = defineChain(APECHAIN_ID)
+    const contract = getContract({
+      client,
+      chain,
+      address: contractAddress,
+    })
+
+    // Fetch Transfer events to get all tokenIds
+    const transferEvent = prepareEvent({
+      signature: "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)"
+    })
+
+    const transferEvents = await getContractEvents({
+      contract,
+      events: [transferEvent],
+    })
+
+    // Get unique tokenIds
+    const tokenIds = new Set<string>()
+    for (const event of transferEvents) {
+      if (event.args?.tokenId) {
+        tokenIds.add(event.args.tokenId.toString())
+      }
+    }
+
+    // Convert to array and paginate
+    const allTokenIds = Array.from(tokenIds)
+    const startIndex = (page - 1) * limit
+    const endIndex = startIndex + limit
+    const paginatedTokenIds = allTokenIds.slice(startIndex, endIndex)
+
+    // Fetch metadata for each NFT using ThirdWeb
+    const nfts = []
+    for (const tokenId of paginatedTokenIds) {
+      try {
+        // Fetch token URI
+        const tokenURI = await readContract({
+          contract,
+          method: "function tokenURI(uint256 tokenId) view returns (string)",
+          params: [BigInt(tokenId)],
+        })
+
+        // Fetch metadata from URI
+        let metadata: any = {}
+        try {
+          if (tokenURI) {
+            const metadataUrl = tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/')
+            const response = await fetch(metadataUrl)
+            if (response.ok) {
+              metadata = await response.json()
+            }
+          }
+        } catch (error) {
+          console.warn(`Failed to fetch metadata for token ${tokenId}:`, error)
+        }
+
+        nfts.push({
+          contractAddress,
+          tokenId,
+          name: metadata.name || `Token #${tokenId}`,
+          image: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : '',
+          description: metadata.description || '',
+          attributes: metadata.attributes || [],
+        })
+      } catch (error) {
+        console.warn(`Failed to fetch NFT ${tokenId}:`, error)
+      }
+    }
+
+    return nfts
+  } catch (error) {
+    console.error(`Failed to fetch collection NFTs for ${contractAddress}:`, error)
+    return []
+  }
+}
