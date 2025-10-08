@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { Copy } from "lucide-react"
 import { formatMessageTime } from "@/lib/collection-chat"
+import { RichMessage } from "./rich-message"
 
 interface MessageBubbleProps {
   message: {
@@ -22,13 +23,15 @@ interface MessageBubbleProps {
     }
   }
   isMobile: boolean
+  collectionAddress?: string // For NFT reference context
 }
 
 /**
  * Mobile-optimized message bubble component
  * Adapts size and spacing based on screen size
+ * Supports rich text: @mentions, #collections, NFT references
  */
-export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
+export function MessageBubble({ message, isMobile, collectionAddress }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false)
 
   // System messages (joins, leaves, announcements)
@@ -108,7 +111,10 @@ export function MessageBubble({ message, isMobile }: MessageBubbleProps) {
             break-words
             max-w-full xs:max-w-[85%] sm:max-w-[75%] md:max-w-[65%]
           `}>
-            {message.content}
+            <RichMessage
+              content={message.content}
+              collectionAddress={collectionAddress}
+            />
           </div>
 
           {/* Action buttons - Show on hover (desktop) or tap (mobile) */}

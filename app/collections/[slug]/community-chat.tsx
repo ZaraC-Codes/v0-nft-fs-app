@@ -13,6 +13,8 @@ import { NFTGateMessage } from "@/components/chat/nft-gate-message"
 import { ChatContainer } from "@/components/chat/chat-container"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { useToast } from "@/components/ui/use-toast"
+import { getAllCollections } from "@/lib/collection-service"
+import { Collection } from "@/types/collection"
 
 interface CommunityChatProps {
   collection: {
@@ -31,6 +33,54 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [sending, setSending] = useState(false)
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
+
+  // Autocomplete data
+  const [autocompleteUsers, setAutocompleteUsers] = useState<Array<{
+    id: string
+    username: string
+    avatar: string
+    address: string
+  }>>([])
+  const [autocompleteCollections, setAutocompleteCollections] = useState<Array<{
+    slug: string
+    name: string
+    symbol?: string
+    contractAddress: string
+  }>>([])
+
+  // Load collections for autocomplete
+  useEffect(() => {
+    async function loadCollections() {
+      try {
+        const cols = await getAllCollections()
+        setAutocompleteCollections(cols.map((c: Collection) => ({
+          slug: c.slug,
+          name: c.name,
+          symbol: c.symbol,
+          contractAddress: c.contractAddress
+        })))
+      } catch (error) {
+        console.error("Error loading collections:", error)
+      }
+    }
+    loadCollections()
+  }, [])
+
+  // Extract unique users from messages for autocomplete
+  useEffect(() => {
+    const uniqueUsers = new Map()
+    messages.forEach(msg => {
+      if (!msg.sender.isBot && !uniqueUsers.has(msg.sender.id)) {
+        uniqueUsers.set(msg.sender.id, {
+          id: msg.sender.id,
+          username: msg.sender.username,
+          avatar: msg.sender.avatar,
+          address: msg.sender.id
+        })
+      }
+    })
+    setAutocompleteUsers(Array.from(uniqueUsers.values()))
+  }, [messages])
 
   // Check if user owns NFT from this collection
   useEffect(() => {
@@ -204,6 +254,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
                         key={msg.id}
                         message={msg}
                         isMobile={isMobile}
+                        collectionAddress={collection.contractAddress}
                       />
                     ))
                   )}
@@ -216,7 +267,12 @@ export function CommunityChat({ collection }: CommunityChatProps) {
                             bg-card/95 backdrop-blur-md
                             p-3 sm:p-4 safe-bottom">
               {hasNFT ? (
-                <ChatInput onSend={handleSendMessage} disabled={sending} />
+                <ChatInput
+                  onSend={handleSendMessage}
+                  disabled={sending}
+                  users={autocompleteUsers}
+                  collections={autocompleteCollections}
+                />
               ) : (
                 <NFTGateMessage collection={collection} />
               )}
