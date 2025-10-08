@@ -754,23 +754,27 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               const wrapperNFTAddress = process.env.NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS?.toLowerCase()
               const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
-              // Extract collection name - prefer collectionName, fallback to extracting from name
-              let collectionName = 'Unknown Collection'
+              // Extract collection name - prefer API collectionName, then extract from name, finally use full name
+              let collectionName: string
               if (isBundleNFT) {
                 collectionName = 'Fortuna Square Bundle NFTs'
+              } else if (nft.collectionName && nft.collectionName.trim()) {
+                // Use API-provided collection name if available
+                collectionName = nft.collectionName.trim()
               } else if (nft.name) {
-                // Extract collection name from NFT name by removing " #tokenId" suffix
+                // Try to extract collection name from NFT name by removing " #tokenId" suffix
                 // Handle formats like: "Collection Name #123" → "Collection Name"
                 const extracted = nft.name.replace(/\s*#\d+\s*$/, '').trim()
-                if (extracted && extracted.length > 0) {
+                // Validate extraction - must be at least 3 chars and not just the name without change
+                if (extracted && extracted.length >= 3 && extracted !== nft.name) {
                   collectionName = extracted
                 } else {
-                  // Fallback to full name if extraction somehow fails
+                  // If extraction failed or resulted in same string, use full name
                   collectionName = nft.name
                 }
-              } else if (nft.collectionName && nft.collectionName.trim()) {
-                // Last resort: use collectionName field if name is missing
-                collectionName = nft.collectionName.trim()
+              } else {
+                // Absolute fallback if no name exists
+                collectionName = `Token #${nft.tokenId}`
               }
 
               // Base NFT data
