@@ -1,0 +1,40 @@
+{
+  "collections": [
+    {
+      "contractAddress": "0x7ca094eb7e2e305135a0c49835e394b0daca8c56",
+      "slug": "glitch-on-ape",
+      "name": "GLITCH ON APE",
+      "symbol": "GLITCH",
+      "description": "Glitch On Ape is a collection of unique NFTs on ApeChain",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "Art",
+      "chainId": 33139
+    },
+    {
+      "contractAddress": "0x5f53d20327bb57b9f187ffe013ca243c7996de27",
+      "slug": "curtis",
+      "name": "Curtis",
+      "symbol": "CURTIS",
+      "description": "Curtis NFT Collection on ApeChain",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "PFP",
+      "chainId": 33139
+    },
+    {
+      "contractAddress": "0x9f34e8375d2d2f709a47bf9bcb5257712c68f4a8",
+      "slug": "glitch-on-ape-transformers",
+      "name": "Glitch On Ape Transformers",
+      "symbol": "GOAT",
+      "description": "Glitch On Ape Transformers collection on ApeChain",
+      "bannerImage": "",
+      "logo": "",
+      "verified": true,
+      "category": "Art",
+      "chainId": 33139
+    }
+  ]
+}
