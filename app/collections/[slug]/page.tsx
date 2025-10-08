@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Collection, CollectionStats } from "@/types/collection"
-import { getCollectionBySlug, getCollectionStats, getCollectionNFTs, getCollectionActivity } from "@/lib/collection-service"
+import { getCollectionBySlug, getCollectionStats, getCollectionNFTs, getCollectionActivity, getCollectionBundles } from "@/lib/collection-service"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -18,9 +18,11 @@ export default function CollectionPage() {
   const [collection, setCollection] = useState<Collection | null>(null)
   const [stats, setStats] = useState<CollectionStats | null>(null)
   const [nfts, setNfts] = useState<any[]>([])
+  const [bundles, setBundles] = useState<any[]>([])
   const [activity, setActivity] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingNFTs, setLoadingNFTs] = useState(false)
+  const [loadingBundles, setLoadingBundles] = useState(false)
   const [loadingActivity, setLoadingActivity] = useState(false)
   const [selectedNFT, setSelectedNFT] = useState<any | null>(null)
 
@@ -46,6 +48,12 @@ export default function CollectionPage() {
         const nftsData = await getCollectionNFTs(collectionData.contractAddress, 1, 50)
         setNfts(nftsData)
         setLoadingNFTs(false)
+
+        // Load Bundles
+        setLoadingBundles(true)
+        const bundlesData = await getCollectionBundles(collectionData.contractAddress)
+        setBundles(bundlesData)
+        setLoadingBundles(false)
 
         // Load Activity
         setLoadingActivity(true)
@@ -244,9 +252,56 @@ export default function CollectionPage() {
           </TabsContent>
 
           <TabsContent value="bundles" className="mt-6">
-            <div className="text-center py-12 text-muted-foreground">
-              Bundles grid coming soon...
-            </div>
+            {loadingBundles ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Loading bundles...
+              </div>
+            ) : bundles.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                No bundles containing NFTs from this collection
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+                {bundles.map((bundle) => (
+                  <Card
+                    key={`${bundle.contractAddress}-${bundle.tokenId}`}
+                    className="group cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                    onClick={() => setSelectedNFT(bundle)}
+                  >
+                    <CardContent className="p-2">
+                      {/* Bundle Image */}
+                      <div className="aspect-square bg-muted rounded-lg mb-2 overflow-hidden relative">
+                        {bundle.image ? (
+                          <img
+                            src={bundle.image}
+                            alt={bundle.name}
+                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                            <Package className="w-8 h-8" />
+                          </div>
+                        )}
+                        {/* Bundle Badge */}
+                        <div className="absolute top-1 right-1">
+                          <Badge className="bg-orange-500 text-xs">Bundle</Badge>
+                        </div>
+                      </div>
+
+                      {/* Bundle Name */}
+                      <p className="text-xs font-semibold truncate">
+                        {bundle.name}
+                      </p>
+
+                      {/* NFT Count */}
+                      <p className="text-[10px] text-muted-foreground truncate">
+                        {bundle.nfts?.length || 0} NFTs
+                      </p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="activity" className="mt-6">
