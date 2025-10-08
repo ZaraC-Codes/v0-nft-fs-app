@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -121,26 +121,30 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     checkOwnership()
   }, [account, collection.contractAddress])
 
-  // Load messages
-  useEffect(() => {
-    loadMessages()
-
-    // Poll for new messages every 3 seconds
-    const interval = setInterval(loadMessages, 3000)
-    return () => clearInterval(interval)
-  }, [collection.contractAddress])
-
-  const loadMessages = async () => {
+  // Load messages - use useCallback to prevent infinite loops
+  const loadMessages = useCallback(async () => {
     try {
+      console.log('📡 Fetching messages from API...')
       const response = await fetch(
         `/api/collections/${collection.contractAddress}/chat/messages`
       )
+
+      console.log('📡 API Response:', {
+        ok: response.ok,
+        status: response.status
+      })
 
       if (!response.ok) {
         throw new Error('Failed to fetch messages')
       }
 
       const data = await response.json()
+
+      console.log('📦 Messages data:', {
+        success: data.success,
+        count: data.count,
+        messagesLength: data.messages?.length
+      })
 
       // Check if we have an optimistic message and if the real message has appeared
       setMessages(prev => {
@@ -156,22 +160,42 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
             // If real message exists, clear optimistic ID and show only real messages
             if (realMessageExists) {
+              console.log('✅ Real message appeared, removing optimistic message')
               setOptimisticMessageId(null)
               return data.messages || []
             }
 
             // Otherwise keep showing optimistic message
+            console.log('⏳ Keeping optimistic message while waiting for blockchain confirmation')
             return [...(data.messages || []), optimisticMsg]
           }
         }
+        console.log('📝 Setting messages:', data.messages?.length || 0)
         return data.messages || []
       })
     } catch (error) {
-      console.error("Error loading messages:", error)
+      console.error("❌ Error loading messages:", error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [collection.contractAddress])
+
+  // Load messages and set up polling
+  useEffect(() => {
+    console.log('🔄 Setting up message polling for collection:', collection.contractAddress)
+    loadMessages()
+
+    // Poll for new messages every 3 seconds
+    const interval = setInterval(() => {
+      console.log('🔄 Polling for new messages...')
+      loadMessages()
+    }, 3000)
+
+    return () => {
+      console.log('🛑 Clearing message polling interval')
+      clearInterval(interval)
+    }
+  }, [collection.contractAddress, loadMessages])
 
   const handleSendMessage = async (content: string) => {
     console.log('🔍 Send message debugging:', {
