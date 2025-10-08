@@ -754,15 +754,32 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               const wrapperNFTAddress = process.env.NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS?.toLowerCase()
               const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
+              // Extract collection name - prefer collectionName, fallback to extracting from name
+              let collectionName = 'Unknown Collection'
+              if (isBundleNFT) {
+                collectionName = 'Fortuna Square Bundle NFTs'
+              } else if (nft.name) {
+                // Extract collection name from NFT name by removing " #tokenId" suffix
+                // Handle formats like: "Collection Name #123" → "Collection Name"
+                const extracted = nft.name.replace(/\s*#\d+\s*$/, '').trim()
+                if (extracted && extracted.length > 0) {
+                  collectionName = extracted
+                } else {
+                  // Fallback to full name if extraction somehow fails
+                  collectionName = nft.name
+                }
+              } else if (nft.collectionName && nft.collectionName.trim()) {
+                // Last resort: use collectionName field if name is missing
+                collectionName = nft.collectionName.trim()
+              }
+
               // Base NFT data
               const baseNFT = {
                 contractAddress: nft.contractAddress,
                 tokenId: nft.tokenId,
                 name: nft.name || `Token #${nft.tokenId}`,
                 image: nft.image,
-                collection: isBundleNFT
-                  ? 'Fortuna Square Bundle NFTs'
-                  : (nft.collectionName || (nft.name ? nft.name.replace(/\s*#\d+$/, '') : 'Unknown Collection')),
+                collection: collectionName,
                 chainId: nft.chainId || chainId,
                 acquiredAt: new Date(),
                 estimatedValue: 0,
@@ -777,7 +794,8 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               console.log(`📦 NFT ${nft.tokenId}:`, {
                 name: nft.name,
                 collectionName: nft.collectionName,
-                finalCollection: baseNFT.collection,
+                extracted: nft.name ? nft.name.replace(/\s*#\d+$/, '').trim() : '',
+                finalCollection: collectionName,
                 isBundleNFT,
               })
 
@@ -803,7 +821,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       const originalNFT = originalData.nfts[0]
                       originalImage = originalNFT.image || originalImage
                       originalName = originalNFT.name || originalName
-                      originalCollection = originalNFT.collectionName || originalCollection
+                      // Extract collection name from original NFT name
+                      if (originalNFT.name) {
+                        const extracted = originalNFT.name.replace(/\s*#\d+\s*$/, '').trim()
+                        originalCollection = extracted && extracted.length > 0 ? extracted : originalNFT.name
+                      } else if (originalNFT.collectionName) {
+                        originalCollection = originalNFT.collectionName
+                      }
                     }
                   }
 
