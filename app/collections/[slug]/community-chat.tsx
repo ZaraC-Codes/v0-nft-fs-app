@@ -201,8 +201,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         return
       }
 
-      // Reload messages to get the real message from chain
-      await loadMessages()
+      // Remove optimistic message and reload to get real one from chain
+      setMessages(prev => prev.filter(m => m.id !== optimisticMessage.id))
+
+      // Wait a bit for blockchain confirmation
+      setTimeout(async () => {
+        await loadMessages()
+      }, 1000)
 
       toast({
         title: "Message sent!",
