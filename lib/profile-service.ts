@@ -447,7 +447,18 @@ export class ProfileService {
    * Get all wallets for a profile
    */
   static getAllWallets(profile: UserProfile): string[] {
-    return profile.linkedWallets || (profile.walletAddress ? [profile.walletAddress] : [])
+    // Use new wallets array with metadata
+    if (profile.wallets && profile.wallets.length > 0) {
+      return profile.wallets.map(w => w.address)
+    }
+
+    // Fallback to legacy linkedWallets for old profiles
+    if (profile.linkedWallets && profile.linkedWallets.length > 0) {
+      return profile.linkedWallets
+    }
+
+    // Final fallback to primary wallet
+    return profile.walletAddress ? [profile.walletAddress] : []
   }
 
   /**
