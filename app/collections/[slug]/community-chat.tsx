@@ -136,12 +136,24 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
       const data = await response.json()
 
-      // Preserve optimistic message if it exists
+      // Check if we have an optimistic message and if the real message has appeared
       setMessages(prev => {
         if (optimisticMessageId) {
           const optimisticMsg = prev.find(m => m.id === optimisticMessageId)
           if (optimisticMsg) {
-            // Keep optimistic message at the end
+            // Check if the real message (with matching content and sender) exists
+            const realMessageExists = data.messages.some((m: any) =>
+              m.content === optimisticMsg.content &&
+              m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
+            )
+
+            // If real message exists, clear optimistic ID and show only real messages
+            if (realMessageExists) {
+              setOptimisticMessageId(null)
+              return data.messages || []
+            }
+
+            // Otherwise keep showing optimistic message
             return [...(data.messages || []), optimisticMsg]
           }
         }
@@ -221,12 +233,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         description: "Your message was sent gaslessly",
       })
 
-      // Wait for blockchain confirmation, then clear optimistic message
-      // Using longer timeout to ensure blockchain has time to confirm
-      setTimeout(async () => {
-        setOptimisticMessageId(null)
-        await loadMessages()
-      }, 5000)
+      // The 3-second polling will automatically detect when the real message appears
+      // and replace the optimistic message
     } catch (error: any) {
       console.error("Error sending message:", error)
       // Remove optimistic message on error
