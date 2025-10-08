@@ -411,12 +411,27 @@ export function prepareBuyNFT({
 }
 
 /**
- * Get the most recent sale price for an NFT
+ * Sale price information with marketplace and timestamp
+ */
+export interface SalePriceInfo {
+  price: string;
+  marketplace: string;
+  timestamp: Date;
+  txHash: string;
+}
+
+/**
+ * Get the most recent sale price for an NFT from marketplace events
+ * Enhanced version that returns marketplace source and timestamp
+ *
  * @param contractAddress NFT contract address
  * @param tokenId NFT token ID
- * @returns Last sale price in APE (as string) or null if never sold
+ * @returns Last sale info (price, marketplace, timestamp) or null if never sold
  */
-export async function getLastSalePrice(contractAddress: string, tokenId: string): Promise<string | null> {
+export async function getLastSalePrice(
+  contractAddress: string,
+  tokenId: string
+): Promise<SalePriceInfo | null> {
   const contract = getMarketplaceContract();
 
   try {
@@ -425,9 +440,9 @@ export async function getLastSalePrice(contractAddress: string, tokenId: string)
       signature: "event Sale(uint256 indexed listingId, address indexed buyer, address indexed seller, address nftContract, uint256 tokenId, uint256 quantity, uint256 totalPrice, uint256 platformFee)"
     });
 
-    console.log(`🔍 Fetching sale events for NFT ${contractAddress}/${tokenId}...`);
+    console.log(`🔍 Fetching FortunaSquare sale events for NFT ${contractAddress}/${tokenId}...`);
 
-    // Fetch all Sale events
+    // Fetch all Sale events from FortunaSquare marketplace
     const saleEvents = await getContractEvents({
       contract,
       events: [saleEvent]
@@ -443,7 +458,8 @@ export async function getLastSalePrice(contractAddress: string, tokenId: string)
       })
       .map((event: any) => ({
         totalPrice: event.args.totalPrice,
-        timestamp: Number(event.blockTimestamp || 0)
+        timestamp: Number(event.blockTimestamp || 0),
+        txHash: event.transactionHash || ""
       }))
       .sort((a, b) => b.timestamp - a.timestamp); // Sort by most recent first
 
@@ -456,12 +472,30 @@ export async function getLastSalePrice(contractAddress: string, tokenId: string)
     const lastSale = relevantSales[0];
     const priceInAPE = (Number(lastSale.totalPrice) / 1e18).toFixed(2);
 
-    console.log(`✅ Last sale price: ${priceInAPE} APE`);
-    return priceInAPE;
+    console.log(`✅ Last sale: ${priceInAPE} APE on Fortuna Square at ${new Date(lastSale.timestamp * 1000).toISOString()}`);
+
+    return {
+      price: priceInAPE,
+      marketplace: "Fortuna Square",
+      timestamp: new Date(lastSale.timestamp * 1000),
+      txHash: lastSale.txHash
+    };
   } catch (error) {
     console.error("❌ Error fetching last sale price:", error);
     return null;
   }
+}
+
+/**
+ * LEGACY: Get just the price string (for backwards compatibility)
+ * @deprecated Use getLastSalePrice() instead which returns full sale info
+ */
+export async function getLastSalePriceString(
+  contractAddress: string,
+  tokenId: string
+): Promise<string | null> {
+  const saleInfo = await getLastSalePrice(contractAddress, tokenId);
+  return saleInfo?.price || null;
 }
 
 // Get NFT activity from marketplace events
