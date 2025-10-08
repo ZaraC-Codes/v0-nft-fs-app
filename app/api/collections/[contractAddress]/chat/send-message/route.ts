@@ -93,6 +93,38 @@ export async function POST(
       CHAT_RELAY_ADDRESS
     )
 
+    console.log(`🔗 Transaction hash: ${result.transactionHash}`)
+    console.log(`🔗 Explorer: https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
+
+    // Wait for confirmation and check status
+    console.log(`⏳ Waiting for transaction confirmation...`)
+    const receipt = await result.receipt
+
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`📋 TRANSACTION RECEIPT`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`- Status: ${receipt.status === 1 ? '✅ SUCCESS' : '❌ FAILED'}`)
+    console.log(`- Block Number: ${receipt.blockNumber}`)
+    console.log(`- Gas Used: ${receipt.gasUsed}`)
+    console.log(`- Logs/Events: ${receipt.logs?.length || 0}`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+
+    if (receipt.status === 0) {
+      console.log(`❌ TRANSACTION FAILED ON BLOCKCHAIN`)
+      return NextResponse.json(
+        {
+          error: "Transaction failed on blockchain",
+          transactionHash: result.transactionHash,
+          explorerUrl: `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`
+        },
+        { status: 500 }
+      )
+    }
+
+    if (!receipt.logs || receipt.logs.length === 0) {
+      console.log(`⚠️ WARNING: Transaction succeeded but no events emitted!`)
+    }
+
     console.log(`✅ Message sent successfully: ${result.transactionHash}`)
 
     return NextResponse.json({
