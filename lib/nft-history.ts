@@ -1,12 +1,14 @@
 /**
  * NFT History Service
  * Fetches complete blockchain activity for individual NFTs
- * Combines ThirdWeb Insight API + direct blockchain event queries + cross-marketplace sales
+ * Uses Moralis API for comprehensive cross-marketplace activity
+ * Falls back to blockchain events if Moralis unavailable
  */
 
 import { getContract, prepareEvent, getContractEvents, defineChain } from "thirdweb"
 import { client } from "./thirdweb"
 import { getAllSaleHistory } from "./cross-marketplace-sales"
+import { getMoralisTokenActivity } from "./moralis-api"
 
 export interface NFTActivityEvent {
   type: "transfer" | "sale" | "listing" | "listing_cancelled" | "listing_updated" | "mint"
@@ -23,7 +25,8 @@ export interface NFTActivityEvent {
 
 /**
  * Get complete activity history for an NFT
- * Combines Transfer events + FortunaSquare marketplace events
+ * Uses Moralis API for comprehensive cross-marketplace data
+ * Falls back to blockchain events if Moralis unavailable
  */
 export async function getNFTHistory(
   contractAddress: string,
@@ -31,6 +34,40 @@ export async function getNFTHistory(
   chainId: number
 ): Promise<NFTActivityEvent[]> {
   try {
+    // Try Moralis API first for complete cross-marketplace activity
+    const moralisActivity = await getMoralisTokenActivity(contractAddress, tokenId, chainId, 100)
+
+    if (moralisActivity && moralisActivity.length > 0) {
+      console.log(`✅ Using Moralis activity for ${contractAddress}:${tokenId}`)
+
+      const activities: NFTActivityEvent[] = moralisActivity.map((transfer: any) => {
+        // Detect if this is a mint (from zero address)
+        const isMint = transfer.from_address === "0x0000000000000000000000000000000000000000" ||
+                       transfer.from_address === null
+
+        // Moralis transfers include value - if value > 0, it's likely a sale
+        const isSale = transfer.value && parseFloat(transfer.value) > 0
+
+        const type = isMint ? 'mint'
+                   : isSale ? 'sale'
+                   : 'transfer'
+
+        return {
+          type,
+          from: transfer.from_address,
+          to: transfer.to_address,
+          price: transfer.value && parseFloat(transfer.value) > 0 ? transfer.value : undefined,
+          timestamp: new Date(transfer.block_timestamp),
+          txHash: transfer.transaction_hash || '',
+          blockNumber: transfer.block_number ? parseInt(transfer.block_number) : undefined,
+        }
+      })
+
+      return activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    }
+
+    // Fallback to blockchain events
+    console.log(`⚠️ Moralis unavailable, using blockchain events for ${contractAddress}:${tokenId}`)
     const activities: NFTActivityEvent[] = []
 
     // Define the chain

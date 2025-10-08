@@ -1,6 +1,6 @@
 /**
  * Collection Service
- * Fetches NFT collection data from ApeChain blockchain
+ * Fetches NFT collection data from ApeChain blockchain and Moralis API
  */
 
 import { getContract, readContract, prepareEvent, getContractEvents, defineChain } from "thirdweb"
@@ -8,6 +8,7 @@ import { client } from "./thirdweb"
 import { Collection, CollectionStats, CollectionWithStats } from "@/types/collection"
 import collectionsData from "./collections-curated.json"
 import { getAllListings } from "./marketplace"
+import { getMoralisCollectionStats } from "./moralis-api"
 
 const APECHAIN_ID = 33139
 
@@ -35,10 +36,32 @@ export async function getCollectionByAddress(contractAddress: string): Promise<C
 }
 
 /**
- * Get collection statistics from blockchain
+ * Get collection statistics from Moralis API (aggregated cross-marketplace data)
+ * Falls back to blockchain data if Moralis fails
  */
 export async function getCollectionStats(contractAddress: string): Promise<CollectionStats> {
   try {
+    // Try Moralis API first for accurate cross-marketplace stats
+    const moralisStats = await getMoralisCollectionStats(contractAddress, APECHAIN_ID)
+
+    if (moralisStats) {
+      console.log(`✅ Using Moralis stats for ${contractAddress}`)
+      return {
+        totalSupply: moralisStats.totalSupply,
+        owners: moralisStats.owners,
+        floorPrice: moralisStats.floorPrice ? (BigInt(Math.floor(moralisStats.floorPrice * 1e18))).toString() : null,
+        floorPriceAPE: moralisStats.floorPrice,
+        volume24h: (BigInt(Math.floor(moralisStats.volume24h * 1e18))).toString(),
+        volume24hAPE: moralisStats.volume24h,
+        volumeTotal: (BigInt(Math.floor(moralisStats.volumeTotal * 1e18))).toString(),
+        volumeTotalAPE: moralisStats.volumeTotal,
+        listedCount: moralisStats.listedCount,
+        volumeChange24h: moralisStats.volumeChange24h,
+      }
+    }
+
+    // Fallback to blockchain data
+    console.log(`⚠️ Moralis unavailable, using blockchain data for ${contractAddress}`)
     const chain = defineChain(APECHAIN_ID)
     const contract = getContract({
       client,

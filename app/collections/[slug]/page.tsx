@@ -216,12 +216,12 @@ export default function CollectionPage() {
                 {nfts.map((nft) => (
                   <Card
                     key={`${nft.contractAddress}-${nft.tokenId}`}
-                    className="group cursor-pointer hover:shadow-lg transition-all hover:scale-105"
+                    className="group cursor-pointer hover:shadow-lg transition-all hover:scale-105 overflow-hidden"
                     onClick={() => setSelectedNFT(nft)}
                   >
-                    <CardContent className="p-2">
+                    <CardContent className="p-0">
                       {/* NFT Image */}
-                      <div className="aspect-square bg-muted rounded-lg mb-2 overflow-hidden">
+                      <div className="aspect-square bg-muted overflow-hidden">
                         {nft.image ? (
                           <img
                             src={nft.image}
@@ -235,15 +235,18 @@ export default function CollectionPage() {
                         )}
                       </div>
 
-                      {/* NFT Name */}
-                      <p className="text-xs font-semibold truncate">
-                        {nft.name}
-                      </p>
+                      {/* NFT Info */}
+                      <div className="p-2">
+                        {/* NFT Name */}
+                        <p className="text-xs font-semibold truncate">
+                          {nft.name}
+                        </p>
 
-                      {/* Token ID */}
-                      <p className="text-[10px] text-muted-foreground truncate">
-                        #{nft.tokenId}
-                      </p>
+                        {/* Token ID */}
+                        <p className="text-[10px] text-muted-foreground truncate">
+                          #{nft.tokenId}
+                        </p>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}

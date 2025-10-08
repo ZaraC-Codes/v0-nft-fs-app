@@ -73,7 +73,10 @@
       "Bash(npx playwright codegen:*)",
       "Bash(npx playwright install:*)",
       "Bash(python:*)",
-      "Bash(del:*)"
+      "Bash(del:*)",
+      "Bash(npx vercel ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(move libreservoir-api.ts libmoralis-api.ts)"
     ],
     "deny": [],
     "ask": []
