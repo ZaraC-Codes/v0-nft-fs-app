@@ -174,6 +174,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   }
 
   const handleSendMessage = async (content: string) => {
+    console.log('🔍 Send message debugging:', {
+      hasAccount: !!account,
+      accountAddress: account?.address,
+      hasNFT,
+      content,
+      collectionAddress: collection.contractAddress
+    })
+
     if (!account || !hasNFT) {
       toast({
         title: "Cannot send message",
@@ -200,6 +208,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     setMessages(prev => [...prev, optimisticMessage])
 
     try {
+      console.log('📡 Sending message to API...')
       const response = await fetch(
         `/api/collections/${collection.contractAddress}/chat/send-message`,
         {
@@ -216,6 +225,12 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       )
 
       const data = await response.json()
+
+      console.log('📡 API Response:', {
+        ok: response.ok,
+        status: response.status,
+        data
+      })
 
       if (!response.ok) {
         // Remove optimistic message on error
@@ -243,7 +258,11 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       // The 3-second polling will automatically detect when the real message appears
       // and replace the optimistic message
     } catch (error: any) {
-      console.error("Error sending message:", error)
+      console.error("❌ Send message error:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      })
       // Remove optimistic message on error
       setOptimisticMessageId(null)
       setMessages(prev => prev.filter(m => m.id !== tempId))
