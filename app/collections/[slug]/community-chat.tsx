@@ -288,7 +288,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
         {/* Chat Section */}
         <div className="lg:col-span-3 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0
+          <Card className="flex-1 flex flex-col min-h-0 overflow-hidden
                           border-x-0 sm:border-x rounded-none sm:rounded-xl">
 
             {/* Header */}
