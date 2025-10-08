@@ -288,13 +288,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
         {/* Chat Section */}
         <div className="lg:col-span-3 flex flex-col min-h-0">
-          <Card className="flex-1 flex flex-col min-h-0 overflow-hidden
-                          border-x-0 sm:border-x rounded-none sm:rounded-xl">
+          <Card className="flex-1 flex flex-col min-h-0
+                          border-x-0 sm:border-x rounded-none sm:rounded-xl overflow-hidden">
 
             {/* Header */}
             <CardHeader className="sticky top-0 z-10
                                   bg-card/95 backdrop-blur-md
-                                  border-b py-3 sm:py-4">
+                                  border-b py-3 sm:py-4 flex-shrink-0">
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
                   <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -353,7 +353,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             {/* Input */}
             <div className="sticky bottom-0 border-t
                             bg-card/95 backdrop-blur-md
-                            p-3 sm:p-4 safe-bottom">
+                            p-3 sm:p-4 safe-bottom flex-shrink-0">
               {hasNFT ? (
                 <ChatInput
                   onSend={handleSendMessage}
