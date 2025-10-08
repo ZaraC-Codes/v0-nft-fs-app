@@ -15,6 +15,7 @@ const embeddedWallet = inAppWallet({
   smartAccount: {
     chain: apeChain,
     sponsorGas: true,
+    factoryAddress: process.env.NEXT_PUBLIC_ACCOUNT_FACTORY_ADDRESS,
   },
 });
 
