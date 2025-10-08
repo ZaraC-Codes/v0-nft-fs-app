@@ -6,8 +6,8 @@ import { useProfile } from "@/components/profile/profile-provider"
 import { Card, CardContent } from "@/components/ui/card"
 import { Wallet, Check, Loader2 } from "lucide-react"
 import { toast } from "sonner"
-import { createWallet } from "thirdweb/wallets"
-import { client } from "@/lib/thirdweb"
+import { createWallet, inAppWallet } from "thirdweb/wallets"
+import { client, apeChain } from "@/lib/thirdweb"
 
 interface WalletSwitcherContextType {
   selectedWalletAddress: string | null
@@ -92,9 +92,17 @@ export function WalletSwitcherProvider({ children }: { children: ReactNode }) {
       if (wallet.isPrimary) {
         // Switching to embedded wallet
         console.log("📱 Connecting to embedded wallet...")
-        const embeddedWallet = createWallet("inApp")
+        const embeddedWallet = inAppWallet({
+          auth: {
+            options: ["email", "google", "apple", "facebook", "x", "passkey"],
+          },
+          smartAccount: {
+            chain: apeChain,
+            sponsorGas: true,
+          },
+        })
         await connect(async () => {
-          const acc = await embeddedWallet.connect({ client })
+          const acc = await embeddedWallet.connect({ client, strategy: "auth_endpoint" })
           console.log("✅ Embedded wallet connected:", acc.address)
           setActiveWallet(embeddedWallet)
           return acc
