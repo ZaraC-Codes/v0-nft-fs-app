@@ -1,11 +1,12 @@
 /**
  * NFT History Service
  * Fetches complete blockchain activity for individual NFTs
- * Combines ThirdWeb Insight API + direct blockchain event queries
+ * Combines ThirdWeb Insight API + direct blockchain event queries + cross-marketplace sales
  */
 
 import { getContract, prepareEvent, getContractEvents, defineChain } from "thirdweb"
 import { client } from "./thirdweb"
+import { getAllSaleHistory } from "./cross-marketplace-sales"
 
 export interface NFTActivityEvent {
   type: "transfer" | "sale" | "listing" | "listing_cancelled" | "listing_updated" | "mint"
@@ -174,17 +175,74 @@ export async function getNFTHistory(
       // We'd need to map listingId to nftContract/tokenId (future enhancement)
     }
 
+    // 3. Fetch cross-marketplace sales (OpenSea, Blur, LooksRare, etc.)
+    try {
+      console.log(`🔍 Fetching cross-marketplace sales for ${contractAddress}:${tokenId}`)
+      const crossMarketplaceSales = await getAllSaleHistory(contractAddress, tokenId, chainId)
+
+      // Convert SaleRecord[] to NFTActivityEvent[]
+      for (const sale of crossMarketplaceSales) {
+        activities.push({
+          type: "sale",
+          from: sale.from,
+          to: sale.to,
+          price: sale.priceWei.toString(),
+          timestamp: sale.timestamp,
+          txHash: sale.txHash,
+          blockNumber: sale.blockNumber,
+          marketplace: sale.marketplace
+        })
+      }
+
+      console.log(`✅ Added ${crossMarketplaceSales.length} cross-marketplace sales to activity feed`)
+    } catch (error) {
+      console.error(`⚠️ Failed to fetch cross-marketplace sales:`, error)
+    }
+
+    // 4. Deduplicate activities (prioritize sales over generic transfers)
+    const deduplicatedActivities = deduplicateActivities(activities)
+
     // Sort by timestamp (newest first)
-    activities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
+    deduplicatedActivities.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
 
-    console.log(`📜 Fetched ${activities.length} activity events for NFT ${contractAddress}:${tokenId}`)
+    console.log(`📜 Fetched ${deduplicatedActivities.length} activity events for NFT ${contractAddress}:${tokenId}`)
 
-    return activities
+    return deduplicatedActivities
 
   } catch (error) {
     console.error("Failed to fetch NFT history:", error)
     return []
   }
+}
+
+/**
+ * Deduplicate activities by transaction hash
+ * Prioritizes sale events over generic transfers (same tx can have both)
+ */
+function deduplicateActivities(activities: NFTActivityEvent[]): NFTActivityEvent[] {
+  const seen = new Map<string, NFTActivityEvent>()
+
+  for (const activity of activities) {
+    const key = activity.txHash
+
+    // If this tx already exists
+    if (seen.has(key)) {
+      const existing = seen.get(key)!
+
+      // Prioritize sale events over generic transfers
+      if (activity.type === "sale" && existing.type === "transfer") {
+        seen.set(key, activity) // Replace transfer with sale
+      } else if (existing.type === "sale" && activity.type === "transfer") {
+        // Keep the existing sale, skip this transfer
+        continue
+      }
+      // For other duplicates, keep the first one (marketplace events vs transfers)
+    } else {
+      seen.set(key, activity)
+    }
+  }
+
+  return Array.from(seen.values())
 }
 
 /**
