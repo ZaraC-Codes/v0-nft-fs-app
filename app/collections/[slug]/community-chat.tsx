@@ -43,6 +43,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [optimisticMessageId, setOptimisticMessageId] = useState<string | null>(null)
+  const [sendError, setSendError] = useState<string | null>(null)
   const optimisticMessageIdRef = useRef<string | null>(null)
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
@@ -368,13 +369,18 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         stack: error.stack,
         name: error.name
       })
+
+      // Set persistent error state
+      const errorMsg = error.message || "Failed to send message"
+      setSendError(errorMsg)
+
       // Remove optimistic message on error
       setOptimisticMessageId(null)
       setMessages(prev => prev.filter(m => m.id !== tempId))
 
       toast({
-        title: "Error",
-        description: error.message || "Failed to send message",
+        title: "Message Send Failed",
+        description: errorMsg,
         variant: "destructive",
       })
     } finally {

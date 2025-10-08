@@ -8,6 +8,7 @@ import { useProfile } from "@/components/profile/profile-provider"
 import { useAuth } from "@/components/auth/auth-provider"
 import { toast } from "sonner"
 import { Wallet, Link as LinkIcon, CheckCircle2, AlertCircle, ExternalLink } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export function LinkExternalWallet() {
   const { userProfile, refreshProfile } = useProfile()
@@ -234,24 +235,44 @@ export function LinkExternalWallet() {
         {/* Current Linked Wallets */}
         <div className="space-y-3">
           <h3 className="text-sm font-semibold">Your Wallets</h3>
-          {linkedWallets.length > 0 ? (
+          {(userProfile.wallets || []).length > 0 ? (
             <div className="space-y-2">
-              {linkedWallets.map((wallet, index) => {
-                const isPrimary = wallet.toLowerCase() === primaryWallet?.toLowerCase()
+              {(userProfile.wallets || []).map((walletMetadata) => {
+                const isPrimary = walletMetadata.address.toLowerCase() === primaryWallet?.toLowerCase()
+
+                // Determine wallet label based on TYPE, not whether it's primary
+                let walletLabel = ""
+                if (walletMetadata.type === 'embedded') {
+                  walletLabel = "Profile Wallet (Gasless)"
+                } else if (walletMetadata.type === 'metamask') {
+                  walletLabel = "MetaMask"
+                } else if (walletMetadata.type === 'glyph') {
+                  walletLabel = "Glyph"
+                } else if (walletMetadata.type === 'rabby') {
+                  walletLabel = "Rabby"
+                } else if (walletMetadata.type === 'coinbase') {
+                  walletLabel = "Coinbase Wallet"
+                } else {
+                  walletLabel = "External Wallet"
+                }
+
                 return (
                   <div
-                    key={wallet}
+                    key={walletMetadata.address}
                     className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-border/50"
                   >
                     <div className="flex items-center gap-3">
                       <Wallet className="h-4 w-4 text-primary" />
                       <div>
-                        <p className="font-mono text-sm">
-                          {wallet.slice(0, 8)}...{wallet.slice(-6)}
-                        </p>
-                        {isPrimary && (
-                          <p className="text-xs text-muted-foreground">Profile Wallet (Gasless)</p>
-                        )}
+                        <div className="flex items-center gap-2">
+                          <p className="font-mono text-sm">
+                            {walletMetadata.address.slice(0, 8)}...{walletMetadata.address.slice(-6)}
+                          </p>
+                          {isPrimary && (
+                            <Badge variant="outline" className="text-xs">Primary</Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{walletLabel}</p>
                       </div>
                     </div>
                     <CheckCircle2 className="h-4 w-4 text-green-500" />
