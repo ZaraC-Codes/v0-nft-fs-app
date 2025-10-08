@@ -754,36 +754,25 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               const wrapperNFTAddress = process.env.NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS?.toLowerCase()
               const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
-              // DEBUG: Log complete NFT data from API
-              console.log('🔍 COMPLETE NFT DATA FROM API:', {
-                tokenId: nft.tokenId,
-                name: nft.name,
-                collectionName: nft.collectionName,
-                contractAddress: nft.contractAddress,
-                fullNFT: JSON.stringify(nft, null, 2)
-              })
-
-              // Simple collection name logic - revert to working version with enhancement
+              // Extract collection name by removing " #tokenId" suffix
               let collectionName: string
 
               if (isBundleNFT) {
                 collectionName = 'Fortuna Square Bundle NFTs'
-                console.log(`✅ Bundle NFT detected - using: ${collectionName}`)
               } else if (nft.collectionName && nft.collectionName !== 'Unknown Collection') {
-                // Use API-provided collection name if it's not "Unknown Collection"
-                collectionName = nft.collectionName
-                console.log(`✅ Using API collectionName: ${collectionName}`)
+                // Use API-provided collection name, removing token ID suffix if present
+                collectionName = nft.collectionName.replace(/\s*#\d+\s*$/, '').trim()
               } else if (nft.name) {
-                // Fallback to NFT name (better than "Unknown Collection")
-                collectionName = nft.name
-                console.log(`⚠️ No valid collectionName, using nft.name: ${collectionName}`)
+                // Extract collection from NFT name by removing " #tokenId" suffix
+                collectionName = nft.name.replace(/\s*#\d+\s*$/, '').trim()
+                // If extraction resulted in empty string or just numbers, use full name
+                if (!collectionName || /^\d+$/.test(collectionName)) {
+                  collectionName = nft.name
+                }
               } else {
                 // Final fallback
                 collectionName = `Token #${nft.tokenId}`
-                console.log(`⚠️ No name or collection, using fallback: ${collectionName}`)
               }
-
-              console.log(`📦 Final collection name for NFT ${nft.tokenId}: ${collectionName}`)
 
               // Base NFT data
               const baseNFT = {
@@ -825,11 +814,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       originalImage = originalNFT.image || originalImage
                       originalName = originalNFT.name || originalName
 
-                      // Simple collection name logic - same as regular NFTs
+                      // Extract collection name - same logic as regular NFTs
                       if (originalNFT.collectionName && originalNFT.collectionName !== 'Unknown Collection') {
-                        originalCollection = originalNFT.collectionName
+                        originalCollection = originalNFT.collectionName.replace(/\s*#\d+\s*$/, '').trim()
                       } else if (originalNFT.name) {
-                        originalCollection = originalNFT.name
+                        originalCollection = originalNFT.name.replace(/\s*#\d+\s*$/, '').trim()
+                        // If extraction resulted in empty string or just numbers, use full name
+                        if (!originalCollection || /^\d+$/.test(originalCollection)) {
+                          originalCollection = originalNFT.name
+                        }
                       } else {
                         originalCollection = `Token #${nft.tokenId}`
                       }
