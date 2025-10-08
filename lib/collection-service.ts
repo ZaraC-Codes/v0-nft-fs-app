@@ -407,3 +407,50 @@ export async function getCollectionNFTs(
     return []
   }
 }
+
+/**
+ * Get bundles for a collection
+ * Returns empty array for now - bundles are a separate feature from individual NFTs
+ */
+export async function getCollectionBundles(contractAddress: string): Promise<any[]> {
+  // Bundles are not shown on collection pages currently
+  // This function exists to prevent errors but returns empty array
+  return []
+}
+
+/**
+ * Get activity/transactions for a collection
+ */
+export async function getCollectionActivity(contractAddress: string): Promise<any[]> {
+  try {
+    const apeChainConfig = defineChain(APECHAIN_ID)
+    const contract = getContract({
+      client,
+      chain: apeChainConfig,
+      address: contractAddress,
+    })
+
+    const transferEvent = prepareEvent({
+      signature: "event Transfer(address indexed from, address indexed to, uint256 indexed tokenId)",
+    })
+
+    const transferEvents = await getContractEvents({
+      contract,
+      events: [transferEvent],
+    })
+
+    // Map to activity format
+    return transferEvents.map((event) => ({
+      type: event.args?.from === '0x0000000000000000000000000000000000000000' ? 'mint' : 'transfer',
+      from: event.args?.from,
+      to: event.args?.to,
+      tokenId: event.args?.tokenId?.toString(),
+      transactionHash: event.transactionHash,
+      blockNumber: event.blockNumber,
+      timestamp: new Date(), // Would need to fetch block timestamp for accurate time
+    }))
+  } catch (error) {
+    console.error(`Failed to fetch collection activity for ${contractAddress}:`, error)
+    return []
+  }
+}

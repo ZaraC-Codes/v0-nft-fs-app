@@ -76,7 +76,8 @@
       "Bash(del:*)",
       "Bash(npx vercel ls:*)",
       "Bash(npm run build:*)",
-      "Bash(move libreservoir-api.ts libmoralis-api.ts)"
+      "Bash(move libreservoir-api.ts libmoralis-api.ts)",
+      "Bash(export NEXT_PUBLIC_GOLDRUSH_API_KEY=\"cqt_rQBWKKQWTMV6V9D9VhVwrjMBW3xP\")"
     ],
     "deny": [],
     "ask": []

@@ -27,11 +27,10 @@ export async function getGoldRushCollectionStats(contractAddress: string, chainN
       "Content-Type": "application/json"
     }
 
-    // Get NFT metadata for the collection
-    // Note: GoldRush doesn't have a direct "collection stats" endpoint like Reservoir
-    // We need to aggregate data from individual NFT queries
+    // Get NFT token IDs for the collection
+    // Using /tokens/{address}/nft_token_ids/ endpoint which works for collections
     const response = await fetch(
-      `${GOLDRUSH_BASE_URL}/${chainName}/nft/${contractAddress}/metadata/`,
+      `${GOLDRUSH_BASE_URL}/${chainName}/tokens/${contractAddress}/nft_token_ids/`,
       { headers }
     )
 
@@ -42,16 +41,19 @@ export async function getGoldRushCollectionStats(contractAddress: string, chainN
 
     const data = await response.json()
 
-    // GoldRush returns collection-level data
-    const collection = data.data?.items?.[0]
+    // GoldRush /tokens/{address}/nft_token_ids/ returns array of token IDs with metadata
+    const items = data.data?.items || []
 
-    if (!collection) {
+    if (items.length === 0) {
       return null
     }
 
+    // Calculate total supply from number of tokens
+    const totalSupply = items.length
+
     return {
-      totalSupply: collection.contract_metadata?.total_supply ? parseInt(collection.contract_metadata.total_supply) : 0,
-      owners: 0, // Not available from metadata endpoint
+      totalSupply,
+      owners: 0, // Not available from this endpoint
       floorPrice: null, // Not available directly
       floorPriceUSD: null,
       listedCount: 0, // Not available directly
