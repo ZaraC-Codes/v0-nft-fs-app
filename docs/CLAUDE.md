@@ -703,6 +703,49 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 
 ## Recent Updates
 
+### Collection Pages API Integration - IN PROGRESS ⚠️ (October 8, 2025)
+**What**: Attempted to integrate GoldRush API (formerly Covalent) for cross-marketplace NFT data on collection pages.
+
+**Goal**: Display accurate collection stats (Total Supply, Owners, Floor Price, Volume, Listed Count) from multiple marketplaces, not just FortunaSquare data.
+
+**Work Completed**:
+1. ✅ Fixed NFT image positioning - Images now fill cards edge-to-edge (removed padding, adjusted CardContent)
+2. ✅ Integrated GoldRush API (`lib/goldrush-api.ts`) to replace Moralis (doesn't support ApeChain)
+3. ✅ Updated collection-service.ts to use GoldRush stats with blockchain fallback
+4. ✅ Fixed GoldRush API endpoint from `/nft/{address}/metadata/` (404) to `/tokens/{address}/nft_token_ids/` (working)
+5. ✅ Added missing `getCollectionBundles()` and `getCollectionActivity()` functions
+6. ✅ API successfully calling GoldRush (console shows `✅ Using GoldRush stats`)
+
+**Current Status**: ⚠️ BLOCKED - No visible changes on deployed site
+- Code committed and pushed (commit: 73358c4)
+- GoldRush API working in console logs
+- User reports no UI changes visible
+- Possible caching issue or build not deploying
+
+**Next Steps** (for next session):
+1. Consult with deployment expert on Vercel build/caching issues
+2. Verify hard refresh clears cache (`Ctrl+Shift+R`)
+3. Check Vercel deployment logs for build errors
+4. Consider if CDN/edge caching is serving old build
+5. Test GoldRush API response data parsing (may return data but UI not displaying it)
+
+**Files Modified**:
+- `lib/goldrush-api.ts` - GoldRush API integration with correct endpoints
+- `lib/collection-service.ts` - Added missing functions, integrated GoldRush
+- `lib/nft-history.ts` - Updated to use GoldRush for activity
+- `app/collections/[slug]/page.tsx` - Fixed image positioning
+- `.env.local` - Added `NEXT_PUBLIC_GOLDRUSH_API_KEY`
+
+**Environment Variables**:
+```bash
+NEXT_PUBLIC_GOLDRUSH_API_KEY=cqt_rQBWKKQWTMV6V9D9VhVwrjMBW3xP
+```
+
+**API Research**:
+- ❌ Reservoir API - Shut down October 15, 2025
+- ❌ Moralis API - Doesn't support ApeChain (chainId 33139)
+- ✅ GoldRush API - Officially supports ApeChain
+
 ### Collection Pages - Full Implementation ✅ (October 7, 2025)
 **What**: Complete collection pages for ApeChain NFT collections with real blockchain data, statistics, and 5-tab structure.
 
