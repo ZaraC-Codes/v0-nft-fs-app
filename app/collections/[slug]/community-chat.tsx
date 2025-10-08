@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -33,8 +33,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
   const [optimisticMessageId, setOptimisticMessageId] = useState<string | null>(null)
+  const optimisticMessageIdRef = useRef<string | null>(null)
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    optimisticMessageIdRef.current = optimisticMessageId
+  }, [optimisticMessageId])
 
   // Autocomplete data
   const [autocompleteUsers, setAutocompleteUsers] = useState<Array<{
@@ -138,8 +144,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
       // Check if we have an optimistic message and if the real message has appeared
       setMessages(prev => {
-        if (optimisticMessageId) {
-          const optimisticMsg = prev.find(m => m.id === optimisticMessageId)
+        const currentOptimisticId = optimisticMessageIdRef.current
+        if (currentOptimisticId) {
+          const optimisticMsg = prev.find(m => m.id === currentOptimisticId)
           if (optimisticMsg) {
             // Check if the real message (with matching content and sender) exists
             const realMessageExists = data.messages.some((m: any) =>
