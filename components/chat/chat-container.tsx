@@ -63,7 +63,7 @@ export function ChatContainer({ messages, children }: ChatContainerProps) {
   }
 
   return (
-    <div className="relative flex-1 flex flex-col h-full">
+    <div className="relative flex-1 flex flex-col min-h-0">
       {/* Messages container */}
       <div
         ref={messagesRef}
@@ -71,7 +71,7 @@ export function ChatContainer({ messages, children }: ChatContainerProps) {
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         className="flex-1 overflow-y-auto overscroll-contain
-                   scroll-smooth will-change-scroll h-full"
+                   scroll-smooth will-change-scroll"
         style={{
           // Performance optimization
           transform: 'translateZ(0)',
