@@ -152,11 +152,24 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         if (currentOptimisticId) {
           const optimisticMsg = prev.find(m => m.id === currentOptimisticId)
           if (optimisticMsg) {
+            console.log('🔍 Checking for real message:', {
+              optimisticContent: optimisticMsg.content,
+              optimisticSender: optimisticMsg.senderAddress,
+              apiMessageCount: data.messages?.length,
+              lastApiMessage: data.messages?.[data.messages.length - 1]
+            })
+
             // Check if the real message (with matching content and sender) exists
-            const realMessageExists = data.messages.some((m: any) =>
-              m.content === optimisticMsg.content &&
-              m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
-            )
+            const realMessageExists = data.messages.some((m: any) => {
+              const contentMatch = m.content === optimisticMsg.content
+              const senderMatch = m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
+
+              if (contentMatch && senderMatch) {
+                console.log('✅ Found matching message in API response:', m)
+              }
+
+              return contentMatch && senderMatch
+            })
 
             // If real message exists, clear optimistic ID and show only real messages
             if (realMessageExists) {
@@ -253,11 +266,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
       const data = await response.json()
 
-      console.log('📡 API Response:', {
+      console.log('📡 Send API Response:', {
         ok: response.ok,
         status: response.status,
-        data
+        data,
+        transactionHash: data.transactionHash
       })
+
+      console.log('🔗 Transaction URL:', `https://curtis.explorer.apechain.com/tx/${data.transactionHash}`)
 
       if (!response.ok) {
         // Remove optimistic message on error
