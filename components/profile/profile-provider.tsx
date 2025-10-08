@@ -754,26 +754,36 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               const wrapperNFTAddress = process.env.NEXT_PUBLIC_RENTAL_WRAPPER_ADDRESS?.toLowerCase()
               const isWrapperNFT = wrapperNFTAddress && nft.contractAddress.toLowerCase() === wrapperNFTAddress
 
-              // Extract collection name - prefer API collectionName, then extract from name, finally use full name
-              let collectionName: string = `Token #${nft.tokenId}` // Default fallback
+              // DEBUG: Log complete NFT data from API
+              console.log('🔍 COMPLETE NFT DATA FROM API:', {
+                tokenId: nft.tokenId,
+                name: nft.name,
+                collectionName: nft.collectionName,
+                contractAddress: nft.contractAddress,
+                fullNFT: JSON.stringify(nft, null, 2)
+              })
+
+              // Simple collection name logic - revert to working version with enhancement
+              let collectionName: string
 
               if (isBundleNFT) {
                 collectionName = 'Fortuna Square Bundle NFTs'
-              } else if (nft.collectionName && nft.collectionName.trim()) {
-                // Use API-provided collection name if available
-                collectionName = nft.collectionName.trim()
+                console.log(`✅ Bundle NFT detected - using: ${collectionName}`)
+              } else if (nft.collectionName && nft.collectionName !== 'Unknown Collection') {
+                // Use API-provided collection name if it's not "Unknown Collection"
+                collectionName = nft.collectionName
+                console.log(`✅ Using API collectionName: ${collectionName}`)
               } else if (nft.name) {
-                // Try to extract collection name from NFT name by removing " #tokenId" suffix
-                // Handle formats like: "Collection Name #123" → "Collection Name"
-                const extracted = nft.name.replace(/\s*#\d+\s*$/, '').trim()
-                // Validate extraction - must be at least 3 chars and not just the name without change
-                if (extracted && extracted.length >= 3 && extracted !== nft.name) {
-                  collectionName = extracted
-                } else {
-                  // If extraction failed or resulted in same string, use full name
-                  collectionName = nft.name
-                }
+                // Fallback to NFT name (better than "Unknown Collection")
+                collectionName = nft.name
+                console.log(`⚠️ No valid collectionName, using nft.name: ${collectionName}`)
+              } else {
+                // Final fallback
+                collectionName = `Token #${nft.tokenId}`
+                console.log(`⚠️ No name or collection, using fallback: ${collectionName}`)
               }
+
+              console.log(`📦 Final collection name for NFT ${nft.tokenId}: ${collectionName}`)
 
               // Base NFT data
               const baseNFT = {
@@ -792,15 +802,6 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                 isBundle: false,
               }
 
-              // DEBUG: Log what collection we're setting
-              console.log(`📦 NFT ${nft.tokenId}:`, {
-                name: nft.name,
-                collectionName: nft.collectionName,
-                extracted: nft.name ? nft.name.replace(/\s*#\d+$/, '').trim() : '',
-                finalCollection: collectionName,
-                isBundleNFT,
-              })
-
               // If it's a wrapper NFT (rental), fetch original NFT metadata
               if (isWrapperNFT) {
                 try {
@@ -815,7 +816,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
                   let originalImage = nft.image
                   let originalName = `Wrapped #${nft.tokenId}`
-                  let originalCollection = `Token #${nft.tokenId}` // Default fallback - same as regular NFTs
+                  let originalCollection: string
 
                   if (originalNFTResponse.ok) {
                     const originalData = await originalNFTResponse.json()
@@ -824,22 +825,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       originalImage = originalNFT.image || originalImage
                       originalName = originalNFT.name || originalName
 
-                      // Extract collection name - same logic as regular NFTs
-                      if (originalNFT.collectionName && originalNFT.collectionName.trim()) {
-                        // Use API-provided collection name if available
-                        originalCollection = originalNFT.collectionName.trim()
+                      // Simple collection name logic - same as regular NFTs
+                      if (originalNFT.collectionName && originalNFT.collectionName !== 'Unknown Collection') {
+                        originalCollection = originalNFT.collectionName
                       } else if (originalNFT.name) {
-                        // Try to extract collection name from NFT name by removing " #tokenId" suffix
-                        const extracted = originalNFT.name.replace(/\s*#\d+\s*$/, '').trim()
-                        // Validate extraction - must be at least 3 chars and not just the name without change
-                        if (extracted && extracted.length >= 3 && extracted !== originalNFT.name) {
-                          originalCollection = extracted
-                        } else {
-                          // If extraction failed or resulted in same string, use full name
-                          originalCollection = originalNFT.name
-                        }
+                        originalCollection = originalNFT.name
+                      } else {
+                        originalCollection = `Token #${nft.tokenId}`
                       }
+                    } else {
+                      originalCollection = `Token #${nft.tokenId}`
                     }
+                  } else {
+                    originalCollection = `Token #${nft.tokenId}`
                   }
 
                   // Fetch rental listing info
