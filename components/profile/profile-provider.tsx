@@ -815,7 +815,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
                   let originalImage = nft.image
                   let originalName = `Wrapped #${nft.tokenId}`
-                  let originalCollection = 'Unknown Collection'
+                  let originalCollection = `Token #${nft.tokenId}` // Default fallback - same as regular NFTs
 
                   if (originalNFTResponse.ok) {
                     const originalData = await originalNFTResponse.json()
@@ -823,12 +823,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
                       const originalNFT = originalData.nfts[0]
                       originalImage = originalNFT.image || originalImage
                       originalName = originalNFT.name || originalName
-                      // Extract collection name from original NFT name
-                      if (originalNFT.name) {
+
+                      // Extract collection name - same logic as regular NFTs
+                      if (originalNFT.collectionName && originalNFT.collectionName.trim()) {
+                        // Use API-provided collection name if available
+                        originalCollection = originalNFT.collectionName.trim()
+                      } else if (originalNFT.name) {
+                        // Try to extract collection name from NFT name by removing " #tokenId" suffix
                         const extracted = originalNFT.name.replace(/\s*#\d+\s*$/, '').trim()
-                        originalCollection = extracted && extracted.length > 0 ? extracted : originalNFT.name
-                      } else if (originalNFT.collectionName) {
-                        originalCollection = originalNFT.collectionName
+                        // Validate extraction - must be at least 3 chars and not just the name without change
+                        if (extracted && extracted.length >= 3 && extracted !== originalNFT.name) {
+                          originalCollection = extracted
+                        } else {
+                          // If extraction failed or resulted in same string, use full name
+                          originalCollection = originalNFT.name
+                        }
                       }
                     }
                   }
