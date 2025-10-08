@@ -205,7 +205,10 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       pending: true,
     }
     setOptimisticMessageId(tempId)
-    setMessages(prev => [...prev, optimisticMessage])
+    setMessages(prev => {
+      console.log('📝 Adding optimistic message. Current messages:', prev.length, 'New total:', prev.length + 1)
+      return [...prev, optimisticMessage]
+    })
 
     try {
       console.log('📡 Sending message to API...')
@@ -276,6 +279,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       setSending(false)
     }
   }
+
+  console.log('🎨 Rendering chat. Messages count:', messages.length, 'Loading:', loading, 'OptimisticID:', optimisticMessageId)
 
   return (
     <div className="flex flex-col h-[calc(100dvh-16rem)] sm:h-[600px]">
