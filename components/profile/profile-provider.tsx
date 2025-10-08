@@ -760,17 +760,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               if (isBundleNFT) {
                 collectionName = 'Fortuna Square Bundle NFTs'
               } else if (nft.collectionName && nft.collectionName !== 'Unknown Collection') {
-                // Use API-provided collection name, removing token ID suffix if present
                 collectionName = nft.collectionName.replace(/\s*#\d+\s*$/, '').trim()
               } else if (nft.name) {
-                // Extract collection from NFT name by removing " #tokenId" suffix
                 collectionName = nft.name.replace(/\s*#\d+\s*$/, '').trim()
-                // If extraction resulted in empty string or just numbers, use full name
                 if (!collectionName || /^\d+$/.test(collectionName)) {
                   collectionName = nft.name
                 }
               } else {
-                // Final fallback
                 collectionName = `Token #${nft.tokenId}`
               }
 

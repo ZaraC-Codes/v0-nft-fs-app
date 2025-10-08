@@ -701,9 +701,43 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 - Performance optimizations
 - Error boundary implementations
 
-## Recent Updates (October 5, 2025)
+## Recent Updates
 
-### OAuth Profile Auto-Population ✅
+### NFT Display Bug Fixes ✅ (October 7, 2025)
+**What**: Fixed multiple critical bugs affecting NFT data display and user experience.
+
+**Collection Name Extraction**:
+- **Issue**: NFT collection names displayed with token numbers appended (e.g., "GLITCH ON APE #259" instead of "GLITCH ON APE")
+- **Root Cause**: ThirdWeb API returns `collectionName: 'Unknown Collection'` for most NFTs, code was falling back to `nft.name` without extraction
+- **Solution**: Implemented regex extraction `nft.name.replace(/\s*#\d+\s*$/, '').trim()` with validation
+- **Result**: Collection names now display cleanly without token IDs
+
+**Activity Timestamps**:
+- **Issue**: All NFT activity showed today's date instead of actual blockchain timestamps
+- **Root Cause**: ThirdWeb v5 uses `event.blockTimestamp` not `event.block.timestamp`
+- **Solution**: Updated all event parsing in `lib/nft-history.ts` to use correct v5 properties
+
+**Rental Listing Duration**:
+- **Issue**: Duration field showed "-Days" instead of actual min/max days (e.g., "1-30 Days")
+- **Solution**: Added proper Number() conversion for `minRentalDays` and `maxRentalDays`
+
+**Last Sale Prices**:
+- **Issue**: Last sale prices not displaying on NFT cards or modals
+- **Solution**: Enhanced `lib/cross-marketplace-sales.ts` to fetch sales from entire blockchain, not just marketplace
+
+**Files Modified**:
+- `components/profile/profile-provider.tsx` - Collection name extraction logic
+- `lib/nft-history.ts` - ThirdWeb v5 timestamp parsing
+- `components/nft/nft-details-modal.tsx` - Rental duration display
+- `lib/marketplace.ts` - Sale price debugging
+
+**Testing Guidelines**:
+- Collection names: Test various formats ("Name #123", "Single Word", "#123")
+- Timestamps: Verify activity shows correct historical dates
+- Rental listings: Check duration displays proper day ranges
+- Sale prices: Confirm blockchain-wide sale detection works
+
+### OAuth Profile Auto-Population ✅ (October 5, 2025)
 **What**: Users who sign up with Google, Discord, Twitter, Facebook, or Apple automatically get their profile picture and info pulled from their social account.
 
 **Key Features**:
