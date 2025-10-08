@@ -3,6 +3,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Custom breakpoints for mobile-first chat */
+@custom-media --xs (min-width: 375px);
+@custom-media --sm (min-width: 640px);
+@custom-media --md (min-width: 768px);
+@custom-media --lg (min-width: 1024px);
+@custom-media --xl (min-width: 1280px);
+
 :root {
   /* Cyberpunk Neon Theme */
   --background: oklch(0.08 0.02 270); /* Deep dark purple-black */
@@ -138,5 +145,58 @@
     background-image: linear-gradient(rgba(112, 255, 255, 0.1) 1px, transparent 1px),
       linear-gradient(90deg, rgba(112, 255, 255, 0.1) 1px, transparent 1px);
     background-size: 50px 50px;
+  }
+
+  /* Mobile-specific styles for chat */
+  /* Safe area support for notched devices */
+  @supports (padding-bottom: env(safe-area-inset-bottom)) {
+    .safe-bottom {
+      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+    }
+
+    .safe-top {
+      padding-top: max(0.75rem, env(safe-area-inset-top));
+    }
+  }
+
+  /* Prevent pull-to-refresh on chat container */
+  .overscroll-contain {
+    overscroll-behavior: contain;
+  }
+
+  /* Touch-friendly tap targets (minimum 44px) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Improve touch interactions */
+  .touch-manipulation {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent text selection on long press (for message actions) */
+  .no-select {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* Smooth momentum scrolling on iOS */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbars on mobile for cleaner UI */
+  @media (max-width: 768px) {
+    .hide-scrollbar {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
   }
 }

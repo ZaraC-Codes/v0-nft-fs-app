@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, ShoppingCart, ArrowLeftRight, Palette } from "lucide-react"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
+import { CommunityChat } from "./community-chat"
 
 export default function CollectionPage() {
   const params = useParams()
@@ -397,20 +398,15 @@ export default function CollectionPage() {
             </Card>
           </TabsContent>
 
-          <TabsContent value="community" className="mt-6">
-            <Card className="border-dashed border-2">
-              <CardContent className="p-12 text-center">
-                <MessageCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-xl font-bold mb-2">Token-Gated Community - Coming Soon!</h3>
-                <p className="text-muted-foreground mb-4">
-                  Only holders of this collection can access the community chat.
-                  This feature will be gasless for seamless communication.
-                </p>
-                <p className="text-sm text-orange-400">
-                  🎨 Own an NFT from this collection to join the conversation!
-                </p>
-              </CardContent>
-            </Card>
+          <TabsContent value="community" className="mt-0 sm:mt-6">
+            {collection && (
+              <CommunityChat
+                collection={{
+                  name: collection.name,
+                  contractAddress: collection.contractAddress,
+                }}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </div>
