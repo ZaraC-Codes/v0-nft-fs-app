@@ -14,7 +14,7 @@ const embeddedWallet = inAppWallet({
   },
   smartAccount: {
     chain: apeChain,
-    sponsorGas: false,
+    sponsorGas: true,
   },
 });
 
