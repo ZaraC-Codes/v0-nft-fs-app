@@ -97,9 +97,9 @@ export class ProfileService {
         updatedAt: new Date(profile.updated_at),
         followersCount: 0,
         followingCount: 0,
-        isPublic: true,
-        showWalletAddress: true,
-        showEmail: false
+        isPublic: profile.is_public ?? true,
+        showWalletAddress: profile.show_wallet_address ?? true,
+        showEmail: profile.show_email ?? false
       }
 
       console.log('✅ Found existing profile via OAuth:', userProfile.username)
@@ -287,6 +287,9 @@ export class ProfileService {
       if (updates.discord !== undefined) dbUpdates.discord = updates.discord
       if (updates.website !== undefined) dbUpdates.website = updates.website
       if (updates.verified !== undefined) dbUpdates.is_verified = updates.verified
+      if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic
+      if (updates.showWalletAddress !== undefined) dbUpdates.show_wallet_address = updates.showWalletAddress
+      if (updates.showEmail !== undefined) dbUpdates.show_email = updates.showEmail
 
       const { error } = await supabase
         .from('profiles')
@@ -363,9 +366,9 @@ export class ProfileService {
           updatedAt: new Date(profile.updated_at),
           followersCount: 0,
           followingCount: 0,
-          isPublic: true,
-          showWalletAddress: true,
-          showEmail: false
+          isPublic: profile.is_public ?? true,
+          showWalletAddress: profile.show_wallet_address ?? true,
+          showEmail: profile.show_email ?? false
         }
       })
 
@@ -893,5 +896,406 @@ export class ProfileService {
     }
 
     return profile
+  }
+
+  // ============================================================================
+  // FOLLOW SYSTEM METHODS (Multi-device sync)
+  // ============================================================================
+
+  /**
+   * Follow a user (sync to Supabase)
+   */
+  static async followUser(followerId: string, followingId: string): Promise<void> {
+    if (followerId === followingId) {
+      throw new Error("You cannot follow yourself")
+    }
+
+    try {
+      const supabase = getSupabaseClient()
+
+      // Add follow to database
+      const { error } = await supabase
+        .from('profile_follows')
+        .insert({
+          follower_id: followerId,
+          following_id: followingId
+        })
+
+      if (error) {
+        // Ignore duplicate key errors (already following)
+        if (error.code === '23505') {
+          console.log('Already following user')
+          return
+        }
+        throw new Error(`Failed to follow user: ${error.message}`)
+      }
+
+      console.log('✅ Followed user in database')
+    } catch (error) {
+      console.error('❌ Error in followUser:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Unfollow a user (sync to Supabase)
+   */
+  static async unfollowUser(followerId: string, followingId: string): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Remove follow from database
+      const { error } = await supabase
+        .from('profile_follows')
+        .delete()
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId)
+
+      if (error) {
+        throw new Error(`Failed to unfollow user: ${error.message}`)
+      }
+
+      console.log('✅ Unfollowed user in database')
+    } catch (error) {
+      console.error('❌ Error in unfollowUser:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Check if user is following another user
+   */
+  static async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data, error } = await supabase
+        .from('profile_follows')
+        .select('id')
+        .eq('follower_id', followerId)
+        .eq('following_id', followingId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = not found (expected)
+        console.error('❌ Error checking follow status:', error)
+        return false
+      }
+
+      return !!data
+    } catch (error) {
+      console.error('❌ Error in isFollowing:', error)
+      return false
+    }
+  }
+
+  /**
+   * Get followers for a user
+   */
+  static async getFollowers(userId: string): Promise<UserProfile[]> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data, error } = await supabase
+        .from('profile_follows')
+        .select(`
+          follower_id,
+          profiles!profile_follows_follower_id_fkey (
+            *,
+            profile_wallets (
+              wallet_address,
+              wallet_type,
+              is_primary,
+              added_at
+            )
+          )
+        `)
+        .eq('following_id', userId)
+
+      if (error) {
+        throw new Error(`Failed to get followers: ${error.message}`)
+      }
+
+      // Convert to UserProfile format
+      const followers: UserProfile[] = (data || []).map((item: any) => {
+        const profile = item.profiles
+        const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+          address: w.wallet_address,
+          type: w.wallet_type,
+          addedAt: new Date(w.added_at)
+        }))
+
+        const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+        return {
+          id: profile.id,
+          username: profile.username,
+          email: profile.email,
+          avatar: profile.avatar,
+          bio: profile.bio,
+          bannerImage: profile.banner_image,
+          twitter: profile.twitter,
+          instagram: profile.instagram,
+          discord: profile.discord,
+          website: profile.website,
+          verified: profile.is_verified,
+          walletAddress: primaryWallet?.wallet_address,
+          wallets,
+          activeWallet: primaryWallet?.wallet_address,
+          linkedWallets: wallets.map(w => w.address),
+          createdAt: new Date(profile.created_at),
+          updatedAt: new Date(profile.updated_at),
+          followersCount: 0,
+          followingCount: 0,
+          isPublic: profile.is_public ?? true,
+          showWalletAddress: profile.show_wallet_address ?? true,
+          showEmail: profile.show_email ?? false
+        }
+      })
+
+      return followers
+    } catch (error) {
+      console.error('❌ Error in getFollowers:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get users that a user is following
+   */
+  static async getFollowing(userId: string): Promise<UserProfile[]> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data, error } = await supabase
+        .from('profile_follows')
+        .select(`
+          following_id,
+          profiles!profile_follows_following_id_fkey (
+            *,
+            profile_wallets (
+              wallet_address,
+              wallet_type,
+              is_primary,
+              added_at
+            )
+          )
+        `)
+        .eq('follower_id', userId)
+
+      if (error) {
+        throw new Error(`Failed to get following: ${error.message}`)
+      }
+
+      // Convert to UserProfile format
+      const following: UserProfile[] = (data || []).map((item: any) => {
+        const profile = item.profiles
+        const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+          address: w.wallet_address,
+          type: w.wallet_type,
+          addedAt: new Date(w.added_at)
+        }))
+
+        const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+        return {
+          id: profile.id,
+          username: profile.username,
+          email: profile.email,
+          avatar: profile.avatar,
+          bio: profile.bio,
+          bannerImage: profile.banner_image,
+          twitter: profile.twitter,
+          instagram: profile.instagram,
+          discord: profile.discord,
+          website: profile.website,
+          verified: profile.is_verified,
+          walletAddress: primaryWallet?.wallet_address,
+          wallets,
+          activeWallet: primaryWallet?.wallet_address,
+          linkedWallets: wallets.map(w => w.address),
+          createdAt: new Date(profile.created_at),
+          updatedAt: new Date(profile.updated_at),
+          followersCount: 0,
+          followingCount: 0,
+          isPublic: profile.is_public ?? true,
+          showWalletAddress: profile.show_wallet_address ?? true,
+          showEmail: profile.show_email ?? false
+        }
+      })
+
+      return following
+    } catch (error) {
+      console.error('❌ Error in getFollowing:', error)
+      return []
+    }
+  }
+
+  /**
+   * Get follower and following counts
+   */
+  static async getFollowCounts(userId: string): Promise<{ followers: number; following: number }> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const [followersResult, followingResult] = await Promise.all([
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('following_id', userId),
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('follower_id', userId)
+      ])
+
+      return {
+        followers: followersResult.count || 0,
+        following: followingResult.count || 0
+      }
+    } catch (error) {
+      console.error('❌ Error in getFollowCounts:', error)
+      return { followers: 0, following: 0 }
+    }
+  }
+
+  // ============================================================================
+  // WATCHLIST METHODS (Multi-device sync)
+  // ============================================================================
+
+  /**
+   * Add collection to watchlist (sync to Supabase)
+   */
+  static async addToWatchlist(
+    profileId: string,
+    collectionAddress: string,
+    chainId: number,
+    collectionName?: string,
+    collectionImage?: string
+  ): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Add to database
+      const { error } = await supabase
+        .from('profile_watchlist')
+        .insert({
+          profile_id: profileId,
+          collection_address: collectionAddress,
+          chain_id: chainId,
+          collection_name: collectionName,
+          collection_image: collectionImage
+        })
+
+      if (error) {
+        // Ignore duplicate key errors (already in watchlist)
+        if (error.code === '23505') {
+          console.log('Collection already in watchlist')
+          return
+        }
+        throw new Error(`Failed to add to watchlist: ${error.message}`)
+      }
+
+      console.log('✅ Added collection to watchlist in database')
+    } catch (error) {
+      console.error('❌ Error in addToWatchlist:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Remove collection from watchlist (sync to Supabase)
+   */
+  static async removeFromWatchlist(
+    profileId: string,
+    collectionAddress: string,
+    chainId: number
+  ): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Remove from database
+      const { error } = await supabase
+        .from('profile_watchlist')
+        .delete()
+        .eq('profile_id', profileId)
+        .eq('collection_address', collectionAddress)
+        .eq('chain_id', chainId)
+
+      if (error) {
+        throw new Error(`Failed to remove from watchlist: ${error.message}`)
+      }
+
+      console.log('✅ Removed collection from watchlist in database')
+    } catch (error) {
+      console.error('❌ Error in removeFromWatchlist:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Check if collection is in watchlist
+   */
+  static async isInWatchlist(
+    profileId: string,
+    collectionAddress: string,
+    chainId: number
+  ): Promise<boolean> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data, error } = await supabase
+        .from('profile_watchlist')
+        .select('id')
+        .eq('profile_id', profileId)
+        .eq('collection_address', collectionAddress)
+        .eq('chain_id', chainId)
+        .single()
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = not found (expected)
+        console.error('❌ Error checking watchlist status:', error)
+        return false
+      }
+
+      return !!data
+    } catch (error) {
+      console.error('❌ Error in isInWatchlist:', error)
+      return false
+    }
+  }
+
+  /**
+   * Get watchlist for a user
+   */
+  static async getWatchlist(profileId: string): Promise<Array<{
+    collectionAddress: string
+    chainId: number
+    collectionName?: string
+    collectionImage?: string
+    addedAt: Date
+  }>> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data, error } = await supabase
+        .from('profile_watchlist')
+        .select('*')
+        .eq('profile_id', profileId)
+        .order('added_at', { ascending: false })
+
+      if (error) {
+        throw new Error(`Failed to get watchlist: ${error.message}`)
+      }
+
+      return (data || []).map((item: any) => ({
+        collectionAddress: item.collection_address,
+        chainId: item.chain_id,
+        collectionName: item.collection_name,
+        collectionImage: item.collection_image,
+        addedAt: new Date(item.added_at)
+      }))
+    } catch (error) {
+      console.error('❌ Error in getWatchlist:', error)
+      return []
+    }
   }
 }
