@@ -703,8 +703,56 @@ npx hardhat run scripts/deploy-bundles.ts --network apechain
 
 ## Recent Updates
 
-### Token-Gated Community Chat for Collections - PLANNED 📋 (October 8, 2025)
+### Token-Gated Community Chat for Collections - ⚠️ IN PROGRESS (October 9, 2025)
 **What**: Implementing gasless, token-gated community chat for NFT collection pages. Only holders of NFTs from a collection can participate in the community chat.
+
+**Current Status**: ⚠️ **PARTIALLY WORKING - Messages Disappearing on Page Refresh**
+
+**What Works**:
+- ✅ Messages send successfully via gasless relayer
+- ✅ Messages appear immediately in chat (optimistic UI)
+- ✅ Messages stored on blockchain (78 messages confirmed via debug script)
+- ✅ Supabase caching implemented (all 78 messages synced)
+- ✅ API route returns messages from Supabase successfully
+- ✅ New messages sync to Supabase after blockchain write
+
+**Current Issue**:
+- ❌ Messages disappear when user navigates away and comes back to chat
+- ❌ Page refresh shows empty chat (messages exist in Supabase but UI not displaying)
+- ⏳ API takes ~10 seconds to return messages (still within timeout but slow)
+
+**Investigation Status**:
+- Backend verified working (API returns JSON with 78 messages)
+- Supabase verified working (test script confirms 78 messages in database)
+- Frontend may not be properly handling API response
+- Possible client-side state management issue
+
+**Next Steps for Debugging**:
+1. Check frontend console for errors when loading chat
+2. Verify chat component is fetching from correct API endpoint
+3. Check if optimistic messages are clearing real messages
+4. Review frontend polling/refresh logic
+5. Test API response in browser DevTools Network tab
+
+**Files Implemented**:
+- ✅ `lib/supabase.ts` - Supabase client configuration
+- ✅ `lib/collection-chat.ts` - Token verification + chat utilities
+- ✅ `app/api/collections/[contractAddress]/chat/messages/route.ts` - GET from Supabase
+- ✅ `app/api/collections/[contractAddress]/chat/send-message/route.ts` - POST + sync to Supabase
+- ✅ `scripts/sync-blockchain-to-supabase.ts` - One-time sync script (78 messages synced)
+- ✅ `scripts/test-supabase.ts` - Database connection test utility
+
+**Supabase Setup** (Free Tier):
+- Database: `chat_messages` table with 78 messages
+- Unique constraint: `(collection_address, blockchain_id)`
+- RLS policies: Public read, anon insert
+- Indexes: collection_address, timestamp, group_id
+
+**Environment Variables**:
+```bash
+NEXT_PUBLIC_SUPABASE_URL=https://hpcwfcrytbjlbnmsmtge.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGc...
+```
 
 **Why**:
 - Build community engagement directly on FortunaSquare
