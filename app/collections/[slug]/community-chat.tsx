@@ -139,12 +139,19 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     checkOwnership()
   }, [userProfile, collection.contractAddress])
 
-  // Load messages - use useCallback to prevent infinite loops
+  // Load messages - simplified to avoid race conditions
   const loadMessages = useCallback(async () => {
     try {
       console.log('📡 Fetching messages from API...')
+      // Add cache-busting timestamp
       const response = await fetch(
-        `/api/collections/${collection.contractAddress}/chat/messages`
+        `/api/collections/${collection.contractAddress}/chat/messages?t=${Date.now()}`,
+        {
+          headers: {
+            'Cache-Control': 'no-cache',
+            'Pragma': 'no-cache'
+          }
+        }
       )
 
       console.log('📡 API Response:', {
@@ -164,52 +171,53 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         messagesLength: data.messages?.length
       })
 
-      // Check if we have an optimistic message and if the real message has appeared
-      setMessages(prev => {
-        const currentOptimisticId = optimisticMessageIdRef.current
-        if (currentOptimisticId) {
-          const optimisticMsg = prev.find(m => m.id === currentOptimisticId)
-          if (optimisticMsg) {
-            console.log('🔍 Checking for real message:', {
-              optimisticContent: optimisticMsg.content,
-              optimisticSender: optimisticMsg.senderAddress,
-              apiMessageCount: data.messages?.length,
-              lastApiMessage: data.messages?.[data.messages.length - 1]
-            })
+      if (!data.success || !data.messages) {
+        console.error('❌ Invalid API response structure:', data)
+        return
+      }
 
-            // Check if the real message (with matching content and sender) exists
-            const realMessageExists = data.messages.some((m: any) => {
-              const contentMatch = m.content === optimisticMsg.content
-              const senderMatch = m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
+      // Simplified: Just use the API messages directly, no complex prev logic
+      const currentOptimisticId = optimisticMessageIdRef.current
 
-              if (contentMatch && senderMatch) {
-                console.log('✅ Found matching message in API response:', m)
-              }
+      if (!currentOptimisticId) {
+        // No optimistic message, just set the API messages
+        console.log('✅ No optimistic message, setting', data.messages.length, 'messages')
+        setMessages(data.messages)
+        setLoading(false)
+        return
+      }
 
-              return contentMatch && senderMatch
-            })
+      // Get optimistic message from current state
+      const currentOptimisticMsg = messages.find(m => m.id === currentOptimisticId)
 
-            // If real message exists, clear optimistic ID and show only real messages
-            if (realMessageExists) {
-              console.log('✅ Real message appeared, removing optimistic message')
-              setOptimisticMessageId(null)
-              return data.messages || []
-            }
+      if (!currentOptimisticMsg) {
+        // Optimistic message already removed, just use API messages
+        console.log('✅ Optimistic message not found in state, setting', data.messages.length, 'messages')
+        setMessages(data.messages)
+        setLoading(false)
+        return
+      }
 
-            // Otherwise keep showing optimistic message
-            console.log('⏳ Keeping optimistic message while waiting for blockchain confirmation')
-            return [...(data.messages || []), optimisticMsg]
-          }
-        }
-        console.log('📝 Setting messages:', data.messages?.length || 0)
-        return data.messages || []
-      })
+      // Check if optimistic message now exists in real messages
+      const realMessageExists = data.messages.some((m: any) =>
+        m.content === currentOptimisticMsg.content &&
+        m.senderAddress.toLowerCase() === currentOptimisticMsg.senderAddress.toLowerCase()
+      )
+
+      if (realMessageExists) {
+        console.log('✅ Real message appeared, clearing optimistic state')
+        setOptimisticMessageId(null)
+        setMessages(data.messages)
+      } else {
+        console.log('⏳ Optimistic message still pending, appending it')
+        setMessages([...data.messages, currentOptimisticMsg])
+      }
     } catch (error) {
       console.error("❌ Error loading messages:", error)
     } finally {
       setLoading(false)
     }
-  }, [collection.contractAddress])
+  }, [collection.contractAddress, messages])
 
   // Load messages and set up polling
   useEffect(() => {
