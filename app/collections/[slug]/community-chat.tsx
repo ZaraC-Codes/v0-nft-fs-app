@@ -220,8 +220,16 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         optimisticMessageRef.current = null
         setMessages(data.messages)
       } else {
-        console.log('⏳ Optimistic message still pending, appending it')
-        setMessages([...data.messages, currentOptimisticMsg])
+        // SAFETY CHECK: Don't re-append if the optimistic message is already confirmed (pending: false)
+        // This prevents the "Sending..." status from reappearing after transaction success
+        if (currentOptimisticMsg.pending === false) {
+          console.log('⏳ Optimistic message confirmed, waiting for blockchain propagation')
+          // Keep current messages array as-is, don't re-append the optimistic message
+          // The next poll will pick up the real blockchain message
+        } else {
+          console.log('⏳ Optimistic message still pending, appending it')
+          setMessages([...data.messages, currentOptimisticMsg])
+        }
       }
     } catch (error) {
       console.error("❌ Error loading messages:", error)
@@ -376,6 +384,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
           ? { ...m, pending: false }  // Remove "Sending..." but keep message visible
           : m
       ))
+
+      // CRITICAL: Update the ref with the confirmed state
+      // This prevents polling from re-appending the stale optimistic message
+      if (optimisticMessageRef.current) {
+        optimisticMessageRef.current = { ...optimisticMessageRef.current, pending: false }
+        console.log('✅ Updated optimistic message ref to pending: false')
+      }
 
       // Polling will detect the real message and replace the optimistic one
       // This ensures the message is ALWAYS visible to the user
