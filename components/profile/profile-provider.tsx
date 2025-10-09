@@ -1157,6 +1157,15 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
         console.log('🔄 Loading profile from database for user:', user.id)
 
+        // ✅ Validate user.id format matches Supabase UUID
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(user.id)
+        if (!isUUID) {
+          console.error("❌ Invalid user ID format (not UUID). Clearing stale auth state.", user.id)
+          localStorage.removeItem("fortuna_square_user")
+          setUserProfile(null)
+          return
+        }
+
         // FIRST: Load profile from Supabase database (source of truth)
         const dbProfile = await ProfileService.getProfileFromDatabase(user.id)
 

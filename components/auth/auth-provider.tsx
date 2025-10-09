@@ -258,7 +258,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 setUser(walletUser)
                 localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+
+                // Force immediate persistence and notify other components
+                if (typeof window !== 'undefined') {
+                  window.dispatchEvent(new Event('storage'))
+                }
+
                 console.log("✅ User logged in:", profile.username)
+                console.log("✅ Auth state saved with profile ID:", profile.id)
+
+                // Redirect to profile page after successful signup
+                const isNewUser = !user || user.username !== profile.username
+                if (isNewUser) {
+                  setTimeout(() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = `/profile/${profile.username}`
+                    }
+                  }, 500)
+                }
               } catch (error) {
                 console.error("❌ Failed to create/sync wallet profile:", error)
               }

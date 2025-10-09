@@ -765,28 +765,50 @@ export class ProfileService {
    * Update an existing profile
    */
   static async updateProfile(id: string, updates: Partial<UserProfile>): Promise<UserProfile | null> {
-    const profiles = this.getProfiles()
-    const profileIndex = profiles.findIndex(p => p.id === id)
+    // ✅ FIXED: Try database first (primary source of truth)
+    let profile = await this.getProfileFromDatabase(id)
 
-    if (profileIndex === -1) {
-      return null
+    if (!profile) {
+      // Fallback: Try localStorage
+      const profiles = this.getProfiles()
+      const profileIndex = profiles.findIndex(p => p.id === id)
+
+      if (profileIndex === -1) {
+        console.error(`❌ Profile not found anywhere: ${id}`)
+        return null
+      }
+
+      profile = profiles[profileIndex]
+      console.log("⚠️ Profile found in localStorage (not database), syncing...")
     }
 
     const updatedProfile = {
-      ...profiles[profileIndex],
+      ...profile,
       ...updates,
       updatedAt: new Date()
     }
 
-    profiles[profileIndex] = updatedProfile
-    this.saveProfiles(profiles)
-
-    // ✨ NEW: Also update in Supabase database
+    // ✅ Save to database first, then localStorage
     try {
       await this.updateProfileInDatabase(id, updates)
+      console.log("✅ Profile updated in database:", id)
+
+      // Also update localStorage cache
+      const profiles = this.getProfiles()
+      const profileIndex = profiles.findIndex(p => p.id === id)
+      if (profileIndex >= 0) {
+        profiles[profileIndex] = updatedProfile
+        this.saveProfiles(profiles)
+        console.log("✅ Profile synced to localStorage cache")
+      } else {
+        // Profile not in localStorage, add it
+        profiles.push(updatedProfile)
+        this.saveProfiles(profiles)
+        console.log("✅ Profile added to localStorage cache")
+      }
     } catch (error) {
-      console.error('❌ Failed to sync profile update to database (continuing anyway):', error)
-      // Continue even if database update fails - localStorage is updated
+      console.error('❌ Failed to update profile in database:', error)
+      throw error
     }
 
     return updatedProfile
