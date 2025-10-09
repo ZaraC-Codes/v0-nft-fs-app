@@ -166,12 +166,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             ;(async () => {
               try {
                 let oauthData = null
+                let userInfo = null
 
                 // Check if this is an embedded wallet with OAuth
                 const wallet = (account as any).wallet
                 if (wallet && typeof wallet.getUserInfo === 'function') {
                   try {
-                    const userInfo = await wallet.getUserInfo()
+                    userInfo = await wallet.getUserInfo()
                     console.log("📸 OAuth user info retrieved:", userInfo)
                     oauthData = {
                       provider: userInfo?.provider,
@@ -184,11 +185,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   }
                 }
 
-                // Create profile with OAuth data if available
-                const profile = await ProfileService.createProfileFromWallet(
-                  account.address,
-                  oauthData
-                )
+                // ============================================================
+                // MULTI-DEVICE PROFILE SYNC - OAuth-based lookup
+                // ============================================================
+                let profile: any = null
+
+                // If we have OAuth data, look up by provider credentials
+                if (oauthData?.provider && userInfo?.sub) {
+                  console.log("🔍 Looking up profile by OAuth provider:", oauthData.provider, "ID:", userInfo.sub)
+
+                  profile = await ProfileService.getProfileByOAuthProvider(
+                    oauthData.provider,
+                    userInfo.sub // OAuth provider's unique user ID
+                  )
+
+                  if (profile) {
+                    console.log("✅ Found existing profile via OAuth - linking new device wallet")
+
+                    // Link this device's embedded wallet to existing profile
+                    await ProfileService.linkWalletToProfileInDatabase(
+                      profile.id,
+                      account.address,
+                      'embedded'
+                    )
+
+                    // Sync to localStorage cache
+                    await ProfileService.syncProfileToLocalStorage(profile)
+                  } else {
+                    console.log("🆕 Creating new profile in database with OAuth account")
+
+                    // Generate username
+                    let username: string
+                    if (oauthData.name) {
+                      const baseName = oauthData.name.toLowerCase().replace(/\s+/g, '_')
+                      username = baseName + '_' + Date.now().toString().slice(-4)
+                    } else if (oauthData.email) {
+                      username = ProfileService.generateUsernameFromEmail(oauthData.email)
+                    } else {
+                      username = ProfileService.generateUsernameFromWallet(account.address)
+                    }
+
+                    // Create new profile in Supabase
+                    profile = await ProfileService.createProfileInDatabase(
+                      username,
+                      {
+                        provider: oauthData.provider,
+                        providerAccountId: userInfo.sub,
+                        email: oauthData.email
+                      },
+                      account.address
+                    )
+
+                    // Sync to localStorage cache
+                    await ProfileService.syncProfileToLocalStorage(profile)
+                  }
+                } else {
+                  // Fallback: No OAuth data (email/passkey) - use legacy localStorage
+                  console.log("⚠️ No OAuth provider detected, using legacy localStorage profile creation")
+                  profile = await ProfileService.createProfileFromWallet(
+                    account.address,
+                    oauthData
+                  )
+                }
 
                 const walletUser: User = {
                   id: profile.id,
@@ -200,9 +258,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 }
                 setUser(walletUser)
                 localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-                console.log("✅ Created wallet user:", profile.username)
+                console.log("✅ User logged in:", profile.username)
               } catch (error) {
-                console.error("Failed to create wallet profile:", error)
+                console.error("❌ Failed to create/sync wallet profile:", error)
               }
             })()
           } else {

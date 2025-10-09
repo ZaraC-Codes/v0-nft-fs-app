@@ -1,4 +1,5 @@
 import { UserProfile, WalletMetadata, WalletType } from "@/types/profile"
+import { getSupabaseClient } from "./supabase"
 
 export interface CreateProfileParams {
   id: string
@@ -7,11 +8,269 @@ export interface CreateProfileParams {
   walletAddress?: string
 }
 
+export interface OAuthAccountData {
+  provider: string // 'google', 'facebook', 'twitter', 'discord', 'apple'
+  providerAccountId: string // Unique ID from OAuth provider
+  email?: string
+}
+
 /**
  * Profile Service - Handles user profile creation and management
  */
 export class ProfileService {
   private static readonly STORAGE_KEY = "fortuna_square_profiles"
+
+  // ============================================================================
+  // SUPABASE METHODS (Cross-device profile sync)
+  // ============================================================================
+
+  /**
+   * Get profile from Supabase by OAuth provider credentials
+   * This is the PRIMARY lookup method for multi-device sync
+   */
+  static async getProfileByOAuthProvider(
+    provider: string,
+    providerAccountId: string
+  ): Promise<UserProfile | null> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Look up OAuth account first
+      const { data: oauthAccount, error: oauthError } = await supabase
+        .from('profile_oauth_accounts')
+        .select('profile_id')
+        .eq('provider', provider)
+        .eq('provider_account_id', providerAccountId)
+        .single()
+
+      if (oauthError || !oauthAccount) {
+        console.log('🔍 No existing profile found for OAuth account:', { provider, providerAccountId })
+        return null
+      }
+
+      // Fetch full profile with wallets
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          profile_wallets (
+            wallet_address,
+            wallet_type,
+            is_primary,
+            added_at
+          )
+        `)
+        .eq('id', oauthAccount.profile_id)
+        .single()
+
+      if (profileError || !profile) {
+        console.error('❌ Error fetching profile:', profileError)
+        return null
+      }
+
+      // Convert Supabase profile to UserProfile format
+      const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+        address: w.wallet_address,
+        type: w.wallet_type,
+        addedAt: new Date(w.added_at)
+      }))
+
+      const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+      const userProfile: UserProfile = {
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        avatar: profile.avatar,
+        bio: profile.bio,
+        bannerImage: profile.banner_image,
+        twitter: profile.twitter,
+        instagram: profile.instagram,
+        discord: profile.discord,
+        website: profile.website,
+        walletAddress: primaryWallet?.wallet_address,
+        wallets,
+        activeWallet: primaryWallet?.wallet_address,
+        linkedWallets: wallets.map(w => w.address),
+        verified: profile.is_verified,
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at),
+        followersCount: 0,
+        followingCount: 0,
+        isPublic: true,
+        showWalletAddress: true,
+        showEmail: false
+      }
+
+      console.log('✅ Found existing profile via OAuth:', userProfile.username)
+      return userProfile
+    } catch (error) {
+      console.error('❌ Error in getProfileByOAuthProvider:', error)
+      return null
+    }
+  }
+
+  /**
+   * Create new profile in Supabase with OAuth account and wallet
+   */
+  static async createProfileInDatabase(
+    username: string,
+    oauthData: OAuthAccountData,
+    embeddedWalletAddress: string
+  ): Promise<UserProfile> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // 1. Create profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          username,
+          email: oauthData.email,
+          bio: `Connected via ${oauthData.provider.charAt(0).toUpperCase() + oauthData.provider.slice(1)} 🚀`,
+          is_verified: true
+        })
+        .select()
+        .single()
+
+      if (profileError || !profile) {
+        throw new Error(`Failed to create profile: ${profileError?.message}`)
+      }
+
+      console.log('✅ Created profile in database:', profile.id)
+
+      // 2. Link OAuth account
+      const { error: oauthError } = await supabase
+        .from('profile_oauth_accounts')
+        .insert({
+          profile_id: profile.id,
+          provider: oauthData.provider,
+          provider_account_id: oauthData.providerAccountId,
+          email: oauthData.email
+        })
+
+      if (oauthError) {
+        throw new Error(`Failed to link OAuth account: ${oauthError.message}`)
+      }
+
+      console.log('✅ Linked OAuth account:', oauthData.provider)
+
+      // 3. Link embedded wallet
+      const { error: walletError } = await supabase
+        .from('profile_wallets')
+        .insert({
+          profile_id: profile.id,
+          wallet_address: embeddedWalletAddress,
+          wallet_type: 'embedded',
+          is_primary: true
+        })
+
+      if (walletError) {
+        throw new Error(`Failed to link wallet: ${walletError.message}`)
+      }
+
+      console.log('✅ Linked embedded wallet:', embeddedWalletAddress)
+
+      // Return UserProfile format
+      const userProfile: UserProfile = {
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        avatar: profile.avatar,
+        bio: profile.bio,
+        walletAddress: embeddedWalletAddress,
+        wallets: [{
+          address: embeddedWalletAddress,
+          type: 'embedded',
+          addedAt: new Date()
+        }],
+        activeWallet: embeddedWalletAddress,
+        linkedWallets: [embeddedWalletAddress],
+        verified: true,
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at),
+        followersCount: 0,
+        followingCount: 0,
+        isPublic: true,
+        showWalletAddress: true,
+        showEmail: false
+      }
+
+      return userProfile
+    } catch (error) {
+      console.error('❌ Error in createProfileInDatabase:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Link a wallet to an existing profile in Supabase
+   */
+  static async linkWalletToProfileInDatabase(
+    profileId: string,
+    walletAddress: string,
+    walletType: WalletType = 'embedded'
+  ): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Check if wallet is already linked
+      const { data: existing } = await supabase
+        .from('profile_wallets')
+        .select('wallet_address')
+        .eq('wallet_address', walletAddress)
+        .single()
+
+      if (existing) {
+        console.log('⚠️ Wallet already linked:', walletAddress)
+        return
+      }
+
+      // Link wallet
+      const { error } = await supabase
+        .from('profile_wallets')
+        .insert({
+          profile_id: profileId,
+          wallet_address: walletAddress,
+          wallet_type: walletType,
+          is_primary: false // Only first embedded wallet is primary
+        })
+
+      if (error) {
+        throw new Error(`Failed to link wallet: ${error.message}`)
+      }
+
+      console.log('✅ Linked wallet to profile in database:', walletAddress)
+    } catch (error) {
+      console.error('❌ Error in linkWalletToProfileInDatabase:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Sync profile from Supabase to localStorage cache
+   */
+  static async syncProfileToLocalStorage(profile: UserProfile): Promise<void> {
+    try {
+      const profiles = this.getProfiles()
+      const existingIndex = profiles.findIndex(p => p.id === profile.id)
+
+      if (existingIndex >= 0) {
+        profiles[existingIndex] = profile
+      } else {
+        profiles.push(profile)
+      }
+
+      this.saveProfiles(profiles)
+      console.log('✅ Synced profile to localStorage cache')
+    } catch (error) {
+      console.error('❌ Error syncing profile to localStorage:', error)
+    }
+  }
+
+  // ============================================================================
+  // LOCALSTORAGE METHODS (Legacy/cache layer)
+  // ============================================================================
 
   /**
    * Get all profiles from localStorage
