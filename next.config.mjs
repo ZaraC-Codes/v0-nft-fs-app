@@ -16,6 +16,16 @@ const nextConfig = {
     ],
   },
 
+  // Generate unique build IDs to prevent cache issues
+  generateBuildId: async () => {
+    // Use git commit hash + timestamp for guaranteed unique builds
+    const commitSha = process.env.VERCEL_GIT_COMMIT_SHA ||
+                     process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
+                     'local';
+    const timestamp = Date.now();
+    return `${commitSha.substring(0, 7)}-${timestamp}`;
+  },
+
   webpack: (config, { isServer, dev }) => {
     // Ignore pino-pretty in browser builds
     if (!isServer) {
