@@ -356,13 +356,17 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
+      // Clear optimistic message immediately - polling will show real message
+      setOptimisticMessageId(null)
+      optimisticMessageRef.current = null
+
+      // Trigger immediate refresh to show confirmed message
+      loadMessages()
+
       toast({
         title: "Message sent!",
         description: "Your message was sent gaslessly",
       })
-
-      // The 3-second polling will automatically detect when the real message appears
-      // and replace the optimistic message
     } catch (error: any) {
       console.error("❌ Send message error:", {
         message: error.message,
