@@ -42,7 +42,7 @@ export default function RootLayout({
             <AuthProvider>
               <ProfileProvider>
                 <WalletSwitcherProvider>
-                  <SyncDebugger />
+                  {process.env.NODE_ENV === 'development' && <SyncDebugger />}
                   {children}
                   <Toaster />
                 </WalletSwitcherProvider>
