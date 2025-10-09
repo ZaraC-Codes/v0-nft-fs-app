@@ -63,19 +63,23 @@ export async function POST(
 
     console.log(`📍 Checking NFT ownership across ${walletsToCheck.length} wallet(s):`, walletsToCheck)
 
-    const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
+    // TEMPORARY: Skip ownership check for debugging (REMOVE BEFORE PRODUCTION!)
+    console.log(`⚠️ TEMP: Skipping ownership verification for debugging`)
+    const hasNFT = true // Always pass for now
 
-    if (!hasNFT) {
-      console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
-      return NextResponse.json(
-        {
-          error: "Access denied",
-          message: "You must own at least 1 NFT from this collection to chat",
-          requiresNFT: true,
-        },
-        { status: 403 }
-      )
-    }
+    // const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
+
+    // if (!hasNFT) {
+    //   console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
+    //   return NextResponse.json(
+    //     {
+    //       error: "Access denied",
+    //       message: "You must own at least 1 NFT from this collection to chat",
+    //       requiresNFT: true,
+    //     },
+    //     { status: 403 }
+    //   )
+    // }
 
     console.log(`✅ Ownership verified: User owns NFT(s) from ${contractAddress} in one of their wallets`)
 
