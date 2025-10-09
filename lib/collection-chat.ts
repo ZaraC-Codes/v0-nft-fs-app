@@ -25,9 +25,14 @@ export function getCollectionChatId(contractAddress: string): bigint {
   return BigInt("1" + suffix.toString().padStart(18, "0"))
 }
 
+// In-memory cache for ownership verification (5 minute TTL)
+const ownershipCache = new Map<string, { verified: boolean; expiresAt: number }>()
+const CACHE_TTL = 5 * 60 * 1000 // 5 minutes
+
 /**
  * Verify that a wallet (or multiple wallets) owns at least 1 NFT from a collection
  * Uses GoldRush API as primary source, falls back to blockchain
+ * Caches results for 5 minutes to avoid repeated API calls during chat sessions
  *
  * SECURITY: This should ONLY be called server-side (API routes)
  * Never trust frontend ownership checks!
@@ -43,6 +48,16 @@ export async function verifyCollectionOwnership(
   try {
     // Normalize to array
     const addresses = Array.isArray(walletAddresses) ? walletAddresses : [walletAddresses]
+
+    // Check cache first (key is sorted wallets + contract to ensure consistency)
+    const cacheKey = `${addresses.map(a => a.toLowerCase()).sort().join(',')}:${contractAddress.toLowerCase()}`
+    const cached = ownershipCache.get(cacheKey)
+
+    if (cached && Date.now() < cached.expiresAt) {
+      const remainingSeconds = Math.floor((cached.expiresAt - Date.now()) / 1000)
+      console.log(`✅ Using cached ownership result (${remainingSeconds}s remaining): ${cached.verified}`)
+      return cached.verified
+    }
 
     console.log(`🔍 Verifying ownership for ${addresses.length} wallet(s) in collection ${contractAddress}`)
     console.log(`📍 Checking wallets:`, addresses)
@@ -69,6 +84,8 @@ export async function verifyCollectionOwnership(
 
           if (hasNFT) {
             console.log(`✅ Verified ownership via GoldRush: ${walletAddress} owns ${nfts.length} NFT(s) from ${contractAddress}`)
+            // Cache positive result
+            ownershipCache.set(cacheKey, { verified: true, expiresAt: Date.now() + CACHE_TTL })
             return true
           }
         }
@@ -88,6 +105,8 @@ export async function verifyCollectionOwnership(
 
         if (hasNFTOnChain) {
           console.log(`✅ Verified ownership via blockchain: ${walletAddress} owns NFT(s) from ${contractAddress}`)
+          // Cache positive result
+          ownershipCache.set(cacheKey, { verified: true, expiresAt: Date.now() + CACHE_TTL })
           return true
         }
       } catch (error: any) {
@@ -98,10 +117,12 @@ export async function verifyCollectionOwnership(
     }
 
     console.log(`❌ No ownership verified: None of the ${addresses.length} wallet(s) own NFTs from ${contractAddress}`)
+    // Cache negative result (shorter TTL for negative results - user might buy NFT)
+    ownershipCache.set(cacheKey, { verified: false, expiresAt: Date.now() + (CACHE_TTL / 2) })
     return false
   } catch (error) {
     console.error("Error verifying collection ownership:", error)
-    // SECURITY: Fail closed - deny access on error
+    // SECURITY: Fail closed - deny access on error (don't cache errors)
     return false
   }
 }

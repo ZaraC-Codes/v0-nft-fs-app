@@ -63,25 +63,24 @@ export async function POST(
 
     console.log(`📍 Checking NFT ownership across ${walletsToCheck.length} wallet(s):`, walletsToCheck)
 
-    // TEMPORARY: Skip ownership check for debugging (REMOVE BEFORE PRODUCTION!)
-    console.log(`⚠️ TEMP: Skipping ownership verification for debugging`)
-    const hasNFT = true // Always pass for now
+    // SECURITY NOTE: We trust the frontend verified ownership when user accessed chat
+    // But we still verify server-side to prevent API abuse
+    // The verifyCollectionOwnership function now has caching (5 min) to avoid repeated API calls
+    const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
 
-    // const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
+    if (!hasNFT) {
+      console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
+      return NextResponse.json(
+        {
+          error: "Access denied",
+          message: "You must own at least 1 NFT from this collection to chat",
+          requiresNFT: true,
+        },
+        { status: 403 }
+      )
+    }
 
-    // if (!hasNFT) {
-    //   console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
-    //   return NextResponse.json(
-    //     {
-    //       error: "Access denied",
-    //       message: "You must own at least 1 NFT from this collection to chat",
-    //       requiresNFT: true,
-    //     },
-    //     { status: 403 }
-    //   )
-    // }
-
-    console.log(`✅ Ownership verified: User owns NFT(s) from ${contractAddress} in one of their wallets`)
+    console.log(`✅ Ownership verified: User owns NFT(s) from ${contractAddress} in one of their linked wallets`)
 
     // Get collection's deterministic chat ID
     const groupId = getCollectionChatId(contractAddress)
