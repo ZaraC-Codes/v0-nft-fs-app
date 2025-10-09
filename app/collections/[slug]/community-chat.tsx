@@ -368,11 +368,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
-      // Don't clear optimistic state immediately - let polling detect real message
-      // The loadMessages() comparison will succeed now that content is sanitized on both sides
+      // Clear optimistic state immediately - transaction confirmed by backend
+      console.log('✅ Transaction confirmed, clearing optimistic state')
+      setOptimisticMessageId(null)
+      optimisticMessageRef.current = null
+      setMessages(prev => prev.filter(m => m.id !== tempId))
 
-      // Trigger immediate refresh to show confirmed message
-      loadMessages()
+      // Polling will automatically fetch and show the real message within 3 seconds
+      // No need to manually refresh - avoids race conditions
 
       toast({
         title: "Message sent!",
