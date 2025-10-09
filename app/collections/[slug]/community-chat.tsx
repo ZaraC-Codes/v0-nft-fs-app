@@ -247,6 +247,17 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     }
   }, [collection.contractAddress, loadMessages])
 
+  // Sanitization helper matching backend logic
+  const sanitizeMessageForDisplay = (input: string): string => {
+    return input
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;')
+      .replace(/\//g, '&#x2F;')
+  }
+
   const handleSendMessage = async (content: string) => {
     console.log('🔍🔍🔍 SEND MESSAGE CALLED - VERSION 2.0 🔍🔍🔍')
     console.log('🔍 Send message debugging:', {
@@ -301,11 +312,12 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     }
 
     // Optimistically add message to UI immediately (using profile wallet address)
+    // IMPORTANT: Sanitize content to match what blockchain will store
     const tempId = `temp-${Date.now()}`
     const optimisticMessage = {
       id: tempId,
       type: 'message',
-      content,
+      content: sanitizeMessageForDisplay(content),  // Match backend sanitization
       timestamp: new Date().toISOString(),
       senderAddress: profileWallet.address,
       isBot: false,
@@ -356,9 +368,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
-      // Clear optimistic message immediately - polling will show real message
-      setOptimisticMessageId(null)
-      optimisticMessageRef.current = null
+      // Don't clear optimistic state immediately - let polling detect real message
+      // The loadMessages() comparison will succeed now that content is sanitized on both sides
 
       // Trigger immediate refresh to show confirmed message
       loadMessages()
