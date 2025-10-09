@@ -379,18 +379,23 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       // Mark optimistic message as confirmed (remove pending indicator)
       // Keep the message visible until polling fetches the real blockchain message
       console.log('✅ Transaction confirmed, marking optimistic message as confirmed')
-      setMessages(prev => prev.map(m =>
-        m.id === tempId
-          ? { ...m, pending: false }  // Remove "Sending..." but keep message visible
-          : m
-      ))
+      setMessages(prev => {
+        const updated = prev.map(m =>
+          m.id === tempId
+            ? { ...m, pending: false }  // Remove "Sending..." but keep message visible
+            : m
+        )
 
-      // CRITICAL: Update the ref with the confirmed state
-      // This prevents polling from re-appending the stale optimistic message
-      if (optimisticMessageRef.current) {
-        optimisticMessageRef.current = { ...optimisticMessageRef.current, pending: false }
-        console.log('✅ Updated optimistic message ref to pending: false')
-      }
+        // CRITICAL: Sync ref with state inside setter to prevent race conditions
+        // This ensures polling can't overwrite the confirmed state
+        const confirmedMsg = updated.find(m => m.id === tempId)
+        if (confirmedMsg) {
+          optimisticMessageRef.current = confirmedMsg
+          console.log('✅ Updated optimistic message ref to pending: false (synced with state)')
+        }
+
+        return updated
+      })
 
       // Polling will detect the real message and replace the optimistic one
       // This ensures the message is ALWAYS visible to the user
