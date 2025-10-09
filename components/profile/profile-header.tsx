@@ -51,6 +51,14 @@ export function ProfileHeader({ profile: profileProp }: ProfileHeaderProps) {
   // This ensures counts update from ProfileProvider context
   const profile = (userProfile?.id === profileProp.id) ? userProfile : profileProp
 
+  // Debug logging for ownership check
+  console.log('🔍 Ownership check:', {
+    userId: user?.id,
+    profileId: profile.id,
+    username: profile.username,
+    isMatch: user?.id === profile.id
+  })
+
   const isOwnProfile = user?.id === profile.id
   const isFollowingUser = isFollowing(profile.id)
 

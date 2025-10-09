@@ -267,15 +267,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.log("✅ User logged in:", profile.username)
                 console.log("✅ Auth state saved with profile ID:", profile.id)
 
-                // Redirect to profile page after successful signup
-                const isNewUser = !user || user.username !== profile.username
-                if (isNewUser) {
-                  setTimeout(() => {
-                    if (typeof window !== 'undefined') {
-                      window.location.href = `/profile/${profile.username}`
-                    }
-                  }, 500)
-                }
+                // TODO: Redirect to profile page after successful signup
+                // Currently disabled because window.location.href causes page reload which clears auth state
+                // Will implement with Next.js router in a future update
               } catch (error) {
                 console.error("❌ Failed to create/sync wallet profile:", error)
               }
