@@ -248,6 +248,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   }, [collection.contractAddress, loadMessages])
 
   const handleSendMessage = async (content: string) => {
+    // CRITICAL DEBUG LOG - v2.0
+    console.log('🔍🔍🔍 SEND MESSAGE CALLED - VERSION 2.0 🔍🔍🔍')
     console.log('🔍 Send message debugging:', {
       hasAccount: !!account,
       accountAddress: account?.address,
@@ -257,6 +259,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       content,
       collectionAddress: collection.contractAddress
     })
+
+    // FORCE ALERT TO PROVE NEW CODE IS RUNNING
+    alert(`DEBUG v2.0: Sending message "${content}"`)
 
     if (!hasNFT) {
       toast({

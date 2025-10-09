@@ -78,7 +78,9 @@
       "Bash(npm run build:*)",
       "Bash(move libreservoir-api.ts libmoralis-api.ts)",
       "Bash(export NEXT_PUBLIC_GOLDRUSH_API_KEY=\"cqt_rQBWKKQWTMV6V9D9VhVwrjMBW3xP\")",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(git revert:*)",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": []

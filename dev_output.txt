@@ -1,0 +1,26 @@
+
+> my-v0-project@0.1.0 dev:clean
+> node -e "const fs=require('fs');const path=require('path');const dir=path.join(__dirname,'.next');if(fs.existsSync(dir))fs.rmSync(dir,{recursive:true,force:true});" && next dev
+
+node:internal/fs/rimraf:291
+    throw originalErr;
+    ^
+
+Error: EPERM: operation not permitted, lstat 'c:\Users\zarac\v0-nft-fs-app\.next\trace'
+    at lstatSync (node:fs:1634:25)
+    at rimrafSync (node:internal/fs/rimraf:181:13)
+    at node:internal/fs/rimraf:254:9
+    at Array.forEach (<anonymous>)
+    at _rmdirSync (node:internal/fs/rimraf:251:7)
+    at fixWinEPERMSync (node:internal/fs/rimraf:305:5)
+    at rimrafSync (node:internal/fs/rimraf:201:14)
+    at Object.rmSync (node:fs:1247:10)
+    at [eval]:1:115
+    at runScriptInThisContext (node:internal/vm:209:10) {
+  errno: -4048,
+  code: 'EPERM',
+  syscall: 'lstat',
+  path: 'c:\\Users\\zarac\\v0-nft-fs-app\\.next\\trace'
+}
+
+Node.js v22.11.0
