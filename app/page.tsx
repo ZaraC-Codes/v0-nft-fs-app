@@ -476,7 +476,7 @@ export default function HomePage() {
                   <Card className="bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 cursor-pointer h-full hover:scale-[1.02]">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
-                        {/* Avatar */}
+                        {/* User Avatar */}
                         <div className="relative">
                           {user.avatar ? (
                             <img
