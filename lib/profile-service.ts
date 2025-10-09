@@ -268,6 +268,115 @@ export class ProfileService {
     }
   }
 
+  /**
+   * Update profile in Supabase database
+   */
+  static async updateProfileInDatabase(profileId: string, updates: Partial<UserProfile>): Promise<void> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // Map UserProfile fields to Supabase column names
+      const dbUpdates: any = {}
+      if (updates.username !== undefined) dbUpdates.username = updates.username
+      if (updates.email !== undefined) dbUpdates.email = updates.email
+      if (updates.avatar !== undefined) dbUpdates.avatar = updates.avatar
+      if (updates.bio !== undefined) dbUpdates.bio = updates.bio
+      if (updates.bannerImage !== undefined) dbUpdates.banner_image = updates.bannerImage
+      if (updates.twitter !== undefined) dbUpdates.twitter = updates.twitter
+      if (updates.instagram !== undefined) dbUpdates.instagram = updates.instagram
+      if (updates.discord !== undefined) dbUpdates.discord = updates.discord
+      if (updates.website !== undefined) dbUpdates.website = updates.website
+      if (updates.verified !== undefined) dbUpdates.is_verified = updates.verified
+
+      const { error } = await supabase
+        .from('profiles')
+        .update(dbUpdates)
+        .eq('id', profileId)
+
+      if (error) {
+        throw new Error(`Failed to update profile in database: ${error.message}`)
+      }
+
+      console.log('✅ Updated profile in Supabase database:', profileId)
+    } catch (error) {
+      console.error('❌ Error updating profile in database:', error)
+      throw error
+    }
+  }
+
+  /**
+   * Get all profiles from Supabase database
+   */
+  static async getAllProfilesFromDatabase(): Promise<UserProfile[]> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          profile_wallets (
+            wallet_address,
+            wallet_type,
+            is_primary,
+            added_at
+          )
+        `)
+        .order('created_at', { ascending: false })
+
+      if (error) {
+        throw new Error(`Failed to fetch profiles: ${error.message}`)
+      }
+
+      if (!profiles || profiles.length === 0) {
+        console.log('ℹ️ No profiles found in database')
+        return []
+      }
+
+      // Convert Supabase profiles to UserProfile format
+      const userProfiles: UserProfile[] = profiles.map((profile: any) => {
+        const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+          address: w.wallet_address,
+          type: w.wallet_type,
+          addedAt: new Date(w.added_at)
+        }))
+
+        const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+        return {
+          id: profile.id,
+          username: profile.username,
+          email: profile.email,
+          avatar: profile.avatar,
+          bio: profile.bio,
+          bannerImage: profile.banner_image,
+          twitter: profile.twitter,
+          instagram: profile.instagram,
+          discord: profile.discord,
+          website: profile.website,
+          walletAddress: primaryWallet?.wallet_address,
+          wallets,
+          activeWallet: primaryWallet?.wallet_address,
+          linkedWallets: wallets.map(w => w.address),
+          verified: profile.is_verified,
+          createdAt: new Date(profile.created_at),
+          updatedAt: new Date(profile.updated_at),
+          followersCount: 0,
+          followingCount: 0,
+          isPublic: true,
+          showWalletAddress: true,
+          showEmail: false
+        }
+      })
+
+      console.log(`✅ Fetched ${userProfiles.length} profiles from database`)
+      return userProfiles
+    } catch (error) {
+      console.error('❌ Error fetching profiles from database:', error)
+      return []
+    }
+  }
+
   // ============================================================================
   // LOCALSTORAGE METHODS (Legacy/cache layer)
   // ============================================================================
@@ -469,6 +578,14 @@ export class ProfileService {
     profiles[profileIndex] = updatedProfile
     this.saveProfiles(profiles)
 
+    // ✨ NEW: Also update in Supabase database
+    try {
+      await this.updateProfileInDatabase(id, updates)
+    } catch (error) {
+      console.error('❌ Failed to sync profile update to database (continuing anyway):', error)
+      // Continue even if database update fails - localStorage is updated
+    }
+
     return updatedProfile
   }
 
@@ -616,6 +733,14 @@ export class ProfileService {
 
     // Also update old linkedWallets for backwards compatibility
     const updatedLinkedWallets = [...linkedWallets, walletAddress]
+
+    // ✨ NEW: Also link wallet in Supabase database
+    try {
+      await this.linkWalletToProfileInDatabase(profileId, walletAddress, walletType)
+    } catch (error) {
+      console.error('❌ Failed to link wallet in database (continuing anyway):', error)
+      // Continue even if database update fails - localStorage is updated
+    }
 
     return this.updateProfile(profileId, {
       wallets: updatedWallets,
