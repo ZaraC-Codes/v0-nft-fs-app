@@ -51,33 +51,47 @@ export async function verifyCollectionOwnership(
     for (const walletAddress of addresses) {
       console.log(`🔎 Checking wallet: ${walletAddress}`)
 
-      // Try GoldRush API first (faster, more reliable)
-      const nfts = await getGoldRushNFTs(
-        walletAddress,
-        "apechain-mainnet",
-        contractAddress
-      )
+      try {
+        // Try GoldRush API first (faster, more reliable) with 10 second timeout
+        const nfts = await Promise.race([
+          getGoldRushNFTs(walletAddress, "apechain-mainnet", contractAddress),
+          new Promise<null>((_, reject) =>
+            setTimeout(() => reject(new Error('GoldRush API timeout after 10s')), 10000)
+          )
+        ])
 
-      if (nfts && nfts.length > 0) {
-        // Check if any NFT matches the contract address
-        const hasNFT = nfts.some((nft: any) => {
-          const nftContract = (nft.contract_address || nft.token_address || "").toLowerCase()
-          return nftContract === contractAddress.toLowerCase()
-        })
+        if (nfts && nfts.length > 0) {
+          // Check if any NFT matches the contract address
+          const hasNFT = nfts.some((nft: any) => {
+            const nftContract = (nft.contract_address || nft.token_address || "").toLowerCase()
+            return nftContract === contractAddress.toLowerCase()
+          })
 
-        if (hasNFT) {
-          console.log(`✅ Verified ownership via GoldRush: ${walletAddress} owns ${nfts.length} NFT(s) from ${contractAddress}`)
-          return true
+          if (hasNFT) {
+            console.log(`✅ Verified ownership via GoldRush: ${walletAddress} owns ${nfts.length} NFT(s) from ${contractAddress}`)
+            return true
+          }
         }
+      } catch (error: any) {
+        console.log(`⚠️ GoldRush API failed for ${walletAddress}:`, error.message)
       }
 
-      // Fallback: Check blockchain directly
-      console.log(`⚠️ GoldRush returned no results for ${walletAddress}, checking blockchain...`)
-      const hasNFTOnChain = await verifyOwnershipOnChain(walletAddress, contractAddress)
+      // Fallback: Check blockchain directly with timeout
+      try {
+        console.log(`⚠️ GoldRush returned no results for ${walletAddress}, checking blockchain...`)
+        const hasNFTOnChain = await Promise.race([
+          verifyOwnershipOnChain(walletAddress, contractAddress),
+          new Promise<boolean>((_, reject) =>
+            setTimeout(() => reject(new Error('Blockchain check timeout after 15s')), 15000)
+          )
+        ])
 
-      if (hasNFTOnChain) {
-        console.log(`✅ Verified ownership via blockchain: ${walletAddress} owns NFT(s) from ${contractAddress}`)
-        return true
+        if (hasNFTOnChain) {
+          console.log(`✅ Verified ownership via blockchain: ${walletAddress} owns NFT(s) from ${contractAddress}`)
+          return true
+        }
+      } catch (error: any) {
+        console.log(`⚠️ Blockchain check failed for ${walletAddress}:`, error.message)
       }
 
       console.log(`❌ No NFTs found for ${walletAddress}`)
