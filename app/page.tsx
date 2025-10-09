@@ -11,6 +11,7 @@ import { ClearStorageButton } from "@/components/debug/clear-storage"
 import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { ProfileService } from "@/lib/profile-service"
+import { getSupabaseClient } from "@/lib/supabase"
 import {
   ArrowRight,
   TrendingUp,
@@ -87,7 +88,7 @@ export default function HomePage() {
     }
   ]
 
-  // Load active users from Supabase database
+  // Load active users from Supabase database with real-time updates
   useEffect(() => {
     async function loadProfiles() {
       try {
@@ -103,7 +104,32 @@ export default function HomePage() {
         }
       }
     }
+
+    // Initial load
     loadProfiles()
+
+    // Subscribe to real-time profile updates
+    const supabase = getSupabaseClient()
+    const channel = supabase
+      .channel('profiles-home-page')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        (payload) => {
+          console.log('Profile updated, refreshing list:', payload)
+          loadProfiles() // Reload all profiles when any profile changes
+        }
+      )
+      .subscribe()
+
+    // Cleanup subscription on unmount
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   // Auto-advance slideshow every 5 seconds
