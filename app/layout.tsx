@@ -7,6 +7,7 @@ import { WalletSwitcherProvider } from "@/components/wallet/wallet-switcher"
 import { ThirdwebProvider } from "thirdweb/react"
 import { Toaster } from "@/components/ui/toaster"
 import { LoadingPage } from "@/components/loading-page"
+import { SyncDebugger } from "@/components/debug/sync-debugger"
 import { Suspense } from "react"
 import "./globals.css"
 
@@ -41,6 +42,7 @@ export default function RootLayout({
             <AuthProvider>
               <ProfileProvider>
                 <WalletSwitcherProvider>
+                  <SyncDebugger />
                   {children}
                   <Toaster />
                 </WalletSwitcherProvider>
