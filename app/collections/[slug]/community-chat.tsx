@@ -304,8 +304,17 @@ export function CommunityChat({ collection }: CommunityChatProps) {
           const currentOptimisticId = optimisticMessageIdRef.current
           const currentOptimisticMsg = optimisticMessageRef.current
 
+          console.log('🔍 OPTIMISTIC MESSAGE CHECK:', {
+            hasOptimisticId: !!currentOptimisticId,
+            hasOptimisticMsg: !!currentOptimisticMsg,
+            optimisticId: currentOptimisticId,
+            optimisticMsgPending: currentOptimisticMsg?.pending,
+            optimisticMsgContent: currentOptimisticMsg?.content?.substring(0, 20)
+          })
+
           // If no optimistic message, just use API messages
           if (!currentOptimisticId || !currentOptimisticMsg) {
+            console.log('❌ No optimistic message found, returning API messages only')
             return data.messages
           }
 

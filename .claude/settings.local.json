@@ -81,7 +81,10 @@
       "Bash(npx shadcn@latest add:*)",
       "Bash(git revert:*)",
       "Bash(git log:*)",
-      "Bash(npx ts-node:*)"
+      "Bash(npx ts-node:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pgrep:*)",
+      "Bash(npx supabase db dump:*)"
     ],
     "deny": [],
     "ask": []
