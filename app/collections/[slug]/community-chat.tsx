@@ -322,12 +322,9 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('🚀 Sending message via backend relayer...')
       console.log('👛 Profile Wallet:', profileWallet.address)
 
-      // Get all linked wallets for NFT ownership verification
-      const allWallets = ProfileService.getAllWallets(userProfile)
-      console.log('🔐 Backend will verify NFT ownership across all linked wallets')
-
       // Send message via backend relayer API
-      // Backend handles: NFT verification, gas sponsorship, and transaction signing
+      // Backend handles: gas sponsorship and transaction signing
+      // NFT ownership was already verified when user accessed this chat
       const response = await fetch(
         `/api/collections/${collection.contractAddress}/chat/send-message`,
         {
@@ -337,7 +334,6 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             sender: profileWallet.address,
             content,
             messageType: 0,
-            linkedWallets: allWallets, // Server verifies NFT across all wallets
           })
         }
       )

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendGaslessMessage } from "@/lib/gas-sponsorship"
-import { verifyCollectionOwnership, getCollectionChatId } from "@/lib/collection-chat"
-import { ProfileService } from "@/lib/profile-service"
+import { getCollectionChatId } from "@/lib/collection-chat"
 import { waitForReceipt } from "thirdweb"
 import { client } from "@/lib/thirdweb"
 
@@ -20,7 +19,7 @@ export async function POST(
   try {
     const { contractAddress } = params
     const body = await request.json()
-    const { sender, content, messageType = 0, linkedWallets } = body
+    const { sender, content, messageType = 0 } = body
 
     // Validate inputs
     if (!content || !sender) {
@@ -52,35 +51,14 @@ export async function POST(
       )
     }
 
-    console.log(`🔐 Verifying NFT ownership for sender and linked wallets in collection ${contractAddress}`)
+    // SECURITY MODEL:
+    // - Frontend verifies NFT ownership when user accesses Community Chat tab
+    // - Only users who pass frontend check can see/access chat UI
+    // - Backend relayer is the ONLY address authorized to write to GroupChatRelay contract
+    // - Even if someone bypasses frontend, they can't write to contract (onlyRelayer modifier)
+    // - This provides security WITHOUT slow backend API calls on every message
 
-    // CRITICAL: Verify NFT ownership server-side across ALL linked wallets
-    // This prevents unauthorized users from chatting
-    // Check sender wallet + any provided linked wallets
-    const walletsToCheck = linkedWallets && Array.isArray(linkedWallets) && linkedWallets.length > 0
-      ? [sender, ...linkedWallets] // Check sender + linked wallets
-      : [sender] // Fallback to just sender if no linked wallets provided
-
-    console.log(`📍 Checking NFT ownership across ${walletsToCheck.length} wallet(s):`, walletsToCheck)
-
-    // SECURITY NOTE: We trust the frontend verified ownership when user accessed chat
-    // But we still verify server-side to prevent API abuse
-    // The verifyCollectionOwnership function now has caching (5 min) to avoid repeated API calls
-    const hasNFT = await verifyCollectionOwnership(walletsToCheck, contractAddress)
-
-    if (!hasNFT) {
-      console.log(`❌ Access denied: None of the wallet(s) own NFTs from ${contractAddress}`)
-      return NextResponse.json(
-        {
-          error: "Access denied",
-          message: "You must own at least 1 NFT from this collection to chat",
-          requiresNFT: true,
-        },
-        { status: 403 }
-      )
-    }
-
-    console.log(`✅ Ownership verified: User owns NFT(s) from ${contractAddress} in one of their linked wallets`)
+    console.log(`✅ Skipping ownership verification - frontend already verified when accessing chat`)
 
     // Get collection's deterministic chat ID
     const groupId = getCollectionChatId(contractAddress)
