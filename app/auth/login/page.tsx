@@ -1,4 +1,4 @@
-import { LoginForm } from "@/components/auth/login-form"
+import { WalletConnect } from "@/components/web3/wallet-connect"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Zap } from "lucide-react"
@@ -27,26 +27,21 @@ export default function LoginPage() {
 
             <Badge className="mb-4 bg-gradient-to-r from-primary/20 to-secondary/20 text-primary border-primary/30 mx-auto">
               <Zap className="mr-1 h-3 w-3" />
-              Secure Access
+              Web3 Authentication
             </Badge>
 
             <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
               Welcome Back
             </h1>
-            <p className="text-muted-foreground">Sign in to access your digital collection</p>
+            <p className="text-muted-foreground">Connect your wallet to access your digital collection</p>
           </CardHeader>
 
-          <CardContent>
-            <LoginForm />
+          <CardContent className="flex flex-col items-center space-y-4">
+            <WalletConnect />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Don't have an account?{" "}
-                <Link href="/auth/signup" className="text-primary hover:text-primary/80 font-medium">
-                  Sign up
-                </Link>
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              New users will automatically create an account when connecting for the first time
+            </p>
           </CardContent>
         </Card>
       </div>

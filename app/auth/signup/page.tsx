@@ -1,4 +1,4 @@
-import { SignupForm } from "@/components/auth/signup-form"
+import { WalletConnect } from "@/components/web3/wallet-connect"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Sparkles } from "lucide-react"
@@ -33,20 +33,15 @@ export default function SignupPage() {
             <h1 className="text-2xl font-bold bg-gradient-to-r from-secondary to-accent bg-clip-text text-transparent">
               Create Account
             </h1>
-            <p className="text-muted-foreground">Start your journey in the digital realm</p>
+            <p className="text-muted-foreground">Connect your wallet to start your journey in the digital realm</p>
           </CardHeader>
 
-          <CardContent>
-            <SignupForm />
+          <CardContent className="flex flex-col items-center space-y-4">
+            <WalletConnect />
 
-            <div className="mt-6 text-center">
-              <p className="text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Link href="/auth/login" className="text-secondary hover:text-secondary/80 font-medium">
-                  Sign in
-                </Link>
-              </p>
-            </div>
+            <p className="text-xs text-muted-foreground text-center mt-4">
+              Connect with Google, Apple, Facebook, email, or your existing wallet to create an account
+            </p>
           </CardContent>
         </Card>
       </div>

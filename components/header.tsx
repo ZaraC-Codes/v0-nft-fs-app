@@ -123,8 +123,8 @@ export function Header() {
 
           {/* Actions */}
           <div className="flex items-center space-x-3">
-            {/* Wallet Connection - Always available */}
-            <div className="hidden sm:flex">
+            {/* Wallet Connection - Always available on all screen sizes */}
+            <div className="flex">
               <WalletConnect />
             </div>
 
