@@ -282,10 +282,24 @@ export class ProfileService {
       if (updates.avatar !== undefined) dbUpdates.avatar = updates.avatar
       if (updates.bio !== undefined) dbUpdates.bio = updates.bio
       if (updates.bannerImage !== undefined) dbUpdates.banner_image = updates.bannerImage
+      if (updates.coverImage !== undefined) dbUpdates.banner_image = updates.coverImage // Support both field names
+
+      // Social links - handle both direct fields and socialLinks object
       if (updates.twitter !== undefined) dbUpdates.twitter = updates.twitter
       if (updates.instagram !== undefined) dbUpdates.instagram = updates.instagram
       if (updates.discord !== undefined) dbUpdates.discord = updates.discord
       if (updates.website !== undefined) dbUpdates.website = updates.website
+
+      // Handle socialLinks object from settings page
+      if (updates.socialLinks !== undefined) {
+        if (updates.socialLinks.twitter !== undefined) dbUpdates.twitter = updates.socialLinks.twitter
+        if (updates.socialLinks.instagram !== undefined) dbUpdates.instagram = updates.socialLinks.instagram
+        if (updates.socialLinks.discord !== undefined) dbUpdates.discord = updates.socialLinks.discord
+        if (updates.socialLinks.website !== undefined) dbUpdates.website = updates.socialLinks.website
+        if (updates.socialLinks.telegram !== undefined) dbUpdates.telegram = updates.socialLinks.telegram
+        if (updates.socialLinks.github !== undefined) dbUpdates.github = updates.socialLinks.github
+      }
+
       if (updates.verified !== undefined) dbUpdates.is_verified = updates.verified
       if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic
       if (updates.showWalletAddress !== undefined) dbUpdates.show_wallet_address = updates.showWalletAddress
@@ -552,12 +566,28 @@ export class ProfileService {
         : "New collector on Fortuna Square - ready to explore the cyberpunk NFT marketplace!",
     }
 
-    // Save the new profile
+    // Save the new profile to localStorage
     const profiles = this.getProfiles()
     profiles.push(profile)
     this.saveProfiles(profiles)
 
-    console.log("✅ Created new profile:", profile.username)
+    // Also save to Supabase database for multi-device sync
+    try {
+      await this.createProfileInDatabase(
+        profile.username,
+        {
+          provider: 'email',
+          providerAccountId: profile.id,
+          email: profile.email
+        },
+        profile.walletAddress || ''
+      )
+      console.log("✅ Created new profile and synced to database:", profile.username)
+    } catch (error) {
+      console.error("⚠️ Failed to sync profile to database:", error)
+      // Continue anyway - profile exists in localStorage
+    }
+
     return profile
   }
 
@@ -667,12 +697,28 @@ export class ProfileService {
         : `Welcome to Fortuna Square! Connected with ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
     }
 
-    // Save the new profile
+    // Save the new profile to localStorage
     const profiles = this.getProfiles()
     profiles.push(profile)
     this.saveProfiles(profiles)
 
-    console.log("✅ Created new profile with OAuth data:", profile.username, "Provider:", oauthData?.provider)
+    // Also save to Supabase database for multi-device sync
+    try {
+      await this.createProfileInDatabase(
+        profile.username,
+        {
+          provider: oauthData?.provider || 'wallet',
+          providerAccountId: profile.id,
+          email: oauthData?.email
+        },
+        walletAddress
+      )
+      console.log("✅ Created new profile with OAuth data and synced to database:", profile.username)
+    } catch (error) {
+      console.error("⚠️ Failed to sync profile to database:", error)
+      // Continue anyway - profile exists in localStorage
+    }
+
     return profile
   }
 

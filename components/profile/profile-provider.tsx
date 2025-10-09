@@ -528,66 +528,127 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }
 
   const followUser = async (userId: string): Promise<void> => {
+    if (!userProfile) {
+      throw new Error("Must be logged in to follow users")
+    }
+
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const { ProfileService } = await import("@/lib/profile-service")
+
+      // Persist to Supabase database
+      await ProfileService.followUser(userProfile.id, userId)
+
+      // Update local state
       setFollowing(prev => [...prev, userId])
-      // Count will be updated automatically by useEffect
+
+      console.log("✅ Successfully followed user in database and local state")
     } catch (error) {
       console.error("Failed to follow user:", error)
+      throw error
     } finally {
       setLoading(false)
     }
   }
 
   const unfollowUser = async (userId: string): Promise<void> => {
+    if (!userProfile) {
+      throw new Error("Must be logged in to unfollow users")
+    }
+
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+      const { ProfileService } = await import("@/lib/profile-service")
+
+      // Persist to Supabase database
+      await ProfileService.unfollowUser(userProfile.id, userId)
+
+      // Update local state
       setFollowing(prev => prev.filter(id => id !== userId))
-      // Count will be updated automatically by useEffect
+
+      console.log("✅ Successfully unfollowed user in database and local state")
     } catch (error) {
       console.error("Failed to unfollow user:", error)
+      throw error
     } finally {
       setLoading(false)
     }
   }
 
   const addToWatchlist = async (nft: Omit<NFTWatchlistItem, 'id' | 'userId' | 'addedAt'>): Promise<void> => {
-    if (!userProfile) return
+    if (!userProfile) {
+      throw new Error("Must be logged in to use watchlist")
+    }
 
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      const newItem: NFTWatchlistItem = {
-        ...nft,
-        id: `w${Date.now()}`,
+      const { ProfileService } = await import("@/lib/profile-service")
+
+      // Persist to Supabase database
+      await ProfileService.addToWatchlist(
+        userProfile.id,
+        nft.contractAddress,
+        nft.chainId,
+        nft.name,
+        nft.image
+      )
+
+      // Refresh watchlist from database to get the created entry
+      const watchlistItems = await ProfileService.getWatchlist(userProfile.id)
+
+      // Convert database format to NFTWatchlistItem format
+      const convertedItems: NFTWatchlistItem[] = watchlistItems.map(item => ({
+        id: `${item.collectionAddress}-${item.chainId}`,
         userId: userProfile.id,
-        addedAt: new Date(),
-      }
-      setWatchlist(prev => [...prev, newItem])
+        contractAddress: item.collectionAddress,
+        tokenId: '', // Watchlist tracks collections, not specific tokens
+        name: item.collectionName || '',
+        collection: item.collectionName || '',
+        image: item.collectionImage,
+        chainId: item.chainId,
+        addedAt: item.addedAt,
+      }))
+
+      setWatchlist(convertedItems)
+      console.log("✅ Successfully added to watchlist in database and synced local state")
     } catch (error) {
       console.error("Failed to add to watchlist:", error)
+      throw error
     } finally {
       setLoading(false)
     }
   }
 
   const removeFromWatchlist = async (nftId: string): Promise<void> => {
+    if (!userProfile) {
+      throw new Error("Must be logged in to use watchlist")
+    }
+
     setLoading(true)
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 500))
-      // nftId can be either the actual item.id or contractAddress-tokenId format
+      const { ProfileService } = await import("@/lib/profile-service")
+
+      // Parse nftId which could be "contractAddress-chainId" format
+      const [contractAddress, chainIdStr] = nftId.split('-')
+      const chainId = parseInt(chainIdStr) || userProfile.chainId || 1
+
+      // Persist to Supabase database
+      await ProfileService.removeFromWatchlist(
+        userProfile.id,
+        contractAddress,
+        chainId
+      )
+
+      // Update local state
       setWatchlist(prev => prev.filter(item => {
-        const compositeId = `${item.contractAddress}-${item.tokenId}`
+        const compositeId = `${item.contractAddress}-${item.chainId}`
         return item.id !== nftId && compositeId !== nftId
       }))
+
+      console.log("✅ Successfully removed from watchlist in database and local state")
     } catch (error) {
       console.error("Failed to remove from watchlist:", error)
+      throw error
     } finally {
       setLoading(false)
     }
