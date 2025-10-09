@@ -5,9 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { MessageCircle, Users, Shield } from "lucide-react"
-import { useActiveAccount, useSendTransaction } from "thirdweb/react"
-import { getContract, prepareContractCall } from "thirdweb"
-import { client, apeChain } from "@/lib/thirdweb"
+import { useActiveAccount } from "thirdweb/react"
 import { ChatInput } from "@/components/chat/chat-input"
 import { MessageBubble } from "@/components/chat/message-bubble"
 import { MembersDrawer, MembersSidebar } from "@/components/chat/members"
@@ -35,7 +33,6 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const account = useActiveAccount()
   const { userProfile } = useProfile()
   const { profileWallet, isUsingProfileWallet, ensureProfileWallet, isSwitching } = useGaslessWallet()
-  const { mutateAsync: sendTransaction } = useSendTransaction()
   const [messages, setMessages] = useState<any[]>([])
   const [members, setMembers] = useState<any[]>([])
   const [showMembersDrawer, setShowMembersDrawer] = useState(false)
@@ -301,64 +298,50 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     })
 
     try {
-      console.log('🚀 Preparing to send gasless transaction via ThirdWeb AA...')
-      console.log('👛 Using Profile Wallet:', profileWallet.address)
+      console.log('🚀 Sending message via backend relayer...')
+      console.log('👛 Profile Wallet:', profileWallet.address)
 
-      // SECURITY: Verify NFT ownership server-side BEFORE sending transaction
-      // Check ownership across ALL linked wallets
+      // Get all linked wallets for NFT ownership verification
       const allWallets = ProfileService.getAllWallets(userProfile)
-      console.log('🔐 Verifying NFT ownership across all linked wallets before transaction...')
+      console.log('🔐 Backend will verify NFT ownership across all linked wallets')
 
-      const verifyResponse = await fetch(
-        `/api/collections/${collection.contractAddress}/chat/verify-access`,
+      // Send message via backend relayer API
+      // Backend handles: NFT verification, gas sponsorship, and transaction signing
+      const response = await fetch(
+        `/api/collections/${collection.contractAddress}/chat/send-message`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ wallets: allWallets })
+          body: JSON.stringify({
+            sender: profileWallet.address,
+            content,
+            messageType: 0,
+            linkedWallets: allWallets, // Server verifies NFT across all wallets
+          })
         }
       )
 
-      if (!verifyResponse.ok) {
-        const errorData = await verifyResponse.json()
-        throw new Error(errorData.message || 'NFT ownership verification failed')
+      if (!response.ok) {
+        const errorData = await response.json()
+
+        // Handle specific error codes
+        if (response.status === 403) {
+          throw new Error("You must own an NFT from this collection to chat")
+        }
+        if (response.status === 429) {
+          throw new Error("Rate limit exceeded. Please wait before sending more messages.")
+        }
+
+        throw new Error(errorData.message || 'Failed to send message')
       }
 
-      console.log('✅ NFT ownership verified server-side')
-
-      // Get groupId for this collection
-      const groupId = getCollectionChatId(collection.contractAddress)
-
-      // Get chat relay contract
-      const contract = getContract({
-        client,
-        chain: apeChain,
-        address: CHAT_RELAY_ADDRESS as `0x${string}`,
-      })
-
-      // Prepare the transaction (using profile wallet as sender)
-      const transaction = prepareContractCall({
-        contract,
-        method: "function sendMessage(uint256 groupId, address sender, string memory content, uint8 messageType) external returns (uint256)",
-        params: [groupId, profileWallet.address as `0x${string}`, content, 0],
-      })
-
-      console.log('📤 Transaction prepared:', {
-        contract: CHAT_RELAY_ADDRESS,
-        groupId: groupId.toString(),
-        sender: profileWallet.address,
-        content,
-        gasless: true
-      })
-
-      // Send transaction with gas sponsorship via ThirdWeb AA
-      const result = await sendTransaction(transaction)
-
-      console.log('✅ Transaction sent:', result.transactionHash)
+      const result = await response.json()
+      console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
       toast({
         title: "Message sent!",
-        description: "Your message was sent gaslessly via ThirdWeb AA",
+        description: "Your message was sent gaslessly",
       })
 
       // The 3-second polling will automatically detect when the real message appears
