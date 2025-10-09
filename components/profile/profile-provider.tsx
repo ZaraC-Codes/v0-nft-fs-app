@@ -1186,6 +1186,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
             console.log("⚠️ Using cached profile (database unavailable):", migratedProfile.username)
           } else {
             console.error("❌ No profile found anywhere for user:", user.id)
+          }
         }
       } catch (error) {
         console.error("Failed to load user profile:", error)
