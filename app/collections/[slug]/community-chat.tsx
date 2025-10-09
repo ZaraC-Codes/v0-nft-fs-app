@@ -368,14 +368,17 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
-      // Clear optimistic state immediately - transaction confirmed by backend
-      console.log('✅ Transaction confirmed, clearing optimistic state')
-      setOptimisticMessageId(null)
-      optimisticMessageRef.current = null
-      setMessages(prev => prev.filter(m => m.id !== tempId))
+      // Mark optimistic message as confirmed (remove pending indicator)
+      // Keep the message visible until polling fetches the real blockchain message
+      console.log('✅ Transaction confirmed, marking optimistic message as confirmed')
+      setMessages(prev => prev.map(m =>
+        m.id === tempId
+          ? { ...m, pending: false }  // Remove "Sending..." but keep message visible
+          : m
+      ))
 
-      // Polling will automatically fetch and show the real message within 3 seconds
-      // No need to manually refresh - avoids race conditions
+      // Polling will detect the real message and replace the optimistic one
+      // This ensures the message is ALWAYS visible to the user
 
       toast({
         title: "Message sent!",
