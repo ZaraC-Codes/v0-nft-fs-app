@@ -3,8 +3,38 @@ import { sendGaslessMessage } from "@/lib/gas-sponsorship"
 import { getCollectionChatId } from "@/lib/collection-chat"
 import { waitForReceipt } from "thirdweb"
 import { client } from "@/lib/thirdweb"
+import DOMPurify from "isomorphic-dompurify"
 
 const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
+
+// In-memory rate limiting (resets on server restart)
+// For production, consider using Upstash Redis for persistent rate limits
+const rateLimits = new Map<string, { count: number; resetAt: number }>()
+
+function checkRateLimit(sender: string): { allowed: boolean; resetIn?: number } {
+  const now = Date.now()
+  const key = sender.toLowerCase()
+  const limit = rateLimits.get(key)
+
+  if (!limit || now > limit.resetAt) {
+    // Reset window - allow message and start new 60-second window
+    rateLimits.set(key, {
+      count: 1,
+      resetAt: now + 60000 // 1 minute
+    })
+    return { allowed: true }
+  }
+
+  if (limit.count >= 10) {
+    // Rate limit exceeded
+    const resetIn = Math.ceil((limit.resetAt - now) / 1000)
+    return { allowed: false, resetIn }
+  }
+
+  // Increment count
+  limit.count++
+  return { allowed: true }
+}
 
 /**
  * POST /api/collections/[contractAddress]/chat/send-message
@@ -43,8 +73,32 @@ export async function POST(
       )
     }
 
-    // Validate content length
-    if (content.length > 500) {
+    // Check rate limit (10 messages per minute per user)
+    const rateCheck = checkRateLimit(sender)
+    if (!rateCheck.allowed) {
+      console.log(`⏱️ Rate limit exceeded for ${sender} - try again in ${rateCheck.resetIn}s`)
+      return NextResponse.json(
+        {
+          error: "Rate limit exceeded",
+          message: `Please wait ${rateCheck.resetIn} seconds before sending another message`,
+          resetIn: rateCheck.resetIn
+        },
+        { status: 429 }
+      )
+    }
+
+    // Sanitize content to prevent XSS attacks
+    const sanitizedContent = DOMPurify.sanitize(content.trim())
+
+    // Validate content after sanitization
+    if (sanitizedContent.length === 0) {
+      return NextResponse.json(
+        { error: "Message cannot be empty" },
+        { status: 400 }
+      )
+    }
+
+    if (sanitizedContent.length > 500) {
       return NextResponse.json(
         { error: "Message too long (max 500 characters)" },
         { status: 400 }
@@ -72,14 +126,15 @@ export async function POST(
     console.log(`- Group ID String: ${groupId.toString()}`)
     console.log(`- Contract Address: ${CHAT_RELAY_ADDRESS}`)
     console.log(`- Sender: ${sender}`)
-    console.log(`- Content: ${content}`)
+    console.log(`- Original Content: ${content}`)
+    console.log(`- Sanitized Content: ${sanitizedContent}`)
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
 
-    // Send gasless message via relayer
+    // Send gasless message via relayer (using sanitized content)
     const result = await sendGaslessMessage(
       groupId,
       sender,
-      content,
+      sanitizedContent, // Use sanitized content to prevent XSS
       messageType,
       CHAT_RELAY_ADDRESS
     )
