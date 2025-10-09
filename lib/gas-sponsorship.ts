@@ -100,6 +100,13 @@ export async function sendGaslessMessage(
   })
 
   // Prepare transaction
+  console.log(`🔍 [GAS-SPONSORSHIP] Preparing transaction with params:`)
+  console.log(`  - groupId: ${groupId} (type: ${typeof groupId})`)
+  console.log(`  - groupId hex: 0x${groupId.toString(16)}`)
+  console.log(`  - sender: ${sender}`)
+  console.log(`  - content: ${content}`)
+  console.log(`  - messageType: ${messageType}`)
+
   const transaction = prepareContractCall({
     contract,
     method: "function sendMessage(uint256 groupId, address sender, string memory content, uint8 messageType) external returns (uint256)",
