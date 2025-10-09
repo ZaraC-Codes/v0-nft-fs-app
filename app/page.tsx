@@ -10,6 +10,7 @@ import { Footer } from "@/components/footer"
 import { ClearStorageButton } from "@/components/debug/clear-storage"
 import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
+import { ProfileService } from "@/lib/profile-service"
 import {
   ArrowRight,
   TrendingUp,
@@ -86,13 +87,23 @@ export default function HomePage() {
     }
   ]
 
-  // Load active users from localStorage
+  // Load active users from Supabase database
   useEffect(() => {
-    const profiles = localStorage.getItem("fortuna_square_profiles")
-    if (profiles) {
-      const allProfiles = JSON.parse(profiles)
-      setActiveUsers(Object.values(allProfiles))
+    async function loadProfiles() {
+      try {
+        const profiles = await ProfileService.getAllProfilesFromDatabase()
+        setActiveUsers(profiles)
+      } catch (error) {
+        console.error('Failed to load profiles from database:', error)
+        // Fallback to localStorage if database fails
+        const localProfiles = localStorage.getItem("fortuna_square_profiles")
+        if (localProfiles) {
+          const allProfiles = JSON.parse(localProfiles)
+          setActiveUsers(Object.values(allProfiles))
+        }
+      }
     }
+    loadProfiles()
   }, [])
 
   // Auto-advance slideshow every 5 seconds
