@@ -92,16 +92,13 @@ export default function HomePage() {
   useEffect(() => {
     async function loadProfiles() {
       try {
+        console.log('🔄 Loading profiles from Supabase...')
         const profiles = await ProfileService.getAllProfilesFromDatabase()
+        console.log('✅ Loaded profiles:', profiles.map(p => ({ username: p.username, avatar: p.avatar, id: p.id })))
         setActiveUsers(profiles)
       } catch (error) {
-        console.error('Failed to load profiles from database:', error)
-        // Fallback to localStorage if database fails
-        const localProfiles = localStorage.getItem("fortuna_square_profiles")
-        if (localProfiles) {
-          const allProfiles = JSON.parse(localProfiles)
-          setActiveUsers(Object.values(allProfiles))
-        }
+        console.error('❌ Failed to load profiles from database:', error)
+        setActiveUsers([]) // Set empty array instead of fallback to localStorage
       }
     }
 
