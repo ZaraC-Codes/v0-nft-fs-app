@@ -3,9 +3,22 @@ import { sendGaslessMessage } from "@/lib/gas-sponsorship"
 import { getCollectionChatId } from "@/lib/collection-chat"
 import { waitForReceipt } from "thirdweb"
 import { client } from "@/lib/thirdweb"
-import DOMPurify from "isomorphic-dompurify"
 
 const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
+
+/**
+ * Simple XSS sanitization for server-side use
+ * Escapes HTML special characters to prevent script injection
+ */
+function sanitizeMessage(input: string): string {
+  return input
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+}
 
 // In-memory rate limiting (resets on server restart)
 // For production, consider using Upstash Redis for persistent rate limits
@@ -88,7 +101,7 @@ export async function POST(
     }
 
     // Sanitize content to prevent XSS attacks
-    const sanitizedContent = DOMPurify.sanitize(content.trim())
+    const sanitizedContent = sanitizeMessage(content.trim())
 
     // Validate content after sanitization
     if (sanitizedContent.length === 0) {
