@@ -46,6 +46,16 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
 
+  // Track component re-renders for debugging
+  const renderCount = useRef(0)
+  renderCount.current++
+  console.log('🚨 COMPONENT RENDER 🚨', {
+    renderCount: renderCount.current,
+    messagesLength: messages.length,
+    loading,
+    contractAddress: collection.contractAddress
+  })
+
   // Keep ref in sync with state
   useEffect(() => {
     optimisticMessageIdRef.current = optimisticMessageId
@@ -240,20 +250,82 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
   // Load messages and set up polling
   useEffect(() => {
+    // Create loadMessages locally to avoid stale closure
+    const loadMessagesLocal = async () => {
+      try {
+        console.log('🚨 LOAD MESSAGES LOCAL CALLED 🚨', {
+          contractAddress: collection.contractAddress,
+          timestamp: new Date().toISOString(),
+          messagesCurrentLength: messages.length
+        })
+
+        console.log('📥 Fetching messages from API...')
+        const response = await fetch(
+          `/api/collections/${collection.contractAddress}/chat/messages?t=${Date.now()}`,
+          {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache'
+            }
+          }
+        )
+
+        console.log('📡 API Response:', {
+          ok: response.ok,
+          status: response.status
+        })
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch messages')
+        }
+
+        const data = await response.json()
+
+        console.log('📦 Messages data:', {
+          success: data.success,
+          count: data.count,
+          messagesLength: data.messages?.length
+        })
+
+        if (!data.success || !data.messages) {
+          console.error('❌ Invalid API response structure:', data)
+          return
+        }
+
+        // Simplified: Always use fresh state reference
+        setMessages(prevMessages => {
+          console.log('🚨 SET MESSAGES EXECUTING 🚨', {
+            prevLength: prevMessages.length,
+            newLength: data.messages.length,
+            contractAddress: collection.contractAddress,
+            timestamp: new Date().toISOString()
+          })
+          return data.messages
+        })
+
+        setLoading(false)
+      } catch (error) {
+        console.error("❌ Error loading messages:", error)
+        setLoading(false)
+      }
+    }
+
     console.log('🔄 Setting up message polling for collection:', collection.contractAddress)
-    loadMessages()
+
+    // Load immediately
+    loadMessagesLocal()
 
     // Poll for new messages every 3 seconds
     const interval = setInterval(() => {
       console.log('🔄 Polling for new messages...')
-      loadMessages()
+      loadMessagesLocal() // ← Uses local function, no stale closure
     }, 3000)
 
     return () => {
       console.log('🛑 Clearing message polling interval')
       clearInterval(interval)
     }
-  }, [collection.contractAddress, loadMessages])
+  }, [collection.contractAddress]) // ← Only contract address dependency
 
   // Sanitization helper matching backend logic
   const sanitizeMessageForDisplay = (input: string): string => {
