@@ -14,8 +14,8 @@ interface PortfolioCacheEntry {
 
 class PortfolioCache {
   private cache: Map<string, PortfolioCacheEntry> = new Map()
-  private readonly TTL = 24 * 60 * 60 * 1000 // 24 hours in milliseconds
-  private readonly STALE_TIME = 5 * 60 * 1000 // Consider stale after 5 minutes
+  private readonly TTL = 5 * 60 * 1000 // 5 minutes (reduced from 24h for fresher NFT data)
+  private readonly STALE_TIME = 1 * 60 * 1000 // Consider stale after 1 minute
 
   /**
    * Generate cache key from wallet addresses
@@ -178,9 +178,9 @@ class PortfolioCache {
 // Singleton instance
 export const portfolioCache = new PortfolioCache()
 
-// Clear expired entries periodically (every 1 hour)
+// Clear expired entries periodically (every 5 minutes to match TTL)
 if (typeof window !== "undefined") {
   setInterval(() => {
     portfolioCache.clearExpired()
-  }, 60 * 60 * 1000)
+  }, 5 * 60 * 1000)
 }
