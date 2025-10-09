@@ -1,10 +1,22 @@
 import { NextRequest, NextResponse } from "next/server"
 import { sendGaslessMessage } from "@/lib/gas-sponsorship"
 import { getCollectionChatId } from "@/lib/collection-chat"
-import { waitForReceipt } from "thirdweb"
-import { client } from "@/lib/thirdweb"
+import { waitForReceipt, getContract, readContract } from "thirdweb"
+import { client, apeChain } from "@/lib/thirdweb"
+import { getSupabaseClient, CHAT_MESSAGES_TABLE } from "@/lib/supabase"
 
 const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
+
+function getMessageType(typeEnum: number): string {
+  switch (typeEnum) {
+    case 0: return "message"
+    case 1: return "command"
+    case 2: return "bot_response"
+    case 3: return "system"
+    case 4: return "proposal"
+    default: return "message"
+  }
+}
 
 /**
  * Simple XSS sanitization for server-side use
@@ -189,6 +201,76 @@ export async function POST(
     }
 
     console.log(`✅ Message sent successfully: ${result.transactionHash}`)
+
+    // Sync new message to Supabase cache
+    try {
+      console.log(`💾 Syncing new message to Supabase...`)
+
+      // Fetch the latest message from blockchain to get message ID and timestamp
+      const contract = getContract({
+        client,
+        chain: apeChain,
+        address: CHAT_RELAY_ADDRESS as `0x${string}`,
+      })
+
+      const messages = await readContract({
+        contract,
+        method: {
+          type: "function",
+          name: "getGroupMessages",
+          inputs: [{ name: "groupId", type: "uint256", internalType: "uint256" }],
+          outputs: [{
+            name: "",
+            type: "tuple[]",
+            internalType: "struct GroupChatRelay.Message[]",
+            components: [
+              { name: "id", type: "uint256", internalType: "uint256" },
+              { name: "groupId", type: "uint256", internalType: "uint256" },
+              { name: "sender", type: "address", internalType: "address" },
+              { name: "content", type: "string", internalType: "string" },
+              { name: "timestamp", type: "uint256", internalType: "uint256" },
+              { name: "messageType", type: "uint8", internalType: "enum GroupChatRelay.MessageType" },
+              { name: "isBot", type: "bool", internalType: "bool" }
+            ]
+          }],
+          stateMutability: "view"
+        },
+        params: [groupId],
+      })
+
+      // Get the latest message (last in array)
+      const latestMessage = messages[messages.length - 1]
+
+      if (latestMessage) {
+        const supabase = getSupabaseClient()
+
+        const { error: insertError } = await supabase
+          .from(CHAT_MESSAGES_TABLE)
+          .upsert({
+            collection_address: contractAddress.toLowerCase(),
+            group_id: groupId.toString(),
+            sender_address: latestMessage.sender.toLowerCase(),
+            content: latestMessage.content,
+            message_type: getMessageType(Number(latestMessage.messageType)),
+            is_bot: latestMessage.isBot,
+            timestamp: new Date(Number(latestMessage.timestamp) * 1000).toISOString(),
+            blockchain_id: latestMessage.id.toString(),
+          }, {
+            onConflict: 'collection_address,blockchain_id',
+            ignoreDuplicates: false
+          })
+
+        if (insertError) {
+          console.error('⚠️ Failed to sync message to Supabase:', insertError)
+          // Don't fail the request - message is already on blockchain
+        } else {
+          console.log(`✅ Message synced to Supabase (ID: ${latestMessage.id})`)
+        }
+      }
+    } catch (syncError) {
+      console.error('⚠️ Failed to sync message to Supabase:', syncError)
+      // Don't fail the request - message is already on blockchain
+    }
 
     return NextResponse.json({
       success: true,

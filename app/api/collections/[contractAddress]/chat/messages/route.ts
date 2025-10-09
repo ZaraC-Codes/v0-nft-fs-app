@@ -1,13 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getContract, readContract } from "thirdweb"
-import { client, apeChain } from "@/lib/thirdweb"
-import { getCollectionChatId, getMessageType, formatAddress, getAvatarUrl } from "@/lib/collection-chat"
-
-const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
+import { getSupabaseClient, CHAT_MESSAGES_TABLE } from "@/lib/supabase"
+import { getCollectionChatId } from "@/lib/collection-chat"
 
 /**
  * GET /api/collections/[contractAddress]/chat/messages
- * Fetch all messages for a collection's community chat
+ * Fetch all messages for a collection's community chat from Supabase cache
  */
 export async function GET(
   request: NextRequest,
@@ -23,71 +20,42 @@ export async function GET(
       )
     }
 
-    if (!CHAT_RELAY_ADDRESS) {
+    const supabase = getSupabaseClient()
+    const groupId = getCollectionChatId(contractAddress)
+
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`📥 FETCH MESSAGES FROM SUPABASE`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+    console.log(`- Collection Address: ${contractAddress}`)
+    console.log(`- Group ID: ${groupId}`)
+    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
+
+    // Fetch messages from Supabase (instant, no timeout!)
+    const { data: messages, error } = await supabase
+      .from(CHAT_MESSAGES_TABLE)
+      .select('*')
+      .eq('collection_address', contractAddress.toLowerCase())
+      .order('timestamp', { ascending: true })
+
+    if (error) {
+      console.error('Error fetching messages from Supabase:', error)
       return NextResponse.json(
-        { error: "Chat relay not configured" },
+        { error: "Failed to fetch messages", details: error.message },
         { status: 500 }
       )
     }
 
-    // Get collection's deterministic chat ID
-    const groupId = getCollectionChatId(contractAddress)
-
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
-    console.log(`📥 READ MESSAGES DEBUG`)
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
-    console.log(`- Collection Address: ${contractAddress}`)
-    console.log(`- Group ID: ${groupId}`)
-    console.log(`- Group ID Type: ${typeof groupId}`)
-    console.log(`- Group ID String: ${groupId.toString()}`)
-    console.log(`- Contract Address: ${CHAT_RELAY_ADDRESS}`)
-    console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
-
-    // Get GroupChatRelay contract
-    const contract = getContract({
-      client,
-      chain: apeChain,
-      address: CHAT_RELAY_ADDRESS as `0x${string}`,
-    })
-
-    // Fetch messages from contract
-    const messages = await readContract({
-      contract,
-      method: {
-        type: "function",
-        name: "getGroupMessages",
-        inputs: [{ name: "groupId", type: "uint256", internalType: "uint256" }],
-        outputs: [{
-          name: "",
-          type: "tuple[]",
-          internalType: "struct GroupChatRelay.Message[]",
-          components: [
-            { name: "id", type: "uint256", internalType: "uint256" },
-            { name: "groupId", type: "uint256", internalType: "uint256" },
-            { name: "sender", type: "address", internalType: "address" },
-            { name: "content", type: "string", internalType: "string" },
-            { name: "timestamp", type: "uint256", internalType: "uint256" },
-            { name: "messageType", type: "uint8", internalType: "enum GroupChatRelay.MessageType" },
-            { name: "isBot", type: "bool", internalType: "bool" }
-          ]
-        }],
-        stateMutability: "view"
-      },
-      params: [groupId],
-    })
-
     // Transform to frontend format
-    // Frontend will lookup user profile for username/avatar
     const formattedMessages = messages.map((msg: any) => ({
-      id: msg.id.toString(),
-      type: getMessageType(Number(msg.messageType)),
+      id: msg.blockchain_id,
+      type: msg.message_type,
       content: msg.content,
-      timestamp: new Date(Number(msg.timestamp) * 1000).toISOString(),
-      senderAddress: msg.sender, // Raw address for frontend profile lookup
-      isBot: msg.isBot,
+      timestamp: msg.timestamp,
+      senderAddress: msg.sender_address,
+      isBot: msg.is_bot,
     }))
 
-    console.log(`✅ Fetched ${formattedMessages.length} messages for collection ${contractAddress}`)
+    console.log(`✅ Fetched ${formattedMessages.length} messages from Supabase`)
 
     return NextResponse.json({
       success: true,
