@@ -292,7 +292,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
           return
         }
 
-        // Simplified: Always use fresh state reference
+        // Update messages with optimistic message handling
         setMessages(prevMessages => {
           console.log('🚨 SET MESSAGES EXECUTING 🚨', {
             prevLength: prevMessages.length,
@@ -300,7 +300,39 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             contractAddress: collection.contractAddress,
             timestamp: new Date().toISOString()
           })
-          return data.messages
+
+          const currentOptimisticId = optimisticMessageIdRef.current
+          const currentOptimisticMsg = optimisticMessageRef.current
+
+          // If no optimistic message, just use API messages
+          if (!currentOptimisticId || !currentOptimisticMsg) {
+            return data.messages
+          }
+
+          // Check if the optimistic message now exists in real messages
+          const realMessageExists = data.messages.some((m: any) =>
+            m.content === currentOptimisticMsg.content &&
+            m.senderAddress.toLowerCase() === currentOptimisticMsg.senderAddress.toLowerCase()
+          )
+
+          if (realMessageExists) {
+            console.log('✅ Real message appeared, clearing optimistic state')
+            // Clear optimistic state
+            setOptimisticMessageId(null)
+            optimisticMessageRef.current = null
+            return data.messages
+          } else {
+            // Keep optimistic message if transaction confirmed but not yet on blockchain
+            if (currentOptimisticMsg.pending === false) {
+              console.log('⏳ Optimistic message confirmed, waiting for blockchain propagation')
+              // Keep optimistic message appended to the end
+              return [...data.messages, currentOptimisticMsg]
+            } else {
+              // Still pending, keep optimistic message
+              console.log('⏳ Optimistic message still pending')
+              return [...data.messages, currentOptimisticMsg]
+            }
+          }
         })
 
         setLoading(false)
