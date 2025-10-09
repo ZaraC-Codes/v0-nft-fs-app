@@ -42,6 +42,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [optimisticMessageId, setOptimisticMessageId] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
   const optimisticMessageIdRef = useRef<string | null>(null)
+  const optimisticMessageRef = useRef<any>(null)
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
 
@@ -187,14 +188,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         return
       }
 
-      // Get optimistic message from current state
-      const currentOptimisticMsg = messages.find(m => m.id === currentOptimisticId)
+      // Get optimistic message from ref (not state to avoid closure issues)
+      const currentOptimisticMsg = optimisticMessageRef.current
 
       if (!currentOptimisticMsg) {
         // Optimistic message already removed, just use API messages
-        console.log('✅ Optimistic message not found in state, setting', data.messages.length, 'messages')
+        console.log('✅ Optimistic message not found in ref, setting', data.messages.length, 'messages')
         setMessages(data.messages)
-        setLoading(false)
         return
       }
 
@@ -207,6 +207,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       if (realMessageExists) {
         console.log('✅ Real message appeared, clearing optimistic state')
         setOptimisticMessageId(null)
+        optimisticMessageRef.current = null
         setMessages(data.messages)
       } else {
         console.log('⏳ Optimistic message still pending, appending it')
@@ -217,7 +218,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     } finally {
       setLoading(false)
     }
-  }, [collection.contractAddress, messages])
+  }, [collection.contractAddress])
 
   // Load messages and set up polling
   useEffect(() => {
@@ -300,6 +301,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       pending: true,
     }
     setOptimisticMessageId(tempId)
+    optimisticMessageRef.current = optimisticMessage  // Store in ref to avoid closure issues
     setMessages(prev => {
       console.log('📝 Adding optimistic message. Current messages:', prev.length, 'New total:', prev.length + 1)
       return [...prev, optimisticMessage]
@@ -367,6 +369,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
       // Remove optimistic message on error
       setOptimisticMessageId(null)
+      optimisticMessageRef.current = null
       setMessages(prev => prev.filter(m => m.id !== tempId))
 
       toast({
