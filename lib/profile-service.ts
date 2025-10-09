@@ -127,7 +127,7 @@ export class ProfileService {
         .insert({
           username,
           email: oauthData.email,
-          bio: `Connected via ${oauthData.provider.charAt(0).toUpperCase() + oauthData.provider.slice(1)} 🚀`,
+          bio: `Welcome to Fortuna Square! NFT enthusiast exploring the platform. Click 'Edit Profile' in Settings to customize your bio.`,
           is_verified: true
         })
         .select()
@@ -491,19 +491,21 @@ export class ProfileService {
    * Generate a unique username from wallet address
    */
   static generateUsernameFromWallet(walletAddress: string): string {
-    const baseUsername = `${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+    // Generate friendly username like "Collector1234" instead of wallet address
+    const randomNumber = Math.floor(Math.random() * 10000)
+    const baseUsername = `Collector${randomNumber}`
 
     // Check if base username is available
     if (this.isUsernameAvailable(baseUsername)) {
       return baseUsername
     }
 
-    // If not available, append a number
+    // If not available, append a counter
     let counter = 1
-    let username = `${baseUsername}_${counter}`
+    let username = `Collector${randomNumber}_${counter}`
     while (!this.isUsernameAvailable(username)) {
       counter++
-      username = `${baseUsername}_${counter}`
+      username = `Collector${randomNumber}_${counter}`
     }
 
     return username
@@ -706,9 +708,7 @@ export class ProfileService {
       isPublic: true,
       showWalletAddress: true,
       showEmail: false,
-      bio: oauthData?.provider
-        ? `Connected via ${oauthData.provider.charAt(0).toUpperCase() + oauthData.provider.slice(1)} 🚀`
-        : `Welcome to Fortuna Square! Connected with ${walletAddress.slice(0, 6)}...${walletAddress.slice(-4)}`
+      bio: `Welcome to Fortuna Square! NFT enthusiast exploring the platform. Click 'Edit Profile' in Settings to customize your bio.`
     }
 
     // Save the new profile to localStorage
