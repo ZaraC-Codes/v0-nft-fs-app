@@ -266,7 +266,7 @@ export const SyncDebugger = () => {
       const t3 = performance.now()
 
       console.log(`☁️ Supabase update: ${(t3 - t2).toFixed(2)}ms`)
-      console.log(`📊 Sync lag: ${(t3 - t2) - (t1 - t0).toFixed(2)}ms`)
+      console.log(`📊 Sync lag: ${((t3 - t2) - (t1 - t0)).toFixed(2)}ms`)
     }
 
   }, [])
