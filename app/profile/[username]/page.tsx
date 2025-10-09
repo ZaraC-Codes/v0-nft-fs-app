@@ -12,17 +12,31 @@ import { useProfile } from "@/components/profile/profile-provider"
 
 // Function to fetch user profile by username
 const fetchUserByUsername = async (username: string): Promise<UserProfile | null> => {
-  // First try to get from ProfileService (real user profiles)
+  // FIRST: Try to get from Supabase database (PRIMARY source)
   try {
-    const realProfile = ProfileService.getProfileByUsername(username)
-    if (realProfile) {
-      return realProfile
+    console.log(`🔍 Looking up profile in database: ${username}`)
+    const dbProfile = await ProfileService.getProfileByUsernameFromDatabase(username)
+    if (dbProfile) {
+      console.log('✅ Found profile in database:', username)
+      return dbProfile
     }
+    console.log(`⚠️ Profile not found in database: ${username}`)
   } catch (error) {
-    console.log("ProfileService lookup failed:", error)
+    console.error("Database lookup failed:", error)
   }
 
-  // Special case: crypto_collector is the mock demo profile
+  // FALLBACK: Try localStorage (for backward compatibility)
+  try {
+    const cachedProfile = ProfileService.getProfileByUsername(username)
+    if (cachedProfile) {
+      console.log('✅ Found profile in localStorage:', username)
+      return cachedProfile
+    }
+  } catch (error) {
+    console.log("localStorage lookup failed:", error)
+  }
+
+  // LAST RESORT: Special case for mock demo profile
   if (username === "crypto_collector") {
     await new Promise(resolve => setTimeout(resolve, 500))
     return {
@@ -45,6 +59,7 @@ const fetchUserByUsername = async (username: string): Promise<UserProfile | null
   }
 
   // All other usernames - no profile found
+  console.log(`❌ Profile not found anywhere: ${username}`)
   return null
 }
 
