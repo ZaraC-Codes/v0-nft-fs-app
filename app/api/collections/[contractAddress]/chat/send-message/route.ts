@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server"
 import { sendGaslessMessage } from "@/lib/gas-sponsorship"
 import { verifyCollectionOwnership, getCollectionChatId } from "@/lib/collection-chat"
 import { ProfileService } from "@/lib/profile-service"
+import { waitForReceipt } from "thirdweb"
+import { client } from "@/lib/thirdweb"
 
 const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || ""
 
@@ -106,18 +108,22 @@ export async function POST(
 
     // Wait for confirmation and check status
     console.log(`⏳ Waiting for transaction confirmation...`)
-    const receipt = await result.receipt
+    const receipt = await waitForReceipt({
+      client,
+      chain: result.chain,
+      transactionHash: result.transactionHash,
+    })
 
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
     console.log(`📋 TRANSACTION RECEIPT`)
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
-    console.log(`- Status: ${receipt.status === 1 ? '✅ SUCCESS' : '❌ FAILED'}`)
+    console.log(`- Status: ${receipt.status === "success" ? '✅ SUCCESS' : '❌ FAILED'}`)
     console.log(`- Block Number: ${receipt.blockNumber}`)
     console.log(`- Gas Used: ${receipt.gasUsed}`)
     console.log(`- Logs/Events: ${receipt.logs?.length || 0}`)
     console.log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`)
 
-    if (receipt.status === 0) {
+    if (receipt.status !== "success") {
       console.log(`❌ TRANSACTION FAILED ON BLOCKCHAIN`)
       return NextResponse.json(
         {

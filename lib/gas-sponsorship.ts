@@ -112,7 +112,10 @@ export async function sendGaslessMessage(
     account: relayerAccount,
   })
 
-  return result
+  return {
+    transactionHash: result.transactionHash,
+    chain: apeChain,
+  }
 }
 
 /**
@@ -154,7 +157,10 @@ export async function sendGaslessBotMessage(
     account: relayerAccount,
   })
 
-  return result
+  return {
+    transactionHash: result.transactionHash,
+    chain: apeChain,
+  }
 }
 
 /**
@@ -188,7 +194,10 @@ export async function sendGaslessSystemMessage(
     account: relayerAccount,
   })
 
-  return result
+  return {
+    transactionHash: result.transactionHash,
+    chain: apeChain,
+  }
 }
 
 /**
