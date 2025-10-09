@@ -473,7 +473,7 @@ export default function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {activeUsers.map((user, index) => (
                 <Link href={`/profile/${user.username}`} key={user.id}>
-                  <Card className="bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 cursor-pointer h-full">
+                  <Card className="bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 cursor-pointer h-full hover:scale-[1.02]">
                     <CardContent className="p-6">
                       <div className="flex items-start gap-4">
                         {/* Avatar */}
@@ -487,11 +487,6 @@ export default function HomePage() {
                           ) : (
                             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white">
                               {user.username[0].toUpperCase()}
-                            </div>
-                          )}
-                          {user.verified && (
-                            <div className="absolute -bottom-1 -right-1 bg-primary rounded-full p-1">
-                              <CheckCircle className="h-4 w-4 text-white fill-primary" />
                             </div>
                           )}
                         </div>
@@ -519,11 +514,15 @@ export default function HomePage() {
                             </div>
                           </div>
 
-                          {user.walletAddress && (
+                          {/* Join Date */}
+                          {user.createdAt && (
                             <div className="mt-3 flex items-center gap-2">
-                              <div className="h-2 w-2 bg-green-500 rounded-full animate-pulse" />
-                              <span className="text-xs text-muted-foreground font-mono">
-                                {user.walletAddress.slice(0, 6)}...{user.walletAddress.slice(-4)}
+                              <Calendar className="h-3 w-3 text-muted-foreground" />
+                              <span className="text-xs text-muted-foreground">
+                                Joined {new Date(user.createdAt).toLocaleDateString('en-US', {
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
                               </span>
                             </div>
                           )}
@@ -531,25 +530,48 @@ export default function HomePage() {
                       </div>
 
                       {/* Quick Actions */}
-                      <div className="mt-4 pt-4 border-t border-border/50 flex gap-2">
+                      <div className="mt-4 pt-4 border-t border-border/50 flex justify-end">
                         <Button
-                          size="sm"
-                          className="flex-1 bg-gradient-to-r from-primary to-secondary"
-                          onClick={(e) => {
-                            e.preventDefault()
-                            window.location.href = `/profile/${user.username}`
-                          }}
-                        >
-                          View Profile
-                        </Button>
-                        <Button
-                          size="sm"
+                          size="default"
                           variant="outline"
-                          className="border-primary/50"
-                          onClick={(e) => {
+                          className="border-primary/50 min-h-[44px]"
+                          onClick={async (e) => {
                             e.preventDefault()
-                            // TODO: Implement follow functionality
-                            alert("Follow feature coming soon!")
+                            e.stopPropagation()
+
+                            try {
+                              // Get current logged-in user
+                              const savedUser = localStorage.getItem('fortuna_square_user')
+                              if (!savedUser) {
+                                alert('Please log in to follow users')
+                                return
+                              }
+                              const currentUser = JSON.parse(savedUser)
+
+                              if (currentUser.id === user.id) {
+                                alert('You cannot follow yourself')
+                                return
+                              }
+
+                              // Check if already following
+                              const { ProfileService } = await import('@/lib/profile-service')
+                              const isFollowing = await ProfileService.isFollowing(currentUser.id, user.id)
+
+                              if (isFollowing) {
+                                await ProfileService.unfollowUser(currentUser.id, user.id)
+                                alert(`Unfollowed ${user.username}`)
+                              } else {
+                                await ProfileService.followUser(currentUser.id, user.id)
+                                alert(`Now following ${user.username}`)
+                              }
+
+                              // Reload profiles to get updated counts
+                              const profiles = await ProfileService.getAllProfilesFromDatabase()
+                              setActiveUsers(profiles)
+                            } catch (error) {
+                              console.error('Follow action failed:', error)
+                              alert('Failed to update follow status')
+                            }
                           }}
                         >
                           Follow

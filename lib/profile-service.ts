@@ -350,41 +350,55 @@ export class ProfileService {
         return []
       }
 
-      // Convert Supabase profiles to UserProfile format
-      const userProfiles: UserProfile[] = profiles.map((profile: any) => {
-        const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
-          address: w.wallet_address,
-          type: w.wallet_type,
-          addedAt: new Date(w.added_at)
-        }))
+      // Convert Supabase profiles to UserProfile format with real follow counts
+      const userProfiles: UserProfile[] = await Promise.all(
+        profiles.map(async (profile: any) => {
+          const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+            address: w.wallet_address,
+            type: w.wallet_type,
+            addedAt: new Date(w.added_at)
+          }))
 
-        const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+          const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
 
-        return {
-          id: profile.id,
-          username: profile.username,
-          email: profile.email,
-          avatar: profile.avatar,
-          bio: profile.bio,
-          bannerImage: profile.banner_image,
-          twitter: profile.twitter,
-          instagram: profile.instagram,
-          discord: profile.discord,
-          website: profile.website,
-          walletAddress: primaryWallet?.wallet_address,
-          wallets,
-          activeWallet: primaryWallet?.wallet_address,
-          linkedWallets: wallets.map(w => w.address),
-          verified: profile.is_verified,
-          createdAt: new Date(profile.created_at),
-          updatedAt: new Date(profile.updated_at),
-          followersCount: 0,
-          followingCount: 0,
-          isPublic: profile.is_public ?? true,
-          showWalletAddress: profile.show_wallet_address ?? true,
-          showEmail: profile.show_email ?? false
-        }
-      })
+          // Fetch actual follow counts from database
+          const [followersResult, followingResult] = await Promise.all([
+            supabase
+              .from('profile_follows')
+              .select('id', { count: 'exact', head: true })
+              .eq('following_id', profile.id),
+            supabase
+              .from('profile_follows')
+              .select('id', { count: 'exact', head: true })
+              .eq('follower_id', profile.id)
+          ])
+
+          return {
+            id: profile.id,
+            username: profile.username,
+            email: profile.email,
+            avatar: profile.avatar,
+            bio: profile.bio,
+            bannerImage: profile.banner_image,
+            twitter: profile.twitter,
+            instagram: profile.instagram,
+            discord: profile.discord,
+            website: profile.website,
+            walletAddress: primaryWallet?.wallet_address,
+            wallets,
+            activeWallet: primaryWallet?.wallet_address,
+            linkedWallets: wallets.map(w => w.address),
+            verified: profile.is_verified,
+            createdAt: new Date(profile.created_at),
+            updatedAt: new Date(profile.updated_at),
+            followersCount: followersResult.count || 0,
+            followingCount: followingResult.count || 0,
+            isPublic: profile.is_public ?? true,
+            showWalletAddress: profile.show_wallet_address ?? true,
+            showEmail: profile.show_email ?? false
+          }
+        })
+      )
 
       console.log(`✅ Fetched ${userProfiles.length} profiles from database`)
       return userProfiles
