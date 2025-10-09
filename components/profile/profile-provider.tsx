@@ -1155,23 +1155,37 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const user = JSON.parse(savedUser)
         const { ProfileService } = await import("@/lib/profile-service")
 
-        // Load profile by user ID
-        const profile = ProfileService.getProfile(user.id)
+        console.log('🔄 Loading profile from database for user:', user.id)
 
-        if (profile) {
+        // FIRST: Load profile from Supabase database (source of truth)
+        const dbProfile = await ProfileService.getProfileFromDatabase(user.id)
+
+        if (dbProfile) {
           // Migrate profile to ensure embedded wallet is in wallets array
-          const migratedProfile = ProfileService.migrateProfileWallets(profile)
+          const migratedProfile = ProfileService.migrateProfileWallets(dbProfile)
 
           // Save migrated profile if it changed
           if (migratedProfile.wallets && migratedProfile.wallets.length > 0 &&
-              (!profile.wallets || profile.wallets.length === 0)) {
-            await ProfileService.updateProfile(profile.id, { wallets: migratedProfile.wallets })
+              (!dbProfile.wallets || dbProfile.wallets.length === 0)) {
+            await ProfileService.updateProfile(dbProfile.id, { wallets: migratedProfile.wallets })
           }
 
+          // Sync to localStorage cache for performance
+          await ProfileService.syncProfileToLocalStorage(migratedProfile)
+
           setUserProfile(migratedProfile)
-          console.log("✅ Auto-loaded userProfile for:", migratedProfile.username)
+          console.log("✅ Loaded profile from database:", migratedProfile.username)
         } else {
-          console.warn("⚠️ User logged in but no profile found:", user.id)
+          console.warn("⚠️ User logged in but no profile found in database:", user.id)
+
+          // FALLBACK: Try localStorage cache (in case database is down)
+          const cachedProfile = ProfileService.getProfile(user.id)
+          if (cachedProfile) {
+            const migratedProfile = ProfileService.migrateProfileWallets(cachedProfile)
+            setUserProfile(migratedProfile)
+            console.log("⚠️ Using cached profile (database unavailable):", migratedProfile.username)
+          } else {
+            console.error("❌ No profile found anywhere for user:", user.id)
         }
       } catch (error) {
         console.error("Failed to load user profile:", error)

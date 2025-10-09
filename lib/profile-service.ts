@@ -445,7 +445,84 @@ export class ProfileService {
   }
 
   /**
-   * Get a profile by ID
+   * Get profile from Supabase database by profile ID (RECOMMENDED)
+   */
+  static async getProfileFromDatabase(id: string): Promise<UserProfile | null> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          profile_wallets (
+            wallet_address,
+            wallet_type,
+            is_primary,
+            added_at
+          )
+        `)
+        .eq('id', id)
+        .single()
+
+      if (error || !profile) {
+        console.log(`Profile not found in database: ${id}`)
+        return null
+      }
+
+      // Convert to UserProfile format
+      const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+        address: w.wallet_address,
+        type: w.wallet_type,
+        addedAt: new Date(w.added_at)
+      }))
+
+      const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+      // Fetch follow counts
+      const [followersResult, followingResult] = await Promise.all([
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('following_id', profile.id),
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('follower_id', profile.id)
+      ])
+
+      return {
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        avatar: profile.avatar,
+        bio: profile.bio,
+        bannerImage: profile.banner_image,
+        twitter: profile.twitter,
+        instagram: profile.instagram,
+        discord: profile.discord,
+        website: profile.website,
+        walletAddress: primaryWallet?.wallet_address,
+        wallets,
+        activeWallet: primaryWallet?.wallet_address,
+        linkedWallets: wallets.map(w => w.address),
+        verified: profile.is_verified,
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at),
+        followersCount: followersResult.count || 0,
+        followingCount: followingResult.count || 0,
+        isPublic: profile.is_public ?? true,
+        showWalletAddress: profile.show_wallet_address ?? true,
+        showEmail: profile.show_email ?? false
+      }
+    } catch (error) {
+      console.error('Error fetching profile by ID from database:', error)
+      return null
+    }
+  }
+
+  /**
+   * Get a profile by ID from localStorage (DEPRECATED - use getProfileFromDatabase)
    */
   static getProfile(id: string): UserProfile | null {
     const profiles = this.getProfiles()
