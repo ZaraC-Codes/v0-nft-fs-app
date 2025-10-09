@@ -111,7 +111,14 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   // Check if user owns NFT from this collection (checks ALL linked wallets)
   useEffect(() => {
     async function checkOwnership() {
+      console.log('🔐 CHECK OWNERSHIP START:', {
+        hasUserProfile: !!userProfile,
+        userProfile: userProfile ? { username: userProfile.username, walletAddress: userProfile.walletAddress } : null,
+        collectionAddress: collection.contractAddress
+      })
+
       if (!userProfile) {
+        console.log('❌ NO USER PROFILE - Setting hasNFT=false')
         setHasNFT(false)
         return
       }
@@ -120,19 +127,22 @@ export function CommunityChat({ collection }: CommunityChatProps) {
         // Get all linked wallet addresses
         const allWallets = ProfileService.getAllWallets(userProfile)
 
+        console.log('🔍 Checking NFT ownership across wallets:', allWallets)
+
         if (allWallets.length === 0) {
+          console.log('❌ NO WALLETS FOUND - Setting hasNFT=false')
           setHasNFT(false)
           return
         }
 
-        console.log('🔍 Checking NFT ownership across wallets:', allWallets)
+        console.log('✅ HAS WALLETS - Setting hasNFT=true (server will verify actual ownership)')
 
         // Client-side check for UX hint only - server verifies on message send
         // For now, assume they have access if they have wallets
         // The server will do the real verification across all wallets
         setHasNFT(true)
       } catch (error) {
-        console.error("Error checking ownership:", error)
+        console.error("❌ Error checking ownership:", error)
         setHasNFT(false)
       }
     }
@@ -382,6 +392,15 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     }
   }
 
+  console.log('🎨 RENDER DEBUG:', {
+    hasNFT,
+    hasUserProfile: !!userProfile,
+    profileWallet: profileWallet?.address,
+    loading,
+    messages: messages.length,
+    optimisticId: optimisticMessageId,
+    sending
+  })
   console.log('🎨 Rendering chat. Messages count:', messages.length, 'Loading:', loading, 'OptimisticID:', optimisticMessageId)
 
   return (
