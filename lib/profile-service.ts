@@ -175,10 +175,31 @@ export class ProfileService {
         })
 
       if (walletError) {
-        throw new Error(`Failed to link wallet: ${walletError.message}`)
-      }
+        // Check if it's a duplicate key error (wallet already linked)
+        if (walletError.code === '23505') {
+          console.log('⚠️ Wallet already linked (duplicate key) - verifying ownership...')
 
-      console.log('✅ Linked embedded wallet:', embeddedWalletAddress)
+          // Verify wallet is linked to THIS profile
+          const { data: existingWallet } = await supabase
+            .from('profile_wallets')
+            .select('profile_id')
+            .eq('wallet_address', embeddedWalletAddress)
+            .single()
+
+          if (existingWallet && existingWallet.profile_id !== profile.id) {
+            // Wallet is linked to a DIFFERENT profile - this is a real error
+            throw new Error(`Wallet ${embeddedWalletAddress} is already linked to another profile`)
+          }
+
+          // Wallet is linked to THIS profile (from a retry or race condition) - safe to continue
+          console.log('✅ Wallet already linked to this profile - continuing...')
+        } else {
+          // Different error - throw
+          throw new Error(`Failed to link wallet: ${walletError.message}`)
+        }
+      } else {
+        console.log('✅ Linked embedded wallet:', embeddedWalletAddress)
+      }
 
       // Return UserProfile format
       const userProfile: UserProfile = {
