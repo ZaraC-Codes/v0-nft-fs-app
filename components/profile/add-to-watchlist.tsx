@@ -162,10 +162,13 @@ export function WatchlistToggle({
     <button
       onClick={handleToggleWatchlist}
       disabled={loading || isAdding}
-      className={`inline-flex items-center justify-center rounded-md h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 ${className} ${
+      aria-label={inWatchlist ? `Remove ${name} from watchlist` : `Add ${name} to watchlist`}
+      aria-pressed={inWatchlist}
+      title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
+      className={`inline-flex items-center justify-center rounded-md bg-black/10 h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className} ${
         inWatchlist
-          ? "text-primary hover:text-primary/80 hover:scale-110 active:text-primary"
-          : "text-muted-foreground hover:text-primary hover:scale-110 active:text-primary"
+          ? "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] hover:drop-shadow-[0_0_10px_rgba(0,255,255,0.7)] hover:scale-110"
+          : "text-muted-foreground hover:text-primary hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.4)] hover:scale-105"
       }`}
       style={{ position: 'relative', zIndex: 50 }}
     >
@@ -176,6 +179,7 @@ export function WatchlistToggle({
           className={`h-5 w-5 md:h-4 md:w-4 transition-all ${
             inWatchlist ? "fill-current" : ""
           }`}
+          aria-hidden="true"
         />
       )}
     </button>
