@@ -29,6 +29,7 @@ import { SwapModal } from "@/components/swap/swap-modal"
 import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { useToast } from "@/components/ui/use-toast"
 import { CHAIN_METADATA, getChainMetadata } from "@/lib/thirdweb"
+import { CHAIN_IDS } from "@/lib/constants"
 import { TransactionButton, useActiveAccount } from "thirdweb/react"
 import { cancelListing, updateListingPrice } from "@/lib/marketplace"
 import { getNFTHistory, formatAddress as formatActivityAddress, formatPrice as formatActivityPrice, getActivityLabel, getActivityColor, NFTActivityEvent } from "@/lib/nft-history"
@@ -133,7 +134,7 @@ function BundleContentsTab({ nft }: { nft: PortfolioNFT }) {
       console.log(`📍 Bundle TBA address: ${tbaAddress}`)
 
       // Fetch NFTs owned by the TBA - use correct API endpoint
-      const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33139}`)
+      const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || CHAIN_IDS.APECHAIN_MAINNET}`)
 
       if (!response.ok) {
         throw new Error(`Failed to fetch bundle contents: ${response.status}`)
@@ -351,7 +352,7 @@ export function NFTDetailsModal({
           const { getBundleAccountAddress } = await import("@/lib/bundle")
           const { client, apeChain, sepolia } = await import("@/lib/thirdweb")
 
-          const nftChain = nft.chainId === 33139 ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChain)
+          const nftChain = nft.chainId === CHAIN_IDS.APECHAIN_MAINNET ? apeChain : (nft.chainId === 11155111 ? sepolia : apeChain)
           const tbaAddress = await getBundleAccountAddress(client, nftChain, nft.tokenId)
 
           // Fetch NFTs from TBA
@@ -764,7 +765,7 @@ export function NFTDetailsModal({
                             }
 
                             // Fetch bundled NFTs (bypass cache with timestamp)
-                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || 33139}&t=${Date.now()}`)
+                            const response = await fetch(`/api/wallet-nfts?address=${tbaAddress}&chainId=${nft.chainId || CHAIN_IDS.APECHAIN_MAINNET}&t=${Date.now()}`)
                             const data = await response.json()
                             const bundledNFTs = data.nfts || []
                             console.log(`📦 Found ${bundledNFTs.length} NFTs in bundle`)
@@ -1049,7 +1050,7 @@ export function NFTDetailsModal({
                                     </div>
                                     <div className="text-right">
                                       <a
-                                        href={`https://${nft.chainId === 33139 ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
+                                        href={`https://${nft.chainId === CHAIN_IDS.APECHAIN_MAINNET ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
@@ -1173,7 +1174,7 @@ export function NFTDetailsModal({
                                     <p className="font-medium">{formatActivityPrice(item.price)}</p>
                                   )}
                                   <a
-                                    href={`https://${nft.chainId === 33139 ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
+                                    href={`https://${nft.chainId === CHAIN_IDS.APECHAIN_MAINNET ? 'apescan.io' : 'curtis.explorer.caldera.xyz'}/tx/${item.txHash}`}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"

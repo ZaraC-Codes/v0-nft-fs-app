@@ -12,6 +12,7 @@ import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, Shoppin
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 import { CommunityChat } from "./community-chat"
 import { NFTCardGrid } from "@/components/nft/cards/NFTCardGrid"
+import { CHAIN_IDS } from "@/lib/constants"
 
 export default function CollectionPage() {
   const params = useParams()
@@ -271,7 +272,7 @@ export default function CollectionPage() {
               nfts={nfts.map(nft => ({
                 ...nft,
                 collection: collection?.name || '',
-                chainId: collection?.chainId || 33139,
+                chainId: collection?.chainId || CHAIN_IDS.APECHAIN_MAINNET,
                 listing: { type: "none" as const },
                 rarity: nft.rarity || undefined
               }))}

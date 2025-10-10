@@ -3,6 +3,7 @@
 import { useActiveAccount, useActiveWalletChain } from "thirdweb/react";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, AlertCircle } from "lucide-react";
+import { CHAIN_IDS } from "@/lib/constants";
 
 export function WalletStatus() {
   const account = useActiveAccount();
@@ -12,7 +13,7 @@ export function WalletStatus() {
     return null;
   }
 
-  const isCorrectChain = chain?.id === 33139; // ApeChain Curtis testnet
+  const isCorrectChain = chain?.id === CHAIN_IDS.APECHAIN_MAINNET;
 
   return (
     <div className="flex items-center gap-2 text-sm">
@@ -22,7 +23,7 @@ export function WalletStatus() {
         ) : (
           <AlertCircle className="h-3 w-3" />
         )}
-        {isCorrectChain ? "ApeChain Curtis" : `Wrong Network (${chain?.name || "Unknown"})`}
+        {isCorrectChain ? "ApeChain" : `Wrong Network (${chain?.name || "Unknown"})`}
       </Badge>
 
       <Badge variant="outline" className="font-mono text-xs">

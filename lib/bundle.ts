@@ -3,24 +3,25 @@ import { ThirdwebClient } from "thirdweb";
 import { Chain } from "thirdweb/chains";
 import { apeChain, sepolia } from "./thirdweb";
 import { encodeFunctionData } from "viem";
+import { CONTRACTS } from "./constants";
 
 /**
  * Bundle Contract Addresses
- * Updated: Oct 7, 2025 - Use environment variables to prevent duplicate key issues
+ * Updated: Oct 7, 2025 - Use centralized constants from lib/constants.ts
  */
 export const BUNDLE_CONTRACT_ADDRESSES = {
   // ApeChain Mainnet (PRODUCTION) - Custom ERC-6551 deployed Oct 3, 2025
   [apeChain.id]: {
-    bundleNFT: process.env.NEXT_PUBLIC_BUNDLE_NFT_ADDRESS || "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017",
-    bundleManager: process.env.NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS || "0x8051dECcEa3105f4a6993391d2A36F1E9D96b017",
-    erc6551Registry: process.env.NEXT_PUBLIC_ERC6551_REGISTRY_ADDRESS || "0x000000006551c19487814612e58FE06813775758",
-    accountImplementation: process.env.NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT || "0x76591D246caC5DFB0D31c65d0052a15f6A887e7f",
+    bundleNFT: process.env.NEXT_PUBLIC_BUNDLE_NFT_ADDRESS || CONTRACTS.BUNDLE_NFT,
+    bundleManager: process.env.NEXT_PUBLIC_BUNDLE_MANAGER_ADDRESS || CONTRACTS.BUNDLE_MANAGER,
+    erc6551Registry: process.env.NEXT_PUBLIC_ERC6551_REGISTRY_ADDRESS || CONTRACTS.ERC6551_REGISTRY,
+    accountImplementation: process.env.NEXT_PUBLIC_FORTUNA_BUNDLE_ACCOUNT || CONTRACTS.FORTUNA_BUNDLE_ACCOUNT,
   },
   // Sepolia (testnet) - if needed
   [sepolia.id]: {
     bundleNFT: "0x...",
     bundleManager: "0x...",
-    erc6551Registry: "0x000000006551c19487814612e58FE06813775758",
+    erc6551Registry: CONTRACTS.ERC6551_REGISTRY,
     accountImplementation: "0x...",
   },
 } as const;

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { CHAIN_IDS } from "@/lib/constants"
 
 /**
  * AI Bot API Endpoint
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     //   ],
     //   context: {
     //     from: sender,
-    //     chain_ids: [33139], // ApeChain Curtis
+    //     chain_ids: [CHAIN_IDS.APECHAIN_MAINNET]
     //   }
     // })
 
