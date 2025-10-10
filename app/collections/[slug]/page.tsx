@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, ShoppingCart, ArrowLeftRight, Palette, Loader2 } from "lucide-react"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 import { CommunityChat } from "./community-chat"
+import { NFTCardGrid } from "@/components/nft/cards/NFTCardGrid"
 
 export default function CollectionPage() {
   const params = useParams()
@@ -266,57 +267,22 @@ export default function CollectionPage() {
           </TabsList>
 
           <TabsContent value="items" className="mt-6">
-            {loadingNFTs ? (
-              <div className="text-center py-12 text-muted-foreground">
-                Loading NFTs...
-              </div>
-            ) : nfts.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                No NFTs found in this collection
-              </div>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
-                {nfts.map((nft) => (
-                  <Card
-                    key={`${nft.contractAddress}-${nft.tokenId}`}
-                    className="group cursor-pointer hover:shadow-lg transition-all hover:scale-105 overflow-hidden"
-                    onClick={() => setSelectedNFT(nft)}
-                  >
-                    <CardContent className="p-0">
-                      {/* NFT Image */}
-                      <div className="aspect-square bg-muted overflow-hidden">
-                        {nft.image ? (
-                          <img
-                            src={nft.image}
-                            alt={nft.name}
-                            loading="lazy"
-                            decoding="async"
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform"
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground">
-                            <Package className="w-8 h-8" />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* NFT Info */}
-                      <div className="p-2">
-                        {/* NFT Name */}
-                        <p className="text-xs font-semibold truncate">
-                          {nft.name}
-                        </p>
-
-                        {/* Token ID */}
-                        <p className="text-[10px] text-muted-foreground truncate">
-                          #{nft.tokenId}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
+            <NFTCardGrid
+              nfts={nfts.map(nft => ({
+                ...nft,
+                collection: collection?.name || '',
+                chainId: collection?.chainId || 33139,
+                listing: { type: "none" as const },
+                rarity: nft.rarity || undefined
+              }))}
+              size="compact"
+              onCardClick={(nft) => setSelectedNFT(nft)}
+              loading={loadingNFTs}
+              emptyMessage="No NFTs found in this collection"
+              showActions={false}
+              showWatchlist={true}
+              isOwner={false}
+            />
 
             {/* Loading Sentinel for Infinite Scroll */}
             {!loadingNFTs && nfts.length > 0 && (
