@@ -187,12 +187,62 @@ export class ProfileService {
             .single()
 
           if (existingWallet && existingWallet.profile_id !== profile.id) {
-            // Wallet is linked to a DIFFERENT profile - this is a real error
-            throw new Error(`Wallet ${embeddedWalletAddress} is already linked to another profile`)
-          }
+            // Wallet is linked to a DIFFERENT profile
+            console.log(`⚠️ Wallet is linked to different profile: ${existingWallet.profile_id}`)
 
-          // Wallet is linked to THIS profile (from a retry or race condition) - safe to continue
-          console.log('✅ Wallet already linked to this profile - continuing...')
+            // Check if old profile is orphaned (no OAuth accounts)
+            const { data: oldProfile } = await supabase
+              .from('profiles')
+              .select('id, username')
+              .eq('id', existingWallet.profile_id)
+              .single()
+
+            const { data: oldOAuthAccounts } = await supabase
+              .from('profile_oauth_accounts')
+              .select('id')
+              .eq('profile_id', existingWallet.profile_id)
+
+            const isOrphaned = !oldOAuthAccounts || oldOAuthAccounts.length === 0
+
+            if (isOrphaned) {
+              // Old profile is orphaned - safe to unlink wallet and link to new profile
+              console.log(`🔄 Old profile ${oldProfile?.username} is orphaned - unlinking wallet and re-linking to new profile`)
+
+              // Delete old wallet link
+              await supabase
+                .from('profile_wallets')
+                .delete()
+                .eq('wallet_address', embeddedWalletAddress)
+
+              // Delete old orphaned profile
+              await supabase
+                .from('profiles')
+                .delete()
+                .eq('id', existingWallet.profile_id)
+
+              console.log('✅ Deleted orphaned profile and wallet link')
+
+              // Retry linking wallet to new profile
+              const { error: retryError } = await supabase
+                .from('profile_wallets')
+                .insert({
+                  profile_id: profile.id,
+                  wallet_address: embeddedWalletAddress
+                })
+
+              if (retryError) {
+                throw new Error(`Failed to link wallet after cleanup: ${retryError.message}`)
+              }
+
+              console.log('✅ Linked wallet to new profile after cleanup')
+            } else {
+              // Old profile has OAuth accounts - this is a real conflict
+              throw new Error(`Wallet ${embeddedWalletAddress} is already linked to another profile with OAuth accounts`)
+            }
+          } else {
+            // Wallet is linked to THIS profile (from a retry or race condition) - safe to continue
+            console.log('✅ Wallet already linked to this profile - continuing...')
+          }
         } else {
           // Different error - throw
           throw new Error(`Failed to link wallet: ${walletError.message}`)
