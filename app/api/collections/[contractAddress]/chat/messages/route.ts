@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import { getSupabaseClient, CHAT_MESSAGES_TABLE } from "@/lib/supabase"
 import { getCollectionChatId } from "@/lib/collection-chat"
 
+// 🔧 CRITICAL FIX: Disable Next.js route cache to ensure fresh data
+// Without this, messages disappear when switching tabs because Next.js serves stale cached responses
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 /**
  * GET /api/collections/[contractAddress]/chat/messages
  * Fetch all messages for a collection's community chat from Supabase cache
