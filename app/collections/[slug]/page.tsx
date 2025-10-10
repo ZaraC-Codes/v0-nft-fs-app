@@ -275,13 +275,14 @@ export default function CollectionPage() {
                 listing: { type: "none" as const },
                 rarity: nft.rarity || undefined
               }))}
-              size="compact"
+              size="micro"
               onCardClick={(nft) => setSelectedNFT(nft)}
               loading={loadingNFTs}
               emptyMessage="No NFTs found in this collection"
               showActions={false}
               showWatchlist={true}
               isOwner={false}
+              className="!grid-cols-2 sm:!grid-cols-3 md:!grid-cols-4 lg:!grid-cols-6 xl:!grid-cols-7 2xl:!grid-cols-8 !gap-2"
             />
 
             {/* Loading Sentinel for Infinite Scroll */}
