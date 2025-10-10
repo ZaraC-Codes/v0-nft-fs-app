@@ -110,8 +110,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (account?.address) {
       if (user) {
-        // User is logged in - check if this wallet is already linked
-        const profile = ProfileService.getProfile(user.id)
+        // User is logged in - check if this wallet is already linked (DATABASE-FIRST)
+        const profile = await ProfileService.getProfileFromDatabase(user.id)
         if (profile) {
           const linkedWallets = ProfileService.getAllWallets(profile)
           const isWalletLinked = linkedWallets.some(w => w.toLowerCase() === account.address.toLowerCase())
@@ -119,16 +119,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (!isWalletLinked) {
             // This is a new wallet - link it to the profile
             console.log("🔗 Linking new wallet to profile:", account.address)
-            ProfileService.linkAdditionalWallet(user.id, account.address).then(() => {
+            try {
+              await ProfileService.linkAdditionalWallet(user.id, account.address)
               console.log("✅ Wallet linked successfully")
-            }).catch(error => {
+            } catch (error) {
               console.error("Failed to link wallet:", error)
-            })
+            }
           }
         }
       } else {
-        // No user logged in - check if wallet has existing profile
-        const existingProfile = ProfileService.getProfileByWallet(account.address)
+        // No user logged in - check if wallet has existing profile (DATABASE-FIRST)
+        const existingProfile = await ProfileService.getProfileByWalletFromDatabase(account.address)
 
         if (existingProfile) {
           // Wallet has a profile - log them in
@@ -144,30 +145,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
           console.log("✅ Logged in existing wallet user:", existingProfile.username)
         } else {
-          // SAFEGUARD: Double-check no profile exists before creating
-          // Check both primary wallet and linked wallets
-          const allProfiles = ProfileService.getAllProfiles()
-          const profileWithWallet = allProfiles.find(p => {
-            const wallets = ProfileService.getAllWallets(p)
-            return wallets.some(w => w.toLowerCase() === account.address.toLowerCase())
-          })
-
-          if (profileWithWallet) {
-            // Found existing profile with this wallet - log them in instead
-            console.log("⚠️ SAFEGUARD: Found existing profile with this wallet, logging in instead of creating duplicate")
-            const walletUser: User = {
-              id: profileWithWallet.id,
-              username: profileWithWallet.username,
-              email: profileWithWallet.email || "",
-              avatar: profileWithWallet.avatar,
-              walletAddress: profileWithWallet.walletAddress,
-              isVerified: true,
-            }
-            setUser(walletUser)
-            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-            console.log("✅ Logged in existing user (safeguard):", profileWithWallet.username)
-            return
-          }
+          // No existing profile found in database
+          // Database unique constraints prevent duplicates, so safe to proceed
 
           // Only auto-create profile for embedded wallets (in-app wallet)
           // External wallets (MetaMask, etc.) require manual linking

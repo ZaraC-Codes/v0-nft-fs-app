@@ -336,14 +336,32 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
                 console.log("✅ Transaction confirmed!")
                 console.log("📄 Transaction receipt:", receipt)
 
-                // Clear portfolio cache to force immediate refresh
+                // Clear portfolio cache to force immediate refresh (DATABASE-FIRST)
                 if (account) {
-                  const { portfolioCache } = require("@/lib/portfolio-cache")
-                  const ProfileService = (await import("@/lib/profile-service")).default
-                  const currentProfile = ProfileService.getProfileByWallet(account.address)
-                  const allWallets = currentProfile?.wallets?.map(w => w.address) || [account.address]
-                  portfolioCache.clearForWallets(allWallets)
-                  console.log("🗑️ Cleared portfolio cache after listing creation")
+                  try {
+                    const { portfolioCache } = require("@/lib/portfolio-cache")
+                    const { ProfileService } = await import("@/lib/profile-service")
+
+                    // Look up profile from database
+                    const currentProfile = await ProfileService.getProfileByWalletFromDatabase(account.address)
+
+                    if (currentProfile) {
+                      // Clear cache for all linked wallets
+                      const allWallets = ProfileService.getAllWallets(currentProfile)
+                      portfolioCache.clearForWallets(allWallets)
+                      console.log("🗑️ Cleared portfolio cache for all linked wallets:", allWallets.length)
+                    } else {
+                      // Fallback: Clear cache only for active wallet if profile not found
+                      console.warn("⚠️ Profile not found in database, clearing cache for active wallet only")
+                      portfolioCache.clearForWallets([account.address])
+                    }
+                  } catch (error) {
+                    // Fallback: Clear cache for active wallet on error
+                    console.error("❌ Error clearing portfolio cache:", error)
+                    const { portfolioCache } = require("@/lib/portfolio-cache")
+                    portfolioCache.clearForWallets([account.address])
+                    console.log("🗑️ Fallback: Cleared portfolio cache for active wallet only")
+                  }
                 }
 
                 // Wait a moment for blockchain state to update
