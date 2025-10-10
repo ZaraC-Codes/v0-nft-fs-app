@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef, useCallback } from "react"
 import { useParams } from "next/navigation"
 import { Header } from "@/components/header"
 import { Collection, CollectionStats } from "@/types/collection"
@@ -8,7 +8,7 @@ import { getCollectionBySlug, getCollectionStats, getCollectionNFTs, getCollecti
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, ShoppingCart, ArrowLeftRight, Palette } from "lucide-react"
+import { Users, Activity, TrendingUp, Package, Newspaper, MessageCircle, ShoppingCart, ArrowLeftRight, Palette, Loader2 } from "lucide-react"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 import { CommunityChat } from "./community-chat"
 
@@ -27,6 +27,13 @@ export default function CollectionPage() {
   const [loadingActivity, setLoadingActivity] = useState(false)
   const [selectedNFT, setSelectedNFT] = useState<any | null>(null)
 
+  // Infinite scroll state
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const observerTarget = useRef<HTMLDivElement>(null)
+  const loadingRef = useRef(false) // Prevent duplicate requests
+
   useEffect(() => {
     async function loadCollection() {
       try {
@@ -44,10 +51,14 @@ export default function CollectionPage() {
         const statsData = await getCollectionStats(collectionData.contractAddress)
         setStats(statsData)
 
-        // Load NFTs
+        // Load initial NFTs (40 for faster initial load)
         setLoadingNFTs(true)
-        const nftsData = await getCollectionNFTs(collectionData.contractAddress, 1, 50)
+        const nftsData = await getCollectionNFTs(collectionData.contractAddress, 1, 40)
         setNfts(nftsData)
+        // Check if we got fewer NFTs than requested (means we're at the end)
+        if (nftsData.length < 40) {
+          setHasMore(false)
+        }
         setLoadingNFTs(false)
 
         // Load Bundles
@@ -70,6 +81,57 @@ export default function CollectionPage() {
 
     loadCollection()
   }, [slug])
+
+  // Load more NFTs for infinite scroll
+  const loadMoreNFTs = useCallback(async () => {
+    if (loadingRef.current || !hasMore || !collection) return
+
+    loadingRef.current = true
+    setLoadingMore(true)
+
+    try {
+      const nextPage = page + 1
+      const moreNFTs = await getCollectionNFTs(collection.contractAddress, nextPage, 20)
+
+      if (moreNFTs.length === 0 || moreNFTs.length < 20) {
+        setHasMore(false)
+      }
+
+      setNfts(prev => [...prev, ...moreNFTs])
+      setPage(nextPage)
+    } catch (error) {
+      console.error("Failed to load more NFTs:", error)
+    } finally {
+      setLoadingMore(false)
+      loadingRef.current = false
+    }
+  }, [page, hasMore, collection])
+
+  // Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore) {
+          loadMoreNFTs()
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '200px' // Start loading 200px before reaching sentinel
+      }
+    )
+
+    const currentTarget = observerTarget.current
+    if (currentTarget) {
+      observer.observe(currentTarget)
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget)
+      }
+    }
+  }, [loadMoreNFTs, hasMore, loadingMore])
 
   if (loading) {
     return (
@@ -253,6 +315,23 @@ export default function CollectionPage() {
                     </CardContent>
                   </Card>
                 ))}
+              </div>
+            )}
+
+            {/* Loading Sentinel for Infinite Scroll */}
+            {!loadingNFTs && nfts.length > 0 && (
+              <div ref={observerTarget} className="py-8">
+                {loadingMore && (
+                  <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    <span>Loading more NFTs...</span>
+                  </div>
+                )}
+                {!hasMore && (
+                  <p className="text-center text-muted-foreground">
+                    All {nfts.length} NFTs loaded
+                  </p>
+                )}
               </div>
             )}
           </TabsContent>
