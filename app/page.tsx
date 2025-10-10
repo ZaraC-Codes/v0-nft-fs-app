@@ -96,8 +96,17 @@ export default function HomePage() {
       try {
         console.log('🔄 Loading profiles from Supabase...')
         const profiles = await ProfileService.getAllProfilesFromDatabase()
+
+        // Filter out orphaned profiles (no wallets AND no OAuth accounts)
+        const validProfiles = profiles.filter(p => {
+          const hasWallets = p.wallets && p.wallets.length > 0
+          const hasOAuth = p.oauthAccounts && p.oauthAccounts.length > 0
+          return hasWallets || hasOAuth
+        })
+
         console.log('✅ Loaded profiles:', profiles.map(p => ({ username: p.username, avatar: p.avatar, id: p.id })))
-        setActiveUsers(profiles)
+        console.log('✅ Valid profiles (excluding orphaned):', validProfiles.map(p => p.username))
+        setActiveUsers(validProfiles)
       } catch (error) {
         console.error('❌ Failed to load profiles from database:', error)
         setActiveUsers([]) // Set empty array instead of fallback to localStorage

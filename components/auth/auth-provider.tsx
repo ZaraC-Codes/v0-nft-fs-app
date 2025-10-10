@@ -291,14 +291,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }
       } else if (!account && user?.walletAddress) {
-        // Wallet disconnected, clear user if it was wallet-only
-        if (!user.email || user.email === "") {
-          setUser(null)
-          localStorage.removeItem("fortuna_square_user")
-          console.log("✅ Cleared wallet-only user on disconnect")
-        } else {
-          // Keep user account even if wallet disconnected (they have email/social login)
-          console.log("✅ Wallet disconnected but user has email login")
+        // Wallet disconnected - don't immediately clear user
+        // User might have OAuth login even without email
+        console.log("⚠️ Wallet disconnected, checking if user has OAuth accounts...")
+
+        try {
+          const { ProfileService } = await import("@/lib/profile-service")
+          const profile = await ProfileService.getProfileFromDatabase(user.id)
+
+          if (!profile) {
+            // Profile doesn't exist in database - clear user
+            setUser(null)
+            localStorage.removeItem("fortuna_square_user")
+            console.log("✅ Cleared user - profile not found in database")
+          } else if (!profile.oauthAccounts || profile.oauthAccounts.length === 0) {
+            // No OAuth accounts and wallet disconnected - clear user
+            setUser(null)
+            localStorage.removeItem("fortuna_square_user")
+            console.log("✅ Cleared wallet-only user on disconnect")
+          } else {
+            // User has OAuth accounts - keep logged in
+            console.log("✅ Wallet disconnected but user has OAuth account, keeping auth state")
+          }
+        } catch (error) {
+          console.error("❌ Error checking OAuth accounts on disconnect:", error)
+          // Don't clear user on error - safer to keep them logged in
         }
       }
     })() // Close async IIFE

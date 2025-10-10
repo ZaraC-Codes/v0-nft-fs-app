@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head><title>Debug localStorage</title></head>
+<body>
+<h1>localStorage Debug</h1>
+<pre id="output"></pre>
+<script>
+const output = [];
+output.push('=== fortuna_square_user ===');
+const user = localStorage.getItem('fortuna_square_user');
+output.push(user ? JSON.stringify(JSON.parse(user), null, 2) : 'NOT FOUND');
+
+output.push('\n=== All fortuna_square keys ===');
+for (let i = 0; i < localStorage.length; i++) {
+  const key = localStorage.key(i);
+  if (key && key.startsWith('fortuna_square')) {
+    output.push(`${key}: ${localStorage.getItem(key)?.slice(0, 100)}...`);
+  }
+}
+
+document.getElementById('output').textContent = output.join('\n');
+</script>
+</body>
+</html>
