@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { Eye, Loader2 } from "lucide-react"
 import { useProfile } from "./profile-provider"
+import { cn } from "@/lib/utils"
 
 interface AddToWatchlistProps {
   contractAddress: string
@@ -165,20 +166,29 @@ export function WatchlistToggle({
       aria-label={inWatchlist ? `Remove ${name} from watchlist` : `Add ${name} to watchlist`}
       aria-pressed={inWatchlist}
       title={inWatchlist ? "Remove from watchlist" : "Add to watchlist"}
-      className={`inline-flex items-center justify-center rounded-md bg-black/10 h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${className} ${
+      className={cn(
+        "inline-flex items-center justify-center rounded-lg",
+        "h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8",
+        "transition-all duration-300",
+        "disabled:pointer-events-none disabled:opacity-50",
+        "touch-manipulation [-webkit-tap-highlight-color:transparent]",
+        "active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+        className,
         inWatchlist
-          ? "text-primary drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] hover:drop-shadow-[0_0_10px_rgba(0,255,255,0.7)] hover:scale-110"
-          : "text-muted-foreground hover:text-primary hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.4)] hover:scale-105"
-      }`}
+          ? "text-primary drop-shadow-[0_0_12px_rgba(0,255,255,0.8)] hover:drop-shadow-[0_0_16px_rgba(0,255,255,0.9)] hover:scale-110"
+          : "hover:drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:scale-105"
+      )}
       style={{ position: 'relative', zIndex: 50 }}
     >
       {isAdding ? (
         <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
       ) : (
         <Eye
-          className={`h-5 w-5 md:h-4 md:w-4 transition-all ${
-            inWatchlist ? "fill-current" : ""
-          }`}
+          className={cn(
+            "h-5 w-5 md:h-4 md:w-4 transition-all",
+            inWatchlist && "fill-current"
+          )}
           aria-hidden="true"
         />
       )}
