@@ -39,10 +39,11 @@ export function CommunityChat({ collection }: CommunityChatProps) {
   const [hasNFT, setHasNFT] = useState(false)
   const [loading, setLoading] = useState(true)
   const [sending, setSending] = useState(false)
-  const [optimisticMessageId, setOptimisticMessageId] = useState<string | null>(null)
   const [sendError, setSendError] = useState<string | null>(null)
-  const optimisticMessageIdRef = useRef<string | null>(null)
-  const optimisticMessageRef = useRef<any>(null)
+
+  // 🔧 FIX: Support multiple pending messages instead of single optimistic message
+  const [optimisticMessages, setOptimisticMessages] = useState<Map<string, any>>(new Map())
+  const optimisticMessagesRef = useRef<Map<string, any>>(new Map())
   const isMobile = useMediaQuery("(max-width: 1024px)")
   const { toast } = useToast()
 
@@ -311,56 +312,54 @@ export function CommunityChat({ collection }: CommunityChatProps) {
           return
         }
 
-        // Update messages with optimistic message handling
+        // 🔧 FIX: Update messages with support for multiple pending messages
         setMessages(prevMessages => {
           console.log('🚨 SET MESSAGES EXECUTING 🚨', {
             prevLength: prevMessages.length,
             newLength: data.messages.length,
+            pendingCount: optimisticMessagesRef.current.size,
             contractAddress: collection.contractAddress,
             timestamp: new Date().toISOString()
           })
 
-          const currentOptimisticId = optimisticMessageIdRef.current
-          const currentOptimisticMsg = optimisticMessageRef.current
+          const pendingMap = optimisticMessagesRef.current
 
-          console.log('🔍 OPTIMISTIC MESSAGE CHECK:', {
-            hasOptimisticId: !!currentOptimisticId,
-            hasOptimisticMsg: !!currentOptimisticMsg,
-            optimisticId: currentOptimisticId,
-            optimisticMsgPending: currentOptimisticMsg?.pending,
-            optimisticMsgContent: currentOptimisticMsg?.content?.substring(0, 20)
+          // If no pending messages, just use API messages
+          if (pendingMap.size === 0) {
+            console.log('✅ No pending messages, returning API messages only')
+            return data.messages
+          }
+
+          console.log('🔍 CHECKING PENDING MESSAGES:', {
+            pendingCount: pendingMap.size,
+            pendingIds: Array.from(pendingMap.keys())
           })
 
-          // If no optimistic message, just use API messages
-          if (!currentOptimisticId || !currentOptimisticMsg) {
-            console.log('❌ No optimistic message found, returning API messages only')
-            return data.messages
-          }
+          // Check which optimistic messages are now in blockchain
+          const stillPending: any[] = []
+          for (const [tempId, optimisticMsg] of pendingMap) {
+            const existsInBlockchain = data.messages.some((m: any) =>
+              m.content === optimisticMsg.content &&
+              m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
+            )
 
-          // Check if the optimistic message now exists in real messages
-          const realMessageExists = data.messages.some((m: any) =>
-            m.content === currentOptimisticMsg.content &&
-            m.senderAddress.toLowerCase() === currentOptimisticMsg.senderAddress.toLowerCase()
-          )
-
-          if (realMessageExists) {
-            console.log('✅ Real message appeared, clearing optimistic state')
-            // Clear optimistic state
-            setOptimisticMessageId(null)
-            optimisticMessageRef.current = null
-            return data.messages
-          } else {
-            // Keep optimistic message if transaction confirmed but not yet on blockchain
-            if (currentOptimisticMsg.pending === false) {
-              console.log('⏳ Optimistic message confirmed, waiting for blockchain propagation')
-              // Keep optimistic message appended to the end
-              return [...data.messages, currentOptimisticMsg]
+            if (existsInBlockchain) {
+              console.log(`✅ Message ${tempId} appeared in blockchain, removing from pending`)
+              // Remove from tracking
+              setOptimisticMessages(prev => {
+                const updated = new Map(prev)
+                updated.delete(tempId)
+                return updated
+              })
+              optimisticMessagesRef.current.delete(tempId)
             } else {
-              // Still pending, keep optimistic message
-              console.log('⏳ Optimistic message still pending')
-              return [...data.messages, currentOptimisticMsg]
+              console.log(`⏳ Message ${tempId} still pending (confirmed: ${!optimisticMsg.pending})`)
+              stillPending.push(optimisticMsg)
             }
           }
+
+          // Return blockchain messages + all still-pending optimistic messages
+          return [...data.messages, ...stillPending]
         })
 
         setLoading(false)
@@ -451,9 +450,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       return
     }
 
-    // Optimistically add message to UI immediately (using profile wallet address)
-    // IMPORTANT: Sanitize content to match what blockchain will store
-    const tempId = `temp-${Date.now()}`
+    // 🔧 FIX: Add to Map instead of overwriting single optimistic message
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     const optimisticMessage = {
       id: tempId,
       type: 'message',
@@ -463,10 +461,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       isBot: false,
       pending: true,
     }
-    setOptimisticMessageId(tempId)
-    optimisticMessageRef.current = optimisticMessage  // Store in ref to avoid closure issues
+
+    // Add to Map to track multiple pending messages
+    setOptimisticMessages(prev => new Map(prev).set(tempId, optimisticMessage))
+    optimisticMessagesRef.current.set(tempId, optimisticMessage)
+
     setMessages(prev => {
-      console.log('📝 Adding optimistic message. Current messages:', prev.length, 'New total:', prev.length + 1)
+      console.log('📝 Adding optimistic message. Current messages:', prev.length, 'Pending:', optimisticMessagesRef.current.size)
       return [...prev, optimisticMessage]
     })
 
@@ -508,8 +509,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       console.log('✅ Message sent via backend relayer:', result.transactionHash)
       console.log('🔗 Explorer:', `https://apechain.calderaexplorer.xyz/tx/${result.transactionHash}`)
 
-      // Mark optimistic message as confirmed (remove pending indicator)
-      // Keep the message visible until polling fetches the real blockchain message
+      // 🔧 FIX: Mark message as confirmed in Map
       console.log('✅ Transaction confirmed, marking optimistic message as confirmed')
       setMessages(prev => {
         const updated = prev.map(m =>
@@ -518,12 +518,16 @@ export function CommunityChat({ collection }: CommunityChatProps) {
             : m
         )
 
-        // CRITICAL: Sync ref with state inside setter to prevent race conditions
-        // This ensures polling can't overwrite the confirmed state
+        // Update the Map and ref
         const confirmedMsg = updated.find(m => m.id === tempId)
         if (confirmedMsg) {
-          optimisticMessageRef.current = confirmedMsg
-          console.log('✅ Updated optimistic message ref to pending: false (synced with state)')
+          setOptimisticMessages(prevMap => {
+            const updatedMap = new Map(prevMap)
+            updatedMap.set(tempId, confirmedMsg)
+            return updatedMap
+          })
+          optimisticMessagesRef.current.set(tempId, confirmedMsg)
+          console.log('✅ Updated optimistic message to pending: false in Map')
         }
 
         return updated
@@ -547,9 +551,13 @@ export function CommunityChat({ collection }: CommunityChatProps) {
       const errorMsg = error.message || "Failed to send message"
       setSendError(errorMsg)
 
-      // Remove optimistic message on error
-      setOptimisticMessageId(null)
-      optimisticMessageRef.current = null
+      // 🔧 FIX: Remove message from Map on error
+      setOptimisticMessages(prev => {
+        const updated = new Map(prev)
+        updated.delete(tempId)
+        return updated
+      })
+      optimisticMessagesRef.current.delete(tempId)
       setMessages(prev => prev.filter(m => m.id !== tempId))
 
       toast({
