@@ -6,16 +6,18 @@ import { createClient } from '@supabase/supabase-js'
 config({ path: resolve(process.cwd(), '.env.local') })
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-if (!supabaseUrl || !supabaseServiceKey) {
+if (!supabaseUrl || !supabaseAnonKey) {
   console.error('❌ Missing Supabase environment variables')
+  console.error(`URL: ${supabaseUrl ? 'SET' : 'MISSING'}`)
+  console.error(`Anon Key: ${supabaseAnonKey ? 'SET' : 'MISSING'}`)
   process.exit(1)
 }
 
 async function deleteAllProfiles() {
-  // Use service role key for admin operations
-  const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+  // Use anon key (RLS policies should allow deletion)
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: false,
       persistSession: false
@@ -24,12 +26,39 @@ async function deleteAllProfiles() {
 
   console.log('🗑️ Deleting all profile data from Supabase...\n')
 
-  // Delete profile_wallets first (foreign key constraint)
+  // Get all profile IDs first
+  const { data: allProfiles } = await supabase
+    .from('profiles')
+    .select('id')
+
+  if (!allProfiles || allProfiles.length === 0) {
+    console.log('✅ No profiles to delete')
+    return
+  }
+
+  const profileIds = allProfiles.map(p => p.id)
+  console.log(`Found ${profileIds.length} profile(s) to delete\n`)
+
+  // Delete profile_oauth_accounts first (foreign key constraint)
+  console.log('📝 Deleting profile_oauth_accounts...')
+  const { data: oauth, error: oauthError } = await supabase
+    .from('profile_oauth_accounts')
+    .delete()
+    .in('profile_id', profileIds)
+    .select()
+
+  if (oauthError) {
+    console.error('❌ Error deleting OAuth accounts:', oauthError)
+  } else {
+    console.log(`✅ Deleted ${oauth?.length || 0} OAuth accounts\n`)
+  }
+
+  // Delete profile_wallets (foreign key constraint)
   console.log('📝 Deleting profile_wallets...')
   const { data: wallets, error: walletsError } = await supabase
     .from('profile_wallets')
     .delete()
-    .neq('wallet_address', '')
+    .in('profile_id', profileIds)
     .select()
 
   if (walletsError) {
@@ -43,7 +72,7 @@ async function deleteAllProfiles() {
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .delete()
-    .neq('id', '')
+    .in('id', profileIds)
     .select()
 
   if (profilesError) {
