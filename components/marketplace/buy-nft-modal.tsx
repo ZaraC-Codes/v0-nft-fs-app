@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -14,6 +13,7 @@ import { ShoppingCart, Info, AlertCircle, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { PortfolioNFT } from "@/types/profile"
 import { useToast } from "@/components/ui/use-toast"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 
 interface BuyNFTModalProps {
   isOpen: boolean
@@ -33,47 +33,86 @@ export function BuyNFTModal({ isOpen, onClose, nft }: BuyNFTModalProps) {
 
   if (!account) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-border/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold neon-text">Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Please connect your wallet to purchase items.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Connect Wallet"
+        description="Please connect your wallet to purchase items."
+      />
     )
   }
 
   if (!nft.listing || nft.listing.type !== "sale") {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-border/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-destructive">Not For Sale</DialogTitle>
-            <DialogDescription>
-              This {nft.isBundle ? "bundle" : "NFT"} is not currently listed for sale.
-            </DialogDescription>
-          </DialogHeader>
-          <Button onClick={onClose}>Close</Button>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Not For Sale"
+        description={`This ${nft.isBundle ? "bundle" : "NFT"} is not currently listed for sale.`}
+      />
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
-            <ShoppingCart className="h-6 w-6 text-green-400" />
-            Complete Purchase
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Review and confirm your purchase
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent">
+          Complete Purchase
+        </span>
+      }
+      description="Review and confirm your purchase"
+      size="lg"
+      titleIcon={<ShoppingCart className="h-6 w-6 text-green-400" />}
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            disabled={isPurchasing}
+            className="flex-1 border-border/50"
+          >
+            Cancel
+          </Button>
+
+          {account && (
+            <TransactionButton
+              transaction={() => {
+                setIsPurchasing(true)
+                return prepareBuyNFT({
+                  client,
+                  chain: { id: nft.chainId } as any,
+                  contractAddress: nft.contractAddress,
+                  tokenId: nft.tokenId,
+                  price: salePrice,
+                  isBundle: nft.isBundle || false
+                })
+              }}
+              onTransactionConfirmed={() => {
+                setIsPurchasing(false)
+                toast({
+                  title: "Purchase Successful!",
+                  description: `You now own ${nft.name}`,
+                })
+                onClose()
+              }}
+              onError={(error) => {
+                setIsPurchasing(false)
+                toast({
+                  title: "Purchase Failed",
+                  description: error.message,
+                  variant: "destructive"
+                })
+              }}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+            >
+              {isPurchasing ? "Processing..." : `Buy for ${salePrice} APE`}
+            </TransactionButton>
+          )}
+        </div>
+      }
+    >
 
         {/* NFT Preview */}
         <Card className="p-4 bg-card/50 border-border/50">
@@ -167,54 +206,6 @@ export function BuyNFTModal({ isOpen, onClose, nft }: BuyNFTModalProps) {
             </div>
           </div>
         </Card>
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            disabled={isPurchasing}
-            className="flex-1 border-border/50"
-          >
-            Cancel
-          </Button>
-
-          {account && (
-            <TransactionButton
-              transaction={() => {
-                setIsPurchasing(true)
-                return prepareBuyNFT({
-                  client,
-                  chain: { id: nft.chainId } as any,
-                  contractAddress: nft.contractAddress,
-                  tokenId: nft.tokenId,
-                  price: salePrice,
-                  isBundle: nft.isBundle || false
-                })
-              }}
-              onTransactionConfirmed={() => {
-                setIsPurchasing(false)
-                toast({
-                  title: "Purchase Successful!",
-                  description: `You now own ${nft.name}`,
-                })
-                onClose()
-              }}
-              onError={(error) => {
-                setIsPurchasing(false)
-                toast({
-                  title: "Purchase Failed",
-                  description: error.message,
-                  variant: "destructive"
-                })
-              }}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-            >
-              {isPurchasing ? "Processing..." : `Buy for ${salePrice} APE`}
-            </TransactionButton>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   )
 }
