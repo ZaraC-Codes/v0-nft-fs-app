@@ -325,7 +325,7 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
           </CardContent>
         </TabsContent>
 
-        {/* Watchlist Tab */}
+        {/* Watchlist Tab - Now using NFTCardGrid */}
         <TabsContent value="watchlist" className="space-y-4">
           <CardContent className="pt-6">
             {profileTabData.watchlist.length === 0 ? (
@@ -334,187 +334,31 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                 <p className="text-muted-foreground">No items in watchlist</p>
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-                {profileTabData.watchlist.map((item) => {
-                  // Convert watchlist item to portfolio-style format
-                  const nftData = {
-                    ...item,
-                    acquiredAt: item.addedAt,
-                    rarity: item.rarity || Math.floor(Math.random() * 5 + 1).toString(), // Use existing rarity or random for demo
-                    listing: item.listing || { type: "none" as const },
-                    isBundle: false,
-                    lastSalePrice: item.lastSalePrice
-                  }
-
-                  return (
-                    <Card
-                      key={item.id}
-                      className="group bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 overflow-hidden cursor-pointer"
-                      onClick={() => handleNFTClick(nftData)}
-                    >
-                      {/* Individual NFT Layout */}
-                      <div className="relative ">
-                        <img
-                          src={item.image || "/placeholder.svg"}
-                          alt={item.name}
-                          className="w-full aspect-square object-contain bg-black/20 transition-transform duration-300 group-hover:scale-105 "
-                        />
-
-                        {/* Chain Badge */}
-                        {getChainMetadata(item.chainId) && (
-                          <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${getChainMetadata(item.chainId)!.color} text-white border-0 flex items-center gap-1`}>
-                            <img src={getChainMetadata(item.chainId)!.icon} alt={getChainMetadata(item.chainId)!.name} className="w-3 h-3" />
-                            {getChainMetadata(item.chainId)!.shortName}
-                          </Badge>
-                        )}
-
-                        {/* Rarity Badge */}
-                        {nftData.rarity && (
-                          <Badge className={`absolute top-12 left-3 bg-gradient-to-r ${getRarityColor(nftData.rarity)} text-white border-0 neon-glow `}>
-                            {nftData.rarity}
-                          </Badge>
-                        )}
-
-                        {/* Watchlist Button */}
-                        <div className="absolute top-3 right-3 z-50 ">
-                          <WatchlistToggle
-                            contractAddress={item.contractAddress}
-                            tokenId={item.tokenId}
-                            name={item.name}
-                            collection={item.collection}
-                            image={item.image}
-                            chainId={item.chainId}
-                          />
-                        </div>
-
-                        {/* Action Buttons Overlay */}
-                        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
-                          <div className="p-4 w-full pointer-events-auto">
-                            {item.listing?.type === "sale" && item.listing.sale?.seller?.toLowerCase() !== user?.id?.toLowerCase() && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  // Handle buy action here
-                                }}
-                              >
-                                <ShoppingCart className="h-4 w-4 mr-2" />
-                                Buy for {item.listing.sale.price} APE
-                              </Button>
-                            )}
-                            {item.listing?.type === "rent" && item.listing.rent?.owner?.toLowerCase() !== user?.id?.toLowerCase() && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  // Handle rent action here
-                                }}
-                              >
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Rent {item.listing.rent.pricePerDay} APE/Day
-                              </Button>
-                            )}
-                            {item.listing?.type === "swap" && item.listing.swap?.creator?.toLowerCase() !== user?.id?.toLowerCase() && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleSwapClick(nftData)
-                                }}
-                              >
-                                <ArrowLeftRight className="h-4 w-4 mr-2" />
-                                Propose Swap
-                              </Button>
-                            )}
-                            {(!item.listing || item.listing.type === "none") && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleNFTClick(nftData)
-                                }}
-                              >
-                                View Details
-                              </Button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                              {item.name}
-                            </h3>
-                            <p className="text-sm text-muted-foreground">
-                              {item.collection}
-                            </p>
-                          </div>
-                          <div className="text-right">
-                            {/* Listing Status Badge */}
-                            {item.listing && item.listing.type !== "none" && (
-                              <Badge
-                                className={`mb-1 text-xs ${
-                                  item.listing.type === "sale" ? "bg-green-500/20 text-green-400 border-green-500/30" :
-                                  item.listing.type === "rent" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
-                                  "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                                }`}
-                              >
-                                {item.listing.type === "sale" ? "For Sale" :
-                                 item.listing.type === "rent" ? "For Rent" : "For Swap"}
-                              </Badge>
-                            )}
-                            {/* Watching Badge */}
-                            <Badge className="text-xs bg-cyan-500/20 text-cyan-400 border-cyan-500/30">
-                              Watching
-                            </Badge>
-                          </div>
-                        </div>
-
-                        {/* Price Information */}
-                        <div className="space-y-1">
-                          {/* Sale Listing */}
-                          {item.listing?.type === "sale" && item.listing.sale && (
-                            <div>
-                              <p className="font-bold text-primary neon-text text-lg">
-                                {item.listing.sale.price} APE
-                              </p>
-                              {item.listing.sale.lastSalePrice && (
-                                <p className="text-xs text-muted-foreground">
-                                  Last: {item.listing.sale.lastSalePrice} APE
-                                </p>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Rent Listing */}
-                          {item.listing?.type === "rent" && item.listing.rent && (
-                            <div>
-                              <p className="font-bold text-blue-400 text-lg">
-                                {item.listing.rent.pricePerDay} APE/Day
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                Max: {item.listing.rent.maxDuration} days
-                              </p>
-                            </div>
-                          )}
-
-                          {/* No Listing - Show Watchlist Info */}
-                          {(!item.listing || item.listing.type === "none") && (
-                            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-                              <span>Added {item.addedAt.toLocaleDateString()}</span>
-                              {item.lastSalePrice && (
-                                <span className="text-primary">Last Sale: {item.lastSalePrice} APE</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )
-                })}
-              </div>
+              <NFTCardGrid
+                nfts={profileTabData.watchlist.map((item) => ({
+                  ...item,
+                  acquiredAt: item.addedAt,
+                  rarity: item.rarity || Math.floor(Math.random() * 5 + 1).toString(),
+                  listing: item.listing || { type: "none" as const },
+                  isBundle: false,
+                  lastSalePrice: item.lastSalePrice
+                }))}
+                size="compact"
+                showWatchlist={true}
+                showActions={true}
+                onCardClick={handleNFTClick}
+                onBuyClick={(nft) => {
+                  setSelectedNFTToBuy(nft)
+                  setBuyNFTModalOpen(true)
+                }}
+                onRentClick={(nft) => {
+                  // Handle rent click
+                  console.log('Rent:', nft)
+                }}
+                onSwapClick={(nft) => {
+                  handleSwapClick(nft)
+                }}
+              />
             )}
           </CardContent>
         </TabsContent>

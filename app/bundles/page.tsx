@@ -30,6 +30,9 @@ import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
 import { generateBundleImage, uploadBundleImageToIPFS } from "@/lib/bundle-image"
 import { generateBundleMetadataURI, prepareCreateBundle, getUniqueNFTContracts } from "@/lib/bundle"
 import { useSendTransaction } from "thirdweb/react"
+import { NFTSelectionGrid } from "@/components/shared/NFTSelectionGrid"
+import { NFTCardGrid } from "@/components/nft/cards/NFTCardGrid"
+import { PortfolioNFT } from "@/types/profile"
 
 // Rarity color system
 const getRarityColor = (rarity: string) => {
