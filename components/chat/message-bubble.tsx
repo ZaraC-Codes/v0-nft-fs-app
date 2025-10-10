@@ -3,11 +3,12 @@
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { useState, useMemo } from "react"
+import { useState, useMemo, useEffect } from "react"
 import { Copy } from "lucide-react"
 import { formatMessageTime, formatAddress, getAvatarUrl } from "@/lib/collection-chat"
 import { RichMessage } from "./rich-message"
 import { ProfileService } from "@/lib/profile-service"
+import type { UserProfile } from "@/types/profile"
 
 interface MessageBubbleProps {
   message: {
@@ -30,6 +31,26 @@ interface MessageBubbleProps {
  */
 export function MessageBubble({ message, isMobile, collectionAddress }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false)
+  const [profile, setProfile] = useState<UserProfile | null>(null)
+
+  // ✅ FIX: Load profile from database instead of localStorage
+  useEffect(() => {
+    if (message.isBot) return
+
+    async function loadProfile() {
+      // Try database first
+      const dbProfile = await ProfileService.getProfileByWalletFromDatabase(message.senderAddress)
+      if (dbProfile) {
+        setProfile(dbProfile)
+      } else {
+        // Fallback to localStorage for backwards compatibility
+        const cachedProfile = ProfileService.getProfileByWallet(message.senderAddress)
+        setProfile(cachedProfile)
+      }
+    }
+
+    loadProfile()
+  }, [message.senderAddress, message.isBot])
 
   // Lookup user profile for sender
   const sender = useMemo(() => {
@@ -41,9 +62,6 @@ export function MessageBubble({ message, isMobile, collectionAddress }: MessageB
       }
     }
 
-    // Try to find profile by wallet address
-    const profile = ProfileService.getProfileByWallet(message.senderAddress)
-
     if (profile) {
       return {
         username: profile.username,
@@ -52,13 +70,13 @@ export function MessageBubble({ message, isMobile, collectionAddress }: MessageB
       }
     }
 
-    // Fallback to wallet address
+    // Fallback to wallet address while loading
     return {
       username: formatAddress(message.senderAddress),
       avatar: getAvatarUrl(message.senderAddress),
       isBot: false,
     }
-  }, [message.senderAddress, message.isBot])
+  }, [profile, message.senderAddress, message.isBot])
 
   // System messages (joins, leaves, announcements)
   if (message.type === 'system') {

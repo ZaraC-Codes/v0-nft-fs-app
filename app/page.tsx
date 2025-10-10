@@ -12,6 +12,7 @@ import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { ProfileService } from "@/lib/profile-service"
 import { getSupabaseClient } from "@/lib/supabase"
+import { useAuth } from "@/components/auth/auth-provider"
 import {
   ArrowRight,
   TrendingUp,
@@ -35,6 +36,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export default function HomePage() {
+  const { user } = useAuth() // ✅ FIX: Use AuthProvider instead of localStorage
   const [currentSlide, setCurrentSlide] = useState(0)
   const [sortBy, setSortBy] = useState("nfts")
   const [selectedChain, setSelectedChain] = useState<"all" | number>("all")
@@ -563,29 +565,27 @@ export default function HomePage() {
                             e.stopPropagation()
 
                             try {
-                              // Get current logged-in user
-                              const savedUser = localStorage.getItem('fortuna_square_user')
-                              if (!savedUser) {
+                              // ✅ FIX: Use AuthProvider user instead of localStorage
+                              if (!user) {
                                 alert('Please log in to follow users')
                                 return
                               }
-                              const currentUser = JSON.parse(savedUser)
 
-                              if (currentUser.id === user.id) {
+                              if (user.id === activeUsers[index].id) {
                                 alert('You cannot follow yourself')
                                 return
                               }
 
                               // Check if already following
                               const { ProfileService } = await import('@/lib/profile-service')
-                              const isFollowing = await ProfileService.isFollowing(currentUser.id, user.id)
+                              const isFollowing = await ProfileService.isFollowing(user.id, activeUsers[index].id)
 
                               if (isFollowing) {
-                                await ProfileService.unfollowUser(currentUser.id, user.id)
-                                alert(`Unfollowed ${user.username}`)
+                                await ProfileService.unfollowUser(user.id, activeUsers[index].id)
+                                alert(`Unfollowed ${activeUsers[index].username}`)
                               } else {
-                                await ProfileService.followUser(currentUser.id, user.id)
-                                alert(`Now following ${user.username}`)
+                                await ProfileService.followUser(user.id, activeUsers[index].id)
+                                alert(`Now following ${activeUsers[index].username}`)
                               }
 
                               // Reload profiles to get updated counts

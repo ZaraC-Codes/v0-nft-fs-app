@@ -93,29 +93,48 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     loadCollections()
   }, [])
 
-  // Extract unique users from messages for autocomplete AND members list
+  // ✅ FIX: Extract unique users from messages and load from database
   useEffect(() => {
-    const uniqueUsers = new Map()
-    messages.forEach(msg => {
-      if (!msg.isBot && !uniqueUsers.has(msg.senderAddress)) {
-        // Lookup profile
-        const profile = ProfileService.getProfileByWallet(msg.senderAddress)
-
-        const userData = {
-          id: msg.senderAddress,
-          username: profile?.username || `${msg.senderAddress.slice(0, 6)}...${msg.senderAddress.slice(-4)}`,
-          avatar: profile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${msg.senderAddress}`,
-          address: msg.senderAddress,
-          isOnline: false, // Could implement presence detection later
+    async function loadMembersFromDatabase() {
+      const uniqueWallets = new Set<string>()
+      messages.forEach(msg => {
+        if (!msg.isBot) {
+          uniqueWallets.add(msg.senderAddress)
         }
+      })
 
-        uniqueUsers.set(msg.senderAddress, userData)
-      }
-    })
+      // Load profiles from database for all unique wallets
+      const profiles = await Promise.all(
+        Array.from(uniqueWallets).map(async (wallet) => {
+          // Try database first
+          const dbProfile = await ProfileService.getProfileByWalletFromDatabase(wallet)
+          if (dbProfile) {
+            return {
+              id: wallet,
+              username: dbProfile.username,
+              avatar: dbProfile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${wallet}`,
+              address: wallet,
+              isOnline: false,
+            }
+          }
 
-    const usersArray = Array.from(uniqueUsers.values())
-    setAutocompleteUsers(usersArray)
-    setMembers(usersArray as any) // Also use for members sidebar
+          // Fallback to localStorage
+          const cachedProfile = ProfileService.getProfileByWallet(wallet)
+          return {
+            id: wallet,
+            username: cachedProfile?.username || `${wallet.slice(0, 6)}...${wallet.slice(-4)}`,
+            avatar: cachedProfile?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${wallet}`,
+            address: wallet,
+            isOnline: false,
+          }
+        })
+      )
+
+      setAutocompleteUsers(profiles)
+      setMembers(profiles as any)
+    }
+
+    loadMembersFromDatabase()
   }, [messages])
 
   // Check if user owns NFT from this collection (checks ALL linked wallets)
