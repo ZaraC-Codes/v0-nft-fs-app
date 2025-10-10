@@ -36,6 +36,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Track processed wallets to prevent duplicate profile creation
   const processedWallets = useRef<Set<string>>(new Set())
 
+  // Track if wallet was ever connected to prevent false disconnect on page load
+  const wasWalletConnected = useRef(false)
+
   useEffect(() => {
     // Load user from localStorage and refresh from database
     const checkAuth = async () => {
@@ -114,6 +117,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Wrap entire wallet sync in async IIFE to support database-first architecture
     ;(async () => {
       if (account?.address) {
+        // Mark that wallet is connected
+        wasWalletConnected.current = true
+
         // 🔒 CRITICAL: Guard against duplicate profile creation
         // Check if this wallet is already being processed or was processed
         const walletKey = account.address.toLowerCase()
@@ -305,7 +311,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         }
-      } else if (!account) {
+      } else if (!account && wasWalletConnected.current) {
+        // 🔒 CRITICAL: Only run disconnect logic if wallet was previously connected
+        // This prevents false disconnects on page load from clearing authenticated users
+
         // Wallet disconnected - clear processed wallets so user can reconnect
         processedWallets.current.clear()
         console.log("🔓 Cleared processed wallets on disconnect")

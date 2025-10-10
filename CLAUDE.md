@@ -1,3 +1,86 @@
+# Project Status & Critical Fixes
+
+**Last Updated:** 2025-10-10
+
+## ✅ Profile System - FIXED (2025-10-10)
+
+### Critical Bugs Fixed
+
+1. **Duplicate Profile Creation on Every Signup** - FIXED ✅
+   - **Issue**: Every signup created 2 profiles (1 valid + 1 orphaned)
+   - **Root Cause**: `user` in useEffect dependency array caused re-run after setUser
+   - **Fix**: Removed `user` from deps, added `processedWallets` ref guard
+   - **File**: [components/auth/auth-provider.tsx:37-40, 126-133, 349](components/auth/auth-provider.tsx#L37)
+
+2. **Settings Page Requiring Profile Visit First** - FIXED ✅
+   - **Issue**: Settings showed "Please sign in" until user visited profile page
+   - **Root Cause**: Checked both `!user` AND `!userProfile`, async fetch interrupted by redirect
+   - **Fix**: Split auth check and loading state
+   - **File**: [app/settings/page.tsx:147-180](app/settings/page.tsx#L147)
+
+3. **Missing Avatar and Settings Icon After Signup** - FIXED ✅
+   - **Issue**: Avatar and settings icon disappeared from header on page load
+   - **Root Cause**: Wallet disconnect logic cleared user state on page load
+   - **Fix**: Added `wasWalletConnected` ref to prevent false disconnects
+   - **File**: [components/auth/auth-provider.tsx:40, 121, 314](components/auth/auth-provider.tsx#L40)
+
+4. **OAuth Account 409 Conflict Errors** - FIXED ✅
+   - **Issue**: OAuth account insert failing with 409 Conflict
+   - **Root Cause**: Trying to insert duplicate OAuth accounts
+   - **Fix**: Handle 23505 error gracefully, continue on duplicate
+   - **File**: [lib/profile-service.ts:142-165](lib/profile-service.ts#L142)
+
+5. **Profiles with Wallet Address as ID** - FIXED ✅
+   - **Issue**: User state saved with `id: 0xB270b7D...` instead of UUID
+   - **Root Cause**: Fallback code returned localStorage profile with wallet ID
+   - **Fix**: Throw error instead of returning invalid profile
+   - **File**: [lib/profile-service.ts:1040-1046](lib/profile-service.ts#L1040)
+
+6. **Orphaned Profiles on Home Page** - FIXED ✅
+   - **Issue**: Home page showing profiles with no wallets or OAuth accounts
+   - **Root Cause**: No filtering of invalid profiles
+   - **Fix**: Filter profiles before display
+   - **File**: [app/page.tsx:100-109](app/page.tsx#L100)
+
+### Architecture Improvements
+
+**Database-First Pattern:**
+- Supabase PostgreSQL is the source of truth
+- localStorage is cache layer only
+- All reads check database first, then fallback to cache
+- Profile creation always writes to database, then syncs to cache
+
+**Duplicate Prevention:**
+- `processedWallets` ref tracks already-processed wallet addresses
+- Guard at start of wallet sync: `if (processedWallets.current.has(walletKey)) return`
+- Clear on disconnect to allow reconnection
+- **Critical**: `user` removed from useEffect deps to prevent re-run loop
+
+**False Disconnect Prevention:**
+- `wasWalletConnected` ref tracks if wallet was ever connected
+- Disconnect logic only runs if `wasWalletConnected.current === true`
+- Prevents page load from clearing authenticated users with OAuth accounts
+
+**OAuth Multi-Device Sync:**
+- Lookup by OAuth provider ID before creating new profile
+- Link device's embedded wallet to existing profile if found
+- Enables same social account to work across multiple devices
+
+### Verification Commands
+
+```bash
+# Delete all profiles for fresh testing
+npx tsx scripts/delete-all-profiles.ts
+
+# Verify database state
+npx tsx scripts/verify-cleanup.ts
+
+# Check for orphaned profiles
+npx tsx scripts/delete-orphaned-profiles.ts
+```
+
+---
+
 # Community Chat - Current Status
 
 **Last Updated:** 2025-10-09 04:35 UTC
