@@ -69,13 +69,19 @@ export function IndividualNFTCard({
       >
         {/* Chain Badge - top-left, position 1 */}
         <div className="absolute top-1.5 left-1.5">
-          <ChainBadge chainId={nft.chainId} size={size === 'compact' ? 'sm' : 'md'} />
+          <ChainBadge
+            chainId={nft.chainId}
+            size={size === 'micro' ? 'xs' : size === 'compact' ? 'sm' : 'md'}
+          />
         </div>
 
         {/* Rarity Badge - top-left, position 2 */}
         {nft.rarity && (
-          <div className="absolute top-7 left-1.5">
-            <RarityBadge rarity={nft.rarity} size={size === 'compact' ? 'xs' : 'sm'} />
+          <div className={`absolute ${size === 'micro' ? 'top-5' : 'top-7'} left-1.5`}>
+            <RarityBadge
+              rarity={nft.rarity}
+              size={size === 'micro' || size === 'compact' ? 'xs' : 'sm'}
+            />
           </div>
         )}
 

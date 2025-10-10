@@ -69,7 +69,7 @@ export function BundleNFTCard({
           <img
             src="/fs-temp-logo.png"
             alt="Fortuna Square"
-            className={size === 'compact' ? 'w-16 h-16' : 'w-32 h-32'}
+            className={size === 'micro' ? 'w-12 h-12' : size === 'compact' ? 'w-16 h-16' : 'w-32 h-32'}
             style={{ objectFit: 'contain' }}
           />
         </div>
@@ -79,13 +79,19 @@ export function BundleNFTCard({
 
         {/* Chain Badge - top-left, position 1 */}
         <div className="absolute top-4 left-4">
-          <ChainBadge chainId={nft.chainId} size={size === 'compact' ? 'sm' : 'md'} />
+          <ChainBadge
+            chainId={nft.chainId}
+            size={size === 'micro' ? 'xs' : size === 'compact' ? 'sm' : 'md'}
+          />
         </div>
 
         {/* Bundle Badge - top-left, position 2 */}
         {nft.bundleCount !== undefined && (
           <div className="absolute top-[40px] left-4">
-            <BundleBadge count={nft.bundleCount} size={size === 'compact' ? 'xs' : 'sm'} />
+            <BundleBadge
+              count={nft.bundleCount}
+              size={size === 'micro' || size === 'compact' ? 'xs' : 'sm'}
+            />
           </div>
         )}
 
@@ -110,7 +116,7 @@ export function BundleNFTCard({
             {thumbnails.map((preview, idx) => (
               <div
                 key={idx}
-                className={`${size === 'compact' ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0`}
+                className={`${size === 'micro' ? 'w-6 h-6' : size === 'compact' ? 'w-8 h-8' : 'w-12 h-12'} rounded-lg overflow-hidden border-2 border-white/30 shadow-lg flex-shrink-0`}
               >
                 <img
                   src={preview.image || "/placeholder.svg"}

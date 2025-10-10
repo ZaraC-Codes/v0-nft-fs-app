@@ -15,6 +15,12 @@ interface NFTCardContentProps {
 }
 
 const TEXT_SIZE_CLASSES = {
+  micro: {
+    title: 'text-[10px]',
+    subtitle: 'text-[8px]',
+    price: 'text-[10px]',
+    badge: 'text-[8px] px-1 py-0'
+  },
   compact: {
     title: 'text-xs',
     subtitle: 'text-[10px]',
@@ -36,6 +42,7 @@ const TEXT_SIZE_CLASSES = {
 }
 
 const PADDING_CLASSES = {
+  micro: 'p-1.5',
   compact: 'p-2',
   standard: 'p-3',
   large: 'p-4'

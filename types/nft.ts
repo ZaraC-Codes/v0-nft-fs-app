@@ -13,8 +13,12 @@ export type NFTCardType = 'individual' | 'bundle' | 'rental_wrapper'
 
 /**
  * Card size variants for responsive grids
+ * - micro: 8-column grid (150-180px cards) - For collection pages
+ * - compact: 6-column grid (170-210px cards) - For portfolio
+ * - standard: 4-5 column grid (190-250px cards) - For marketplace
+ * - large: 2-3 column grid (300px+ cards) - For featured
  */
-export type CardSize = 'compact' | 'standard' | 'large'
+export type CardSize = 'micro' | 'compact' | 'standard' | 'large'
 
 /**
  * Extended NFT Card Data

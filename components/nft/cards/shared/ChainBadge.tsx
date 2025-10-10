@@ -4,13 +4,18 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 
 interface ChainBadgeProps {
   chainId: number
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg'
   className?: string
   logoOnly?: boolean // New: show only logo without text
   showTooltip?: boolean // New: show tooltip on hover (defaults to true when logoOnly is true)
 }
 
 const SIZE_CLASSES = {
+  xs: {
+    badge: 'text-[8px] px-1 py-0',
+    logoOnlyBadge: 'p-0.5',
+    icon: 'w-2 h-2'
+  },
   sm: {
     badge: 'text-[9px] px-1.5 py-0.5',
     logoOnlyBadge: 'p-0.5',
