@@ -34,16 +34,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { disconnect } = useDisconnect()
 
   useEffect(() => {
-    // Load user from localStorage on initial mount
+    // Load user from localStorage and refresh from database
     const checkAuth = async () => {
       try {
         const savedUser = localStorage.getItem("fortuna_square_user")
-        if (savedUser) {
-          const parsedUser = JSON.parse(savedUser)
-          setUser(parsedUser)
-          console.log("✅ Loaded user from storage:", parsedUser.username, "has wallet:", !!parsedUser.walletAddress)
-        } else {
+        if (!savedUser) {
           console.log("ℹ️ No user found in storage")
+          setIsLoading(false)
+          return
+        }
+
+        const parsedUser = JSON.parse(savedUser)
+
+        // Set cached user immediately for fast UI (optimistic)
+        setUser(parsedUser)
+        console.log("✅ Loaded user from cache:", parsedUser.username)
+
+        // Then refresh from database to get latest data
+        const { ProfileService } = await import("@/lib/profile-service")
+        const dbProfile = await ProfileService.getProfileFromDatabase(parsedUser.id)
+
+        if (dbProfile) {
+          const updatedUser: User = {
+            id: dbProfile.id,
+            username: dbProfile.username,
+            email: dbProfile.email || "",
+            avatar: dbProfile.avatar,
+            walletAddress: dbProfile.walletAddress,
+            isVerified: dbProfile.verified || false,
+          }
+
+          // Update with fresh data from database
+          setUser(updatedUser)
+          localStorage.setItem("fortuna_square_user", JSON.stringify(updatedUser))
+          console.log("✅ Refreshed user from database:", updatedUser.username)
+        } else {
+          console.warn("⚠️ User in cache but not found in database:", parsedUser.id)
         }
       } catch (error) {
         console.error("Auth check failed:", error)

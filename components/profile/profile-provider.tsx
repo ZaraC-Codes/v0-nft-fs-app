@@ -1118,11 +1118,23 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
 
     try {
       const { ProfileService } = await import("@/lib/profile-service")
-      const updatedProfile = ProfileService.getProfile(userProfile.id)
 
-      if (updatedProfile) {
-        setUserProfile(updatedProfile)
-        console.log("✅ Profile refreshed from ProfileService")
+      // ✅ FIX: Fetch from database first (primary source)
+      const dbProfile = await ProfileService.getProfileFromDatabase(userProfile.id)
+
+      if (dbProfile) {
+        setUserProfile(dbProfile)
+
+        // Sync to localStorage cache
+        await ProfileService.syncProfileToLocalStorage(dbProfile)
+        console.log("✅ Profile refreshed from database")
+      } else {
+        // Fallback to localStorage if database unavailable
+        const cachedProfile = ProfileService.getProfile(userProfile.id)
+        if (cachedProfile) {
+          setUserProfile(cachedProfile)
+          console.log("⚠️ Using cached profile (database unavailable)")
+        }
       }
 
       // Clear portfolio cache to force fresh fetch from blockchain

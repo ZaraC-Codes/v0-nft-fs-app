@@ -523,16 +523,20 @@ export class ProfileService {
 
   /**
    * Get a profile by ID from localStorage (DEPRECATED - use getProfileFromDatabase)
+   * @deprecated Use getProfileFromDatabase() instead - this only checks localStorage cache
    */
   static getProfile(id: string): UserProfile | null {
+    console.warn('⚠️ DEPRECATED: getProfile() only checks localStorage. Use getProfileFromDatabase() instead.')
     const profiles = this.getProfiles()
     return profiles.find(p => p.id === id) || null
   }
 
   /**
-   * Get a profile by wallet address (case-insensitive)
+   * Get a profile by wallet address from localStorage (DEPRECATED - use getProfileByWalletFromDatabase)
+   * @deprecated Use getProfileByWalletFromDatabase() instead - this only checks localStorage cache
    */
   static getProfileByWallet(walletAddress: string): UserProfile | null {
+    console.warn('⚠️ DEPRECATED: getProfileByWallet() only checks localStorage. Use getProfileByWalletFromDatabase() instead.')
     if (!walletAddress) return null
     const profiles = this.getProfiles()
     return profiles.find(p =>
@@ -541,9 +545,11 @@ export class ProfileService {
   }
 
   /**
-   * Get a profile by email
+   * Get a profile by email from localStorage (DEPRECATED - create getProfileByEmailFromDatabase)
+   * @deprecated This only checks localStorage cache
    */
   static getProfileByEmail(email: string): UserProfile | null {
+    console.warn('⚠️ DEPRECATED: getProfileByEmail() only checks localStorage. Create getProfileByEmailFromDatabase() instead.')
     const profiles = this.getProfiles()
     return profiles.find(p => p.email === email) || null
   }
