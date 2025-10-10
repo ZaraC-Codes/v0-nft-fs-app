@@ -634,6 +634,33 @@ export class ProfileService {
   }
 
   /**
+   * Get profile by wallet address from Supabase database
+   */
+  static async getProfileByWalletFromDatabase(walletAddress: string): Promise<UserProfile | null> {
+    try {
+      const supabase = getSupabaseClient()
+
+      // First, find the profile_id from profile_wallets table
+      const { data: wallet, error: walletError } = await supabase
+        .from('profile_wallets')
+        .select('profile_id')
+        .eq('wallet_address', walletAddress.toLowerCase())
+        .single()
+
+      if (walletError || !wallet) {
+        console.log(`Wallet not found in database: ${walletAddress}`)
+        return null
+      }
+
+      // Then fetch the full profile using the profile_id
+      return await this.getProfileFromDatabase(wallet.profile_id)
+    } catch (error) {
+      console.error('Error fetching profile by wallet from database:', error)
+      return null
+    }
+  }
+
+  /**
    * Check if username is available
    */
   static isUsernameAvailable(username: string, excludeId?: string): boolean {
