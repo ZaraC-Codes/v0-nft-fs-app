@@ -94,7 +94,8 @@
       "Bash(vercel env:*)",
       "Bash(vercel logs:*)",
       "Bash(npm run lint)",
-      "Bash(npx tailwindcss:*)"
+      "Bash(npx tailwindcss:*)",
+      "Bash(npx supabase db inspect:*)"
     ],
     "deny": [],
     "ask": []

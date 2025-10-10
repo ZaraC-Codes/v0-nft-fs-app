@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { Eye } from "lucide-react"
+import { Eye, Loader2 } from "lucide-react"
 import { useProfile } from "./profile-provider"
 
 interface AddToWatchlistProps {
@@ -77,15 +77,19 @@ export function AddToWatchlist({
       disabled={loading || isAdding}
       className={`${className} ${
         inWatchlist
-          ? "bg-blue-600 hover:bg-blue-700 border-blue-600"
-          : "hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600"
+          ? "bg-primary hover:bg-primary/90 border-primary"
+          : "hover:bg-primary/10 hover:border-primary/20 hover:text-primary"
       }`}
     >
-      <Eye
-        className={`h-4 w-4 mr-2 ${
-          inWatchlist ? "fill-current" : ""
-        }`}
-      />
+      {isAdding ? (
+        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+      ) : (
+        <Eye
+          className={`h-4 w-4 mr-2 ${
+            inWatchlist ? "fill-current" : ""
+          }`}
+        />
+      )}
       {inWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
     </Button>
   )
@@ -158,18 +162,22 @@ export function WatchlistToggle({
     <button
       onClick={handleToggleWatchlist}
       disabled={loading || isAdding}
-      className={`inline-flex items-center justify-center rounded-md h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all disabled:pointer-events-none disabled:opacity-50 ${className} ${
+      className={`inline-flex items-center justify-center rounded-md h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 active:opacity-80 ${className} ${
         inWatchlist
-          ? "text-blue-600 hover:text-blue-700 hover:scale-110"
-          : "text-muted-foreground hover:text-blue-600 hover:scale-110"
+          ? "text-primary hover:text-primary/80 hover:scale-110"
+          : "text-muted-foreground hover:text-primary hover:scale-110"
       }`}
-      style={{ position: 'relative', zIndex: 9999 }}
+      style={{ position: 'relative', zIndex: 50 }}
     >
-      <Eye
-        className={`h-5 w-5 md:h-4 md:w-4 transition-all ${
-          inWatchlist ? "fill-current" : ""
-        }`}
-      />
+      {isAdding ? (
+        <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin" />
+      ) : (
+        <Eye
+          className={`h-5 w-5 md:h-4 md:w-4 transition-all ${
+            inWatchlist ? "fill-current" : ""
+          }`}
+        />
+      )}
     </button>
   )
 }

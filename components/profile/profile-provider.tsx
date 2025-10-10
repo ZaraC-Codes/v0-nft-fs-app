@@ -523,6 +523,41 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [following.length, followers.length, isDemoProfile])
 
+  // Load watchlist from database on mount
+  useEffect(() => {
+    const loadWatchlist = async () => {
+      if (!userProfile || isDemoProfile) {
+        setWatchlist([])
+        return
+      }
+
+      try {
+        const { ProfileService } = await import("@/lib/profile-service")
+        const watchlistItems = await ProfileService.getWatchlist(userProfile.id)
+
+        const convertedItems: NFTWatchlistItem[] = watchlistItems.map(item => ({
+          id: `${item.collectionAddress}-${item.chainId}`,
+          userId: userProfile.id,
+          contractAddress: item.collectionAddress,
+          tokenId: '', // Collections, not individual tokens
+          name: item.collectionName || '',
+          collection: item.collectionName || '',
+          image: item.collectionImage,
+          chainId: item.chainId,
+          addedAt: item.addedAt,
+        }))
+
+        setWatchlist(convertedItems)
+        console.log(`✅ Loaded ${convertedItems.length} watchlist items from database`)
+      } catch (error) {
+        console.error('Failed to load watchlist:', error)
+        setWatchlist([])
+      }
+    }
+
+    loadWatchlist()
+  }, [userProfile?.id, isDemoProfile])
+
   const isFollowing = (userId: string): boolean => {
     return following.includes(userId)
   }
@@ -655,8 +690,9 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   }
 
   const isInWatchlist = (contractAddress: string, tokenId: string): boolean => {
+    // Since watchlist tracks collections (not individual NFTs), ignore tokenId
     return watchlist.some(item =>
-      item.contractAddress === contractAddress && item.tokenId === tokenId
+      item.contractAddress.toLowerCase() === contractAddress.toLowerCase()
     )
   }
 
