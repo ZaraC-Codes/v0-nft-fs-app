@@ -57,10 +57,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     contractAddress: collection.contractAddress
   })
 
-  // Keep ref in sync with state
-  useEffect(() => {
-    optimisticMessageIdRef.current = optimisticMessageId
-  }, [optimisticMessageId])
+  // 🔧 FIX: No longer needed - Map is kept in sync via ref in message handlers
 
   // Autocomplete data
   const [autocompleteUsers, setAutocompleteUsers] = useState<Array<{
@@ -180,93 +177,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     checkOwnership()
   }, [userProfile, collection.contractAddress])
 
-  // Load messages - simplified to avoid race conditions
-  const loadMessages = useCallback(async () => {
-    try {
-      console.log('📡 Fetching messages from API...')
-      // Add cache-busting timestamp
-      const response = await fetch(
-        `/api/collections/${collection.contractAddress}/chat/messages?t=${Date.now()}`,
-        {
-          headers: {
-            'Cache-Control': 'no-cache',
-            'Pragma': 'no-cache'
-          }
-        }
-      )
-
-      console.log('📡 API Response:', {
-        ok: response.ok,
-        status: response.status
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch messages')
-      }
-
-      const data = await response.json()
-
-      console.log('📦 Messages data:', {
-        success: data.success,
-        count: data.count,
-        messagesLength: data.messages?.length
-      })
-
-      if (!data.success || !data.messages) {
-        console.error('❌ Invalid API response structure:', data)
-        return
-      }
-
-      // Simplified: Just use the API messages directly, no complex prev logic
-      const currentOptimisticId = optimisticMessageIdRef.current
-
-      if (!currentOptimisticId) {
-        // No optimistic message, just set the API messages
-        console.log('✅ No optimistic message, setting', data.messages.length, 'messages')
-        setMessages(data.messages)
-        setLoading(false)
-        return
-      }
-
-      // Get optimistic message from ref (not state to avoid closure issues)
-      const currentOptimisticMsg = optimisticMessageRef.current
-
-      if (!currentOptimisticMsg) {
-        // Optimistic message already removed, just use API messages
-        console.log('✅ Optimistic message not found in ref, setting', data.messages.length, 'messages')
-        setMessages(data.messages)
-        return
-      }
-
-      // Check if optimistic message now exists in real messages
-      const realMessageExists = data.messages.some((m: any) =>
-        m.content === currentOptimisticMsg.content &&
-        m.senderAddress.toLowerCase() === currentOptimisticMsg.senderAddress.toLowerCase()
-      )
-
-      if (realMessageExists) {
-        console.log('✅ Real message appeared, clearing optimistic state')
-        setOptimisticMessageId(null)
-        optimisticMessageRef.current = null
-        setMessages(data.messages)
-      } else {
-        // SAFETY CHECK: Don't re-append if the optimistic message is already confirmed (pending: false)
-        // This prevents the "Sending..." status from reappearing after transaction success
-        if (currentOptimisticMsg.pending === false) {
-          console.log('⏳ Optimistic message confirmed, waiting for blockchain propagation')
-          // Keep current messages array as-is, don't re-append the optimistic message
-          // The next poll will pick up the real blockchain message
-        } else {
-          console.log('⏳ Optimistic message still pending, appending it')
-          setMessages([...data.messages, currentOptimisticMsg])
-        }
-      }
-    } catch (error) {
-      console.error("❌ Error loading messages:", error)
-    } finally {
-      setLoading(false)
-    }
-  }, [collection.contractAddress])
+  // 🔧 FIX: Removed old loadMessages callback - replaced by loadMessagesLocal in useEffect below
 
   // Load messages and set up polling
   useEffect(() => {
@@ -337,7 +248,8 @@ export function CommunityChat({ collection }: CommunityChatProps) {
 
           // Check which optimistic messages are now in blockchain
           const stillPending: any[] = []
-          for (const [tempId, optimisticMsg] of pendingMap) {
+          // 🔧 FIX: Convert Map to array to avoid ES6 iteration issues
+          Array.from(pendingMap.entries()).forEach(([tempId, optimisticMsg]) => {
             const existsInBlockchain = data.messages.some((m: any) =>
               m.content === optimisticMsg.content &&
               m.senderAddress.toLowerCase() === optimisticMsg.senderAddress.toLowerCase()
@@ -356,7 +268,7 @@ export function CommunityChat({ collection }: CommunityChatProps) {
               console.log(`⏳ Message ${tempId} still pending (confirmed: ${!optimisticMsg.pending})`)
               stillPending.push(optimisticMsg)
             }
-          }
+          })
 
           // Return blockchain messages + all still-pending optimistic messages
           return [...data.messages, ...stillPending]
@@ -576,10 +488,10 @@ export function CommunityChat({ collection }: CommunityChatProps) {
     profileWallet: profileWallet?.address,
     loading,
     messages: messages.length,
-    optimisticId: optimisticMessageId,
+    pendingCount: optimisticMessages.size,
     sending
   })
-  console.log('🎨 Rendering chat. Messages count:', messages.length, 'Loading:', loading, 'OptimisticID:', optimisticMessageId)
+  console.log('🎨 Rendering chat. Messages count:', messages.length, 'Loading:', loading, 'Pending:', optimisticMessages.size)
 
   return (
     <div className="flex flex-col h-[calc(100dvh-16rem)] sm:h-[600px]">
