@@ -324,6 +324,57 @@ export function getCollectionSlugByName(collectionName: string): string | null {
 }
 
 /**
+ * Fetch a single NFT's metadata with timeout protection
+ */
+async function fetchSingleNFTMetadata(
+  contract: any,
+  contractAddress: string,
+  tokenId: string
+): Promise<any> {
+  // Fetch token URI from blockchain
+  const tokenURI = await readContract({
+    contract,
+    method: "function tokenURI(uint256 tokenId) view returns (string)",
+    params: [BigInt(tokenId)],
+  })
+
+  // Fetch metadata from IPFS/HTTP
+  let metadata: any = {}
+  if (tokenURI) {
+    const metadataUrl = tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/')
+
+    // Add timeout protection for IPFS fetch
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 4000) // 4s for IPFS
+
+    try {
+      const response = await fetch(metadataUrl, {
+        signal: controller.signal,
+        cache: 'force-cache' // Enable browser caching
+      })
+      clearTimeout(timeoutId)
+
+      if (response.ok) {
+        metadata = await response.json()
+      }
+    } catch (error) {
+      clearTimeout(timeoutId)
+      throw error
+    }
+  }
+
+  return {
+    contractAddress,
+    tokenId,
+    name: metadata.name || `Token #${tokenId}`,
+    image: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : '',
+    description: metadata.description || '',
+    attributes: metadata.attributes || [],
+    isPlaceholder: false
+  }
+}
+
+/**
  * Get NFTs from a collection with pagination
  */
 export async function getCollectionNFTs(
@@ -363,41 +414,49 @@ export async function getCollectionNFTs(
     const endIndex = startIndex + limit
     const paginatedTokenIds = allTokenIds.slice(startIndex, endIndex)
 
-    // Fetch metadata for each NFT using ThirdWeb
-    const nfts = []
-    for (const tokenId of paginatedTokenIds) {
-      try {
-        // Fetch token URI
-        const tokenURI = await readContract({
-          contract,
-          method: "function tokenURI(uint256 tokenId) view returns (string)",
-          params: [BigInt(tokenId)],
-        })
+    // Fetch metadata for each NFT using ThirdWeb (with parallel batching)
+    const BATCH_SIZE = 10 // Process 10 NFTs at a time to avoid overwhelming network
+    const nfts: any[] = []
 
-        // Fetch metadata from URI
-        let metadata: any = {}
+    // Process in batches for controlled concurrency
+    for (let i = 0; i < paginatedTokenIds.length; i += BATCH_SIZE) {
+      const batch = paginatedTokenIds.slice(i, i + BATCH_SIZE)
+
+      // Fetch all NFTs in this batch in parallel
+      const batchPromises = batch.map(async (tokenId) => {
         try {
-          if (tokenURI) {
-            const metadataUrl = tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/')
-            const response = await fetch(metadataUrl)
-            if (response.ok) {
-              metadata = await response.json()
-            }
-          }
-        } catch (error) {
-          console.warn(`Failed to fetch metadata for token ${tokenId}:`, error)
-        }
+          // Fetch with 5-second timeout protection
+          const nftData = await Promise.race([
+            fetchSingleNFTMetadata(contract, contractAddress, tokenId),
+            new Promise<null>((_, reject) =>
+              setTimeout(() => reject(new Error('Timeout')), 5000)
+            )
+          ])
 
-        nfts.push({
-          contractAddress,
-          tokenId,
-          name: metadata.name || `Token #${tokenId}`,
-          image: metadata.image ? metadata.image.replace('ipfs://', 'https://ipfs.io/ipfs/') : '',
-          description: metadata.description || '',
-          attributes: metadata.attributes || [],
-        })
-      } catch (error) {
-        console.warn(`Failed to fetch NFT ${tokenId}:`, error)
+          return nftData
+        } catch (error) {
+          console.warn(`Failed to fetch NFT ${tokenId}:`, error)
+          // Return placeholder NFT for failed fetches
+          return {
+            contractAddress,
+            tokenId,
+            name: `Token #${tokenId}`,
+            image: '/placeholder.svg',
+            description: 'Metadata temporarily unavailable',
+            attributes: [],
+            isPlaceholder: true
+          }
+        }
+      })
+
+      // Wait for entire batch to complete
+      const batchResults = await Promise.allSettled(batchPromises)
+
+      // Process results
+      for (const result of batchResults) {
+        if (result.status === 'fulfilled' && result.value) {
+          nfts.push(result.value)
+        }
       }
     }
 

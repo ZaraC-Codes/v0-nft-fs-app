@@ -213,7 +213,7 @@ export default function CollectionPage() {
                 No NFTs found in this collection
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
                 {nfts.map((nft) => (
                   <Card
                     key={`${nft.contractAddress}-${nft.tokenId}`}
@@ -227,6 +227,8 @@ export default function CollectionPage() {
                           <img
                             src={nft.image}
                             alt={nft.name}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform"
                           />
                         ) : (
@@ -265,7 +267,7 @@ export default function CollectionPage() {
                 No bundles containing NFTs from this collection
               </div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-2">
                 {bundles.map((bundle) => (
                   <Card
                     key={`${bundle.contractAddress}-${bundle.tokenId}`}

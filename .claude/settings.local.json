@@ -90,7 +90,11 @@
       "Bash(set NEXT_PUBLIC_SUPABASE_URL=https://hpcwfcrytbjlbnmsmtge.supabase.co)",
       "Bash(set:*)",
       "Bash(Select-String -Pattern \"error|Error|ERROR|await\" -Context 2,2)",
-      "Bash(if exist nul del nul)"
+      "Bash(if exist nul del nul)",
+      "Bash(vercel env:*)",
+      "Bash(vercel logs:*)",
+      "Bash(npm run lint)",
+      "Bash(npx tailwindcss:*)"
     ],
     "deny": [],
     "ask": []
