@@ -894,7 +894,7 @@ export class ProfileService {
 
     // Also save to Supabase database for multi-device sync
     try {
-      await this.createProfileInDatabase(
+      const dbProfile = await this.createProfileInDatabase(
         profile.username,
         {
           provider: oauthData?.provider || 'wallet',
@@ -903,13 +903,24 @@ export class ProfileService {
         },
         walletAddress
       )
-      console.log("✅ Created new profile with OAuth data and synced to database:", profile.username)
+      console.log("✅ Created new profile with OAuth data and synced to database:", dbProfile.username)
+
+      // ✅ FIX: Return database profile with correct UUID instead of localStorage profile with wallet address
+      // Update localStorage profile to use database UUID
+      profile.id = dbProfile.id
+      const profiles = this.getProfiles()
+      const index = profiles.findIndex(p => p.walletAddress === walletAddress)
+      if (index !== -1) {
+        profiles[index] = profile
+        this.saveProfiles(profiles)
+      }
+
+      return dbProfile
     } catch (error) {
       console.error("⚠️ Failed to sync profile to database:", error)
-      // Continue anyway - profile exists in localStorage
+      // Continue anyway - profile exists in localStorage (but with wallet address as ID)
+      return profile
     }
-
-    return profile
   }
 
   /**
