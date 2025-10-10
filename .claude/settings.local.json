@@ -84,7 +84,13 @@
       "Bash(npx ts-node:*)",
       "Bash(npm run dev:*)",
       "Bash(pgrep:*)",
-      "Bash(npx supabase db dump:*)"
+      "Bash(npx supabase db dump:*)",
+      "Bash(echo $NODE_ENV)",
+      "Bash(if exist .nextcache rmdir /s /q .nextcache)",
+      "Bash(set NEXT_PUBLIC_SUPABASE_URL=https://hpcwfcrytbjlbnmsmtge.supabase.co)",
+      "Bash(set:*)",
+      "Bash(Select-String -Pattern \"error|Error|ERROR|await\" -Context 2,2)",
+      "Bash(if exist nul del nul)"
     ],
     "deny": [],
     "ask": []

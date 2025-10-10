@@ -1,0 +1,92 @@
+Fix critical profile creation bugs causing duplicate profiles and invalid user IDs
+
+This commit fixes 5 critical bugs in the profile creation flow that were causing
+users to get logged out after signup and creating orphaned profiles in the database.
+
+Root Causes:
+1. OAuth account insert was failing with 409 Conflict when provider/providerAccountId were empty
+2. createProfileFromWallet was returning localStorage profile with wallet address as ID
+3. No redirect after successful signup, confusing users
+4. Race condition in avatar update causing AuthProvider to read stale data
+5. Duplicate profile left in database (752dbfa0-07e4-4012-bc8f-9513981d18c8)
+
+Fixes Applied:
+1. lib/profile-service.ts (lines 142-165)
+   - Only insert OAuth account if provider AND providerAccountId are non-empty
+   - Handle 409 Conflict gracefully (code 23505) - log warning and continue
+   - Only throw error for other OAuth errors
+
+2. lib/profile-service.ts (lines 1015-1046)
+   - Never return profile with wallet address as ID
+   - Throw error if database sync fails (instead of returning invalid profile)
+   - Force caller to handle error properly
+
+3. components/auth/auth-provider.tsx (lines 276-287)
+   - Add redirect to /profile/[username] after successful signup
+   - Use setTimeout to ensure localStorage write completes before navigation
+   - Show user-friendly error alert if signup fails
+
+4. components/profile/profile-provider.tsx (lines 710-715)
+   - Use setTimeout to defer userUpdated event until after localStorage write
+   - Fixes race condition where AuthProvider reads stale data
+
+5. scripts/cleanup-duplicate-profile.ts (NEW)
+   - Database cleanup script to remove duplicate profile
+   - Deletes OAuth accounts, wallets, and profile records
+
+Additional Files:
+- scripts/test-profile-creation.ts - Test suite to verify all fixes
+- docs/PROFILE_CREATION_FIXES.md - Comprehensive documentation
+
+Console Evidence (Before Fix):
+  ✅ Created profile in database: 752dbfa0-07e4-4012-bc8f-9513981d18c8
+  ❌ Failed: 409 Conflict
+  ❌ Error in createProfileInDatabase
+  ⚠️ Failed to sync profile to database
+  ✅ User logged in: Collector6130
+  ✅ Auth state saved with profile ID: 0xB270b7D2AD432958b55822E17e6b2d05c1ab136b ❌ WRONG!
+  ❌ Invalid user ID format (not UUID). Clearing stale auth state.
+
+Console Evidence (After Fix):
+  ✅ Created profile in database: [UUID]
+  ✅ Linked OAuth account: google
+  ✅ Linked embedded wallet: [address]
+  ✅ User logged in: [username]
+  ✅ Auth state saved with profile ID: [UUID] ✅ CORRECT!
+  ✅ Redirecting to /profile/[username]
+
+Verification Steps:
+1. Run cleanup script: npx tsx scripts/cleanup-duplicate-profile.ts
+2. Run test suite: npx tsx scripts/test-profile-creation.ts
+3. Manual testing: Clear localStorage, connect wallet, verify UUID in console
+4. Check database for duplicate profiles
+
+Breaking Changes:
+- Users with invalid profile IDs (wallet addresses) will be logged out on next page load
+- This is intentional - forces recreation with valid UUID
+- No data loss - all valid profiles preserved
+
+Migration:
+- Existing users with invalid IDs will see login screen on next page load
+- Login will create new profile with valid UUID
+- Old invalid profiles can be cleaned up with cleanup script
+
+Testing:
+- All 4 test cases pass in test-profile-creation.ts
+- Manual testing confirms UUID generation works
+- No more duplicate profiles created
+- Redirect works after signup
+
+Deployment:
+1. Backup production database
+2. Run cleanup script to remove duplicates
+3. Deploy code changes
+4. Monitor error logs for profile creation failures
+5. Verify no new duplicate profiles created
+
+References:
+- CLAUDE.md - Project documentation
+- docs/PROFILE_CREATION_FIXES.md - Detailed fix documentation
+- Console logs from bug report
+
+Co-Authored-By: Claude <noreply@anthropic.com>
