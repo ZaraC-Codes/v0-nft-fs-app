@@ -545,11 +545,88 @@ export class ProfileService {
   }
 
   /**
-   * Get a profile by email from localStorage (DEPRECATED - create getProfileByEmailFromDatabase)
-   * @deprecated This only checks localStorage cache
+   * Get profile by email from Supabase database (RECOMMENDED)
+   */
+  static async getProfileByEmailFromDatabase(email: string): Promise<UserProfile | null> {
+    try {
+      const supabase = getSupabaseClient()
+
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          profile_wallets (
+            wallet_address,
+            wallet_type,
+            is_primary,
+            added_at
+          )
+        `)
+        .eq('email', email)
+        .single()
+
+      if (error || !profile) {
+        console.log(`Profile not found in database: ${email}`)
+        return null
+      }
+
+      // Convert to UserProfile format
+      const wallets: WalletMetadata[] = profile.profile_wallets.map((w: any) => ({
+        address: w.wallet_address,
+        type: w.wallet_type,
+        addedAt: new Date(w.added_at)
+      }))
+
+      const primaryWallet = profile.profile_wallets.find((w: any) => w.is_primary)
+
+      // Fetch follow counts
+      const [followersResult, followingResult] = await Promise.all([
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('following_id', profile.id),
+        supabase
+          .from('profile_follows')
+          .select('id', { count: 'exact', head: true })
+          .eq('follower_id', profile.id)
+      ])
+
+      return {
+        id: profile.id,
+        username: profile.username,
+        email: profile.email,
+        avatar: profile.avatar,
+        bio: profile.bio,
+        bannerImage: profile.banner_image,
+        twitter: profile.twitter,
+        instagram: profile.instagram,
+        discord: profile.discord,
+        website: profile.website,
+        walletAddress: primaryWallet?.wallet_address,
+        wallets,
+        activeWallet: primaryWallet?.wallet_address,
+        linkedWallets: wallets.map(w => w.address),
+        verified: profile.is_verified,
+        createdAt: new Date(profile.created_at),
+        updatedAt: new Date(profile.updated_at),
+        followersCount: followersResult.count || 0,
+        followingCount: followingResult.count || 0,
+        isPublic: profile.is_public ?? true,
+        showWalletAddress: profile.show_wallet_address ?? true,
+        showEmail: profile.show_email ?? false
+      }
+    } catch (error) {
+      console.error('Error fetching profile by email from database:', error)
+      return null
+    }
+  }
+
+  /**
+   * Get a profile by email from localStorage (DEPRECATED - use getProfileByEmailFromDatabase)
+   * @deprecated Use getProfileByEmailFromDatabase() instead - this only checks localStorage cache
    */
   static getProfileByEmail(email: string): UserProfile | null {
-    console.warn('⚠️ DEPRECATED: getProfileByEmail() only checks localStorage. Create getProfileByEmailFromDatabase() instead.')
+    console.warn('⚠️ DEPRECATED: getProfileByEmail() only checks localStorage. Use getProfileByEmailFromDatabase() instead.')
     const profiles = this.getProfiles()
     return profiles.find(p => p.email === email) || null
   }
@@ -726,23 +803,23 @@ export class ProfileService {
   static async createProfile(params: CreateProfileParams): Promise<UserProfile> {
     const { id, username, email, walletAddress } = params
 
-    // Check if profile already exists
-    const existingProfile = this.getProfile(id)
+    // ✅ FIXED: Check if profile already exists (DATABASE-FIRST)
+    const existingProfile = await this.getProfileFromDatabase(id)
     if (existingProfile) {
       return existingProfile
     }
 
-    // Check if wallet already has a profile
+    // ✅ FIXED: Check if wallet already has a profile (DATABASE-FIRST)
     if (walletAddress) {
-      const walletProfile = this.getProfileByWallet(walletAddress)
+      const walletProfile = await this.getProfileByWalletFromDatabase(walletAddress)
       if (walletProfile) {
         return walletProfile
       }
     }
 
-    // Check if email already has a profile
+    // ✅ FIXED: Check if email already has a profile (DATABASE-FIRST)
     if (email) {
-      const emailProfile = this.getProfileByEmail(email)
+      const emailProfile = await this.getProfileByEmailFromDatabase(email)
       if (emailProfile) {
         return emailProfile
       }
@@ -980,14 +1057,15 @@ export class ProfileService {
     walletAddress: string,
     walletType: WalletType = 'metamask'
   ): Promise<UserProfile | null> {
-    const profile = this.getProfile(profileId)
+    // ✅ FIXED: Get profile from database first (DATABASE-FIRST)
+    const profile = await this.getProfileFromDatabase(profileId)
     if (!profile) {
       console.error("Profile not found:", profileId)
       return null
     }
 
-    // Check if wallet is already linked to another profile
-    const existingWalletProfile = this.getProfileByWallet(walletAddress)
+    // ✅ FIXED: Check if wallet is already linked to another profile (DATABASE-FIRST)
+    const existingWalletProfile = await this.getProfileByWalletFromDatabase(walletAddress)
     if (existingWalletProfile && existingWalletProfile.id !== profileId) {
       throw new Error("This wallet is already linked to another profile")
     }
@@ -1035,7 +1113,8 @@ export class ProfileService {
    * Unlink wallet from profile
    */
   static async unlinkWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
-    const profile = this.getProfile(profileId)
+    // ✅ FIXED: Get profile from database first (DATABASE-FIRST)
+    const profile = await this.getProfileFromDatabase(profileId)
     if (!profile) {
       return null
     }
@@ -1071,7 +1150,8 @@ export class ProfileService {
    * Set active wallet for transactions
    */
   static async setActiveWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
-    const profile = this.getProfile(profileId)
+    // ✅ FIXED: Get profile from database first (DATABASE-FIRST)
+    const profile = await this.getProfileFromDatabase(profileId)
     if (!profile) {
       return null
     }
@@ -1092,7 +1172,8 @@ export class ProfileService {
    * Set primary wallet (displayed on profile)
    */
   static async setPrimaryWallet(profileId: string, walletAddress: string): Promise<UserProfile | null> {
-    const profile = this.getProfile(profileId)
+    // ✅ FIXED: Get profile from database first (DATABASE-FIRST)
+    const profile = await this.getProfileFromDatabase(profileId)
     if (!profile) {
       return null
     }

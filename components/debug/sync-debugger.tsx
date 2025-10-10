@@ -52,8 +52,9 @@ export const SyncDebugger = () => {
       const user = JSON.parse(userStr)
       const { ProfileService } = await import('@/lib/profile-service')
 
-      const localProfile = ProfileService.getProfile(user.id)
-      safeLog('📦 localStorage profile:', localProfile)
+      // ✅ FIXED: Use database-first method (but keep localStorage for debug comparison)
+      const localProfile = ProfileService.getProfile(user.id) // Cache only
+      safeLog('📦 localStorage profile (cache):', localProfile)
 
       // Try to fetch from Supabase
       const supabaseProfiles = await ProfileService.getAllProfilesFromDatabase()
@@ -150,7 +151,8 @@ export const SyncDebugger = () => {
     (window as any).syncStatus = async () => {
       const { ProfileService } = await import('@/lib/profile-service')
 
-      const localProfiles = ProfileService.getProfiles()
+      // ✅ FIXED: Keep localStorage check for debug purposes (this is a debug tool)
+      const localProfiles = ProfileService.getProfiles() // Cache only
       const supabaseProfiles = await ProfileService.getAllProfilesFromDatabase()
 
       safeLog('═══════════════════════════════════')

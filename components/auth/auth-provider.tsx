@@ -307,12 +307,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Generate user ID for mock login
       const userId = "user_" + Date.now()
 
-      // Try to find existing profile by email
-      let profile = ProfileService.getProfileByEmail(email)
+      // ✅ FIXED: Try to find existing profile by email from database (DATABASE-FIRST)
+      let profile = await ProfileService.getProfileByEmailFromDatabase(email)
 
       if (!profile) {
-        // Create new profile for email user
-        profile = await ProfileService.createProfileFromEmail(userId, "cybernaut", email)
+        // Fallback: Check localStorage cache
+        const cachedProfile = ProfileService.getProfileByEmail(email)
+        if (cachedProfile) {
+          console.log("⚠️ Found profile in localStorage, syncing to database...")
+          profile = cachedProfile
+        } else {
+          // Create new profile for email user
+          profile = await ProfileService.createProfileFromEmail(userId, "cybernaut", email)
+        }
       }
 
       const mockUser: User = {

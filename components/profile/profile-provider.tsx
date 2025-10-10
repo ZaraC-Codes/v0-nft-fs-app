@@ -1122,8 +1122,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
       // ✅ FIX: Fetch from database first (primary source)
       const dbProfile = await ProfileService.getProfileFromDatabase(userProfile.id)
 
+      // ✅ FIXED: Use latest profile for cache clearing (DATABASE-FIRST)
+      let latestProfile = userProfile // Fallback
+
       if (dbProfile) {
         setUserProfile(dbProfile)
+        latestProfile = dbProfile // Use fresh database profile
 
         // Sync to localStorage cache
         await ProfileService.syncProfileToLocalStorage(dbProfile)
@@ -1133,13 +1137,14 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const cachedProfile = ProfileService.getProfile(userProfile.id)
         if (cachedProfile) {
           setUserProfile(cachedProfile)
+          latestProfile = cachedProfile
           console.log("⚠️ Using cached profile (database unavailable)")
         }
       }
 
       // Clear portfolio cache to force fresh fetch from blockchain
       const { portfolioCache } = await import("@/lib/portfolio-cache")
-      const allWallets = userProfile.linkedWallets || []
+      const allWallets = latestProfile.linkedWallets || []
       portfolioCache.clearForWallets(allWallets)
       console.log("🧹 Cleared portfolio cache, forcing fresh blockchain fetch...")
 

@@ -781,15 +781,27 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
                     console.log("✅ Transaction prepared:", tx)
                     return tx
                   }}
-                  onTransactionConfirmed={(receipt) => {
+                  onTransactionConfirmed={async (receipt) => {
                     console.log("✅ Bundle created successfully!", receipt)
 
-                    // Clear portfolio cache to force immediate refresh
-                    if (account) {
-                      const { portfolioCache } = require("@/lib/portfolio-cache")
-                      const allWallets = userProfile?.wallets?.map(w => w.address) || [account.address]
-                      portfolioCache.clearForWallets(allWallets)
-                      console.log("🗑️ Cleared portfolio cache after bundle creation")
+                    // ✅ FIXED: Clear portfolio cache to force immediate refresh (DATABASE-FIRST)
+                    if (account && userProfile) {
+                      try {
+                        // Fetch latest profile from database before clearing cache
+                        const { ProfileService } = await import("@/lib/profile-service")
+                        const latestProfile = await ProfileService.getProfileFromDatabase(userProfile.id)
+
+                        const { portfolioCache } = require("@/lib/portfolio-cache")
+                        const allWallets = latestProfile?.wallets?.map(w => w.address) || [account.address]
+                        portfolioCache.clearForWallets(allWallets)
+                        console.log("🗑️ Cleared portfolio cache after bundle creation")
+                      } catch (error) {
+                        console.error("⚠️ Failed to clear portfolio cache:", error)
+                        // Fallback to using in-memory profile
+                        const { portfolioCache } = require("@/lib/portfolio-cache")
+                        const allWallets = userProfile?.wallets?.map(w => w.address) || [account.address]
+                        portfolioCache.clearForWallets(allWallets)
+                      }
                     }
 
                     onClose()
