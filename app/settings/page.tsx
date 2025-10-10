@@ -144,7 +144,8 @@ export default function SettingsPage() {
     }
   }
 
-  if (!user || !userProfile) {
+  // Only check if user is authenticated, not if ProfileProvider has loaded yet
+  if (!user) {
     return (
       <div className="min-h-screen bg-background cyber-grid">
         <Header />
@@ -152,6 +153,24 @@ export default function SettingsPage() {
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <p className="text-muted-foreground">Please sign in to access settings.</p>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    )
+  }
+
+  // Show loading state while ProfileProvider fetches user data
+  if (!userProfile || loading) {
+    return (
+      <div className="min-h-screen bg-background cyber-grid">
+        <Header />
+        <main className="container mx-auto px-4 py-8">
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading your settings...</p>
             </div>
           </div>
         </main>
