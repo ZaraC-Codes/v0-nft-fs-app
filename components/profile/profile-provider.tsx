@@ -708,7 +708,10 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
               console.log("✅ Synced user data to AuthProvider")
 
               // Dispatch custom event to notify AuthProvider of changes
-              window.dispatchEvent(new Event("userUpdated"))
+              // Use setTimeout to ensure localStorage write completes before event fires
+              setTimeout(() => {
+                window.dispatchEvent(new Event("userUpdated"))
+              }, 0)
             }
           }
         }

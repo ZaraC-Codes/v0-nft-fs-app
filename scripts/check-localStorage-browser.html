@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>localStorage Inspector - Fortuna Square</title>
+  <style>
+    body {
+      font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #00ff00;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #00ffff;
+      text-align: center;
+      text-shadow: 0 0 10px #00ffff;
+    }
+    h2 {
+      color: #ff00ff;
+      border-bottom: 2px solid #ff00ff;
+      padding-bottom: 10px;
+      margin-top: 30px;
+    }
+    .section {
+      background: #1a1a1a;
+      border: 2px solid #00ff00;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .profile {
+      background: #2a2a2a;
+      border-left: 4px solid #00ffff;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .key {
+      color: #ffff00;
+      font-weight: bold;
+    }
+    .value {
+      color: #00ff00;
+      margin-left: 20px;
+    }
+    .warning {
+      color: #ff0000;
+      background: #2a0000;
+      border: 2px solid #ff0000;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    .success {
+      color: #00ff00;
+      background: #002a00;
+      border: 2px solid #00ff00;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 5px;
+    }
+    button {
+      background: #00ff00;
+      color: #000;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
+      margin: 5px;
+      font-family: 'Courier New', monospace;
+      font-weight: bold;
+    }
+    button:hover {
+      background: #00cc00;
+    }
+    button.danger {
+      background: #ff0000;
+      color: #fff;
+    }
+    button.danger:hover {
+      background: #cc0000;
+    }
+    pre {
+      background: #000;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      border: 1px solid #00ff00;
+    }
+    .timestamp {
+      color: #888;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🔍 localStorage INSPECTOR - FORTUNA SQUARE</h1>
+
+  <div class="section">
+    <h2>Current User</h2>
+    <div id="currentUser"></div>
+  </div>
+
+  <div class="section">
+    <h2>All Cached Profiles</h2>
+    <div id="allProfiles"></div>
+  </div>
+
+  <div class="section">
+    <h2>Data Consistency Check</h2>
+    <div id="consistencyCheck"></div>
+  </div>
+
+  <div class="section">
+    <h2>Actions</h2>
+    <button onclick="inspectLocalStorage()">🔄 Refresh Data</button>
+    <button onclick="clearCurrentUser()" class="danger">❌ Clear Current User</button>
+    <button onclick="clearAllProfiles()" class="danger">❌ Clear All Profiles</button>
+    <button onclick="clearEverything()" class="danger">🗑️ Clear Everything</button>
+    <button onclick="exportData()">💾 Export Data</button>
+  </div>
+
+  <script>
+    function inspectLocalStorage() {
+      // Current User
+      const currentUserEl = document.getElementById('currentUser')
+      const userStr = localStorage.getItem('fortuna_square_user')
+
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr)
+          currentUserEl.innerHTML = `
+            <div class="success">✅ User logged in</div>
+            <div class="profile">
+              <div><span class="key">Username:</span> <span class="value">${user.username || 'N/A'}</span></div>
+              <div><span class="key">ID:</span> <span class="value">${user.id || 'N/A'}</span></div>
+              <div><span class="key">Email:</span> <span class="value">${user.email || 'N/A'}</span></div>
+              <div><span class="key">Wallet:</span> <span class="value">${user.walletAddress || 'N/A'}</span></div>
+              <div><span class="key">Avatar:</span> <span class="value">${user.avatar ? 'Yes' : 'No'}</span></div>
+              <div><span class="key">Verified:</span> <span class="value">${user.isVerified || false}</span></div>
+            </div>
+            <details>
+              <summary style="cursor: pointer; color: #00ffff;">View Raw JSON</summary>
+              <pre>${JSON.stringify(user, null, 2)}</pre>
+            </details>
+          `
+        } catch (e) {
+          currentUserEl.innerHTML = `<div class="warning">⚠️ Error parsing user data: ${e.message}</div>`
+        }
+      } else {
+        currentUserEl.innerHTML = `<div class="warning">⚠️ No user logged in</div>`
+      }
+
+      // All Profiles
+      const profilesEl = document.getElementById('allProfiles')
+      const profilesStr = localStorage.getItem('fortuna_square_profiles')
+
+      if (profilesStr) {
+        try {
+          const profiles = JSON.parse(profilesStr)
+          let html = `<div class="success">✅ Found ${profiles.length} cached profiles</div>`
+
+          profiles.forEach((profile, index) => {
+            html += `
+              <div class="profile">
+                <div><span class="key">Profile ${index + 1}:</span></div>
+                <div><span class="key">Username:</span> <span class="value">${profile.username || 'N/A'}</span></div>
+                <div><span class="key">ID:</span> <span class="value">${profile.id || 'N/A'}</span></div>
+                <div><span class="key">Email:</span> <span class="value">${profile.email || 'N/A'}</span></div>
+                <div><span class="key">Wallet:</span> <span class="value">${profile.walletAddress || 'N/A'}</span></div>
+                <div><span class="key">Avatar:</span> <span class="value">${profile.avatar || 'None'}</span></div>
+                <div><span class="key">Bio:</span> <span class="value">${profile.bio ? profile.bio.substring(0, 80) + '...' : 'N/A'}</span></div>
+                <div><span class="key">Followers:</span> <span class="value">${profile.followersCount || 0}</span></div>
+                <div><span class="key">Following:</span> <span class="value">${profile.followingCount || 0}</span></div>
+                <div class="timestamp">Created: ${profile.createdAt ? new Date(profile.createdAt).toLocaleString() : 'N/A'}</div>
+                <div class="timestamp">Updated: ${profile.updatedAt ? new Date(profile.updatedAt).toLocaleString() : 'N/A'}</div>
+              </div>
+            `
+          })
+
+          html += `
+            <details>
+              <summary style="cursor: pointer; color: #00ffff;">View Raw JSON</summary>
+              <pre>${JSON.stringify(profiles, null, 2)}</pre>
+            </details>
+          `
+
+          profilesEl.innerHTML = html
+        } catch (e) {
+          profilesEl.innerHTML = `<div class="warning">⚠️ Error parsing profiles data: ${e.message}</div>`
+        }
+      } else {
+        profilesEl.innerHTML = `<div class="warning">⚠️ No profiles cached</div>`
+      }
+
+      // Consistency Check
+      const checkEl = document.getElementById('consistencyCheck')
+      let checkHtml = ''
+
+      try {
+        const user = userStr ? JSON.parse(userStr) : null
+        const profiles = profilesStr ? JSON.parse(profilesStr) : []
+
+        // Check 1: Is current user in profiles list?
+        if (user) {
+          const userInProfiles = profiles.some(p => p.id === user.id)
+          if (userInProfiles) {
+            checkHtml += `<div class="success">✅ Current user exists in profiles cache</div>`
+          } else {
+            checkHtml += `<div class="warning">⚠️ WARNING: Current user NOT found in profiles cache!</div>`
+          }
+        }
+
+        // Check 2: Duplicate usernames?
+        const usernames = profiles.map(p => p.username)
+        const duplicateUsernames = usernames.filter((u, i) => usernames.indexOf(u) !== i)
+        if (duplicateUsernames.length > 0) {
+          checkHtml += `<div class="warning">⚠️ WARNING: Duplicate usernames found: ${duplicateUsernames.join(', ')}</div>`
+        } else if (profiles.length > 0) {
+          checkHtml += `<div class="success">✅ No duplicate usernames</div>`
+        }
+
+        // Check 3: Duplicate IDs?
+        const ids = profiles.map(p => p.id)
+        const duplicateIds = ids.filter((id, i) => ids.indexOf(id) !== i)
+        if (duplicateIds.length > 0) {
+          checkHtml += `<div class="warning">⚠️ WARNING: Duplicate IDs found: ${duplicateIds.join(', ')}</div>`
+        } else if (profiles.length > 0) {
+          checkHtml += `<div class="success">✅ No duplicate IDs</div>`
+        }
+
+        // Check 4: Duplicate wallets?
+        const wallets = profiles.map(p => p.walletAddress).filter(Boolean)
+        const duplicateWallets = wallets.filter((w, i) => wallets.indexOf(w) !== i)
+        if (duplicateWallets.length > 0) {
+          checkHtml += `<div class="warning">⚠️ WARNING: Duplicate wallets found: ${duplicateWallets.join(', ')}</div>`
+        } else if (wallets.length > 0) {
+          checkHtml += `<div class="success">✅ No duplicate wallets</div>`
+        }
+
+        // Check 5: Profile count
+        if (profiles.length === 0) {
+          checkHtml += `<div class="warning">⚠️ No profiles in cache - this is unusual</div>`
+        } else if (profiles.length === 1) {
+          checkHtml += `<div class="success">✅ Only 1 profile (expected for single user)</div>`
+        } else {
+          checkHtml += `<div class="warning">⚠️ ${profiles.length} profiles in cache - why multiple users?</div>`
+        }
+
+      } catch (e) {
+        checkHtml = `<div class="warning">⚠️ Error during consistency check: ${e.message}</div>`
+      }
+
+      checkEl.innerHTML = checkHtml
+    }
+
+    function clearCurrentUser() {
+      if (confirm('Are you sure you want to clear the current user? You will be logged out.')) {
+        localStorage.removeItem('fortuna_square_user')
+        alert('✅ Current user cleared')
+        inspectLocalStorage()
+      }
+    }
+
+    function clearAllProfiles() {
+      if (confirm('Are you sure you want to clear all cached profiles? This will not affect the database.')) {
+        localStorage.removeItem('fortuna_square_profiles')
+        alert('✅ All profiles cleared')
+        inspectLocalStorage()
+      }
+    }
+
+    function clearEverything() {
+      if (confirm('⚠️ DANGER: This will clear ALL Fortuna Square data from localStorage. Are you sure?')) {
+        localStorage.removeItem('fortuna_square_user')
+        localStorage.removeItem('fortuna_square_profiles')
+        alert('✅ Everything cleared')
+        inspectLocalStorage()
+      }
+    }
+
+    function exportData() {
+      const data = {
+        timestamp: new Date().toISOString(),
+        currentUser: localStorage.getItem('fortuna_square_user'),
+        profiles: localStorage.getItem('fortuna_square_profiles'),
+      }
+
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `fortuna-square-localStorage-${Date.now()}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+      alert('✅ Data exported')
+    }
+
+    // Run on load
+    inspectLocalStorage()
+  </script>
+</body>
+</html>

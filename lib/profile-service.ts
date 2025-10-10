@@ -139,21 +139,30 @@ export class ProfileService {
 
       console.log('✅ Created profile in database:', profile.id)
 
-      // 2. Link OAuth account
-      const { error: oauthError } = await supabase
-        .from('profile_oauth_accounts')
-        .insert({
-          profile_id: profile.id,
-          provider: oauthData.provider,
-          provider_account_id: oauthData.providerAccountId,
-          email: oauthData.email
-        })
+      // 2. Link OAuth account (only if provider and providerAccountId are valid)
+      if (oauthData.provider && oauthData.providerAccountId) {
+        const { error: oauthError } = await supabase
+          .from('profile_oauth_accounts')
+          .insert({
+            profile_id: profile.id,
+            provider: oauthData.provider,
+            provider_account_id: oauthData.providerAccountId,
+            email: oauthData.email
+          })
 
-      if (oauthError) {
-        throw new Error(`Failed to link OAuth account: ${oauthError.message}`)
+        if (oauthError) {
+          // Handle 409 Conflict gracefully (OAuth account already exists from previous attempt)
+          if (oauthError.code === '23505') {
+            console.log('⚠️ OAuth account already exists (409 Conflict) - continuing...')
+          } else {
+            throw new Error(`Failed to link OAuth account: ${oauthError.message}`)
+          }
+        } else {
+          console.log('✅ Linked OAuth account:', oauthData.provider)
+        }
+      } else {
+        console.log('⚠️ Skipping OAuth account insert - missing provider or providerAccountId')
       }
-
-      console.log('✅ Linked OAuth account:', oauthData.provider)
 
       // 3. Link embedded wallet
       const { error: walletError } = await supabase
@@ -1003,12 +1012,14 @@ export class ProfileService {
     this.saveProfiles(profiles)
 
     // Also save to Supabase database for multi-device sync
+    let dbProfile: UserProfile | null = null
+
     try {
-      const dbProfile = await this.createProfileInDatabase(
+      dbProfile = await this.createProfileInDatabase(
         profile.username,
         {
           provider: oauthData?.provider || 'wallet',
-          providerAccountId: profile.id,
+          providerAccountId: walletAddress, // Use wallet address as unique identifier
           email: oauthData?.email
         },
         walletAddress
@@ -1027,9 +1038,11 @@ export class ProfileService {
 
       return dbProfile
     } catch (error) {
-      console.error("⚠️ Failed to sync profile to database:", error)
-      // Continue anyway - profile exists in localStorage (but with wallet address as ID)
-      return profile
+      console.error("❌ Failed to sync profile to database:", error)
+
+      // ❌ CRITICAL: If database sync failed, we MUST NOT return a profile with wallet address as ID
+      // Instead, throw error so caller knows to handle it properly
+      throw new Error(`Failed to create profile in database: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
   }
 
