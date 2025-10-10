@@ -174,10 +174,12 @@ export function WatchlistToggle({
         "touch-manipulation [-webkit-tap-highlight-color:transparent]",
         "active:scale-95",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        className,
+        // Component controls background based on state
         inWatchlist
-          ? "text-primary drop-shadow-[0_0_12px_rgba(0,255,255,0.8)] hover:drop-shadow-[0_0_16px_rgba(0,255,255,0.9)] hover:scale-110"
-          : "hover:drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:scale-105"
+          ? "bg-black/70 text-primary drop-shadow-[0_0_12px_rgba(0,255,255,0.8)] hover:bg-black/80 hover:drop-shadow-[0_0_16px_rgba(0,255,255,0.9)] hover:scale-110"
+          : "bg-gray-600/70 text-white hover:bg-gray-600/80 hover:drop-shadow-[0_0_10px_rgba(0,255,255,0.5)] hover:scale-105",
+        // Allow className to override position/sizing only (not colors)
+        className
       )}
       style={{ position: 'relative', zIndex: 50 }}
     >

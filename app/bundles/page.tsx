@@ -771,7 +771,6 @@ export default function BundlesPage() {
                           collection="Bundles"
                           image={bundle.items[0]?.image}
                           chainId={bundle.chainId}
-                          className="bg-black/50 hover:bg-black/70 text-white"
                         />
                       </div>
 

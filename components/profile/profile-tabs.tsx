@@ -384,7 +384,6 @@ export function ProfileTabs({ profile }: ProfileTabsProps) {
                             collection={item.collection}
                             image={item.image}
                             chainId={item.chainId}
-                            className="bg-black/50 hover:bg-black/70 text-white"
                           />
                         </div>
 

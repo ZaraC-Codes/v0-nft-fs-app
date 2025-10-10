@@ -99,7 +99,6 @@ export function RentalWrapperNFTCard({
               collection={nft.collection}
               image={nft.image}
               chainId={nft.chainId}
-              className="bg-black/50 hover:bg-black/70 text-white"
             />
           </div>
         )}
