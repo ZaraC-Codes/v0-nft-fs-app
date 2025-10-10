@@ -162,10 +162,10 @@ export function WatchlistToggle({
     <button
       onClick={handleToggleWatchlist}
       disabled={loading || isAdding}
-      className={`inline-flex items-center justify-center rounded-md h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 active:opacity-80 ${className} ${
+      className={`inline-flex items-center justify-center rounded-md h-12 w-12 md:h-10 md:w-10 lg:h-8 lg:w-8 transition-all duration-300 disabled:pointer-events-none disabled:opacity-50 touch-manipulation [-webkit-tap-highlight-color:transparent] active:scale-95 ${className} ${
         inWatchlist
-          ? "text-primary hover:text-primary/80 hover:scale-110"
-          : "text-muted-foreground hover:text-primary hover:scale-110"
+          ? "text-primary hover:text-primary/80 hover:scale-110 active:text-primary"
+          : "text-muted-foreground hover:text-primary hover:scale-110 active:text-primary"
       }`}
       style={{ position: 'relative', zIndex: 50 }}
     >
