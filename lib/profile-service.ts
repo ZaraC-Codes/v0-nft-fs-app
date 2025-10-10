@@ -180,10 +180,11 @@ export class ProfileService {
           console.log('⚠️ Wallet already linked (duplicate key) - verifying ownership...')
 
           // Verify wallet is linked to THIS profile
+          // ✅ FIX: Use ilike() for case-insensitive match
           const { data: existingWallet } = await supabase
             .from('profile_wallets')
             .select('profile_id')
-            .eq('wallet_address', embeddedWalletAddress)
+            .ilike('wallet_address', embeddedWalletAddress)
             .single()
 
           if (existingWallet && existingWallet.profile_id !== profile.id) {
@@ -209,10 +210,11 @@ export class ProfileService {
               console.log(`🔄 Old profile ${oldProfile?.username} is orphaned - unlinking wallet and re-linking to new profile`)
 
               // Delete old wallet link
+              // ✅ FIX: Use ilike() for case-insensitive match
               await supabase
                 .from('profile_wallets')
                 .delete()
-                .eq('wallet_address', embeddedWalletAddress)
+                .ilike('wallet_address', embeddedWalletAddress)
 
               // Delete old orphaned profile
               await supabase
@@ -295,10 +297,11 @@ export class ProfileService {
       const supabase = getSupabaseClient()
 
       // Check if wallet is already linked
+      // ✅ FIX: Use ilike() for case-insensitive match
       const { data: existing } = await supabase
         .from('profile_wallets')
         .select('wallet_address')
-        .eq('wallet_address', walletAddress)
+        .ilike('wallet_address', walletAddress)
         .single()
 
       if (existing) {
@@ -804,10 +807,11 @@ export class ProfileService {
       const supabase = getSupabaseClient()
 
       // First, find the profile_id from profile_wallets table
+      // ✅ FIX: Use ilike() for case-insensitive match (Ethereum addresses are case-insensitive)
       const { data: wallet, error: walletError } = await supabase
         .from('profile_wallets')
         .select('profile_id')
-        .eq('wallet_address', walletAddress.toLowerCase())
+        .ilike('wallet_address', walletAddress)
         .single()
 
       if (walletError || !wallet) {
