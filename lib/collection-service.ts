@@ -9,8 +9,9 @@ import { Collection, CollectionStats, CollectionWithStats } from "@/types/collec
 import collectionsData from "./collections-curated.json"
 import { getAllListings } from "./marketplace"
 import { getGoldRushCollectionStats } from "./goldrush-api"
+import { CHAIN_IDS } from "./constants"
 
-const APECHAIN_ID = 33139
+const APECHAIN_ID = CHAIN_IDS.APECHAIN_MAINNET
 
 /**
  * Get all curated collections

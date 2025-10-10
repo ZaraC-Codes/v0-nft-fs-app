@@ -1,5 +1,6 @@
 import { createThirdwebClient, defineChain } from "thirdweb";
 import { sepolia } from "thirdweb/chains";
+import { CHAIN_IDS } from "./constants";
 
 // Get the client ID from environment variables
 const clientId = process.env.NEXT_PUBLIC_THIRDWEB_CLIENT_ID || "67ac338a3f1dda0f31634dcb98e3ef8c";
@@ -11,7 +12,7 @@ export const client = createThirdwebClient({
 
 // Define ApeChain Mainnet
 export const apeChain = defineChain({
-  id: 33139,
+  id: CHAIN_IDS.APECHAIN_MAINNET,
   name: "ApeChain",
   nativeCurrency: {
     name: "ApeCoin",

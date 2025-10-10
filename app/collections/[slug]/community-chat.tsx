@@ -19,6 +19,7 @@ import { ProfileService } from "@/lib/profile-service"
 import { getCollectionChatId } from "@/lib/collection-chat"
 import { useProfile } from "@/components/profile/profile-provider"
 import { useGaslessWallet } from "@/hooks/use-gasless-wallet"
+import { CONTRACTS } from "@/lib/constants"
 
 interface CommunityChatProps {
   collection: {
@@ -27,7 +28,7 @@ interface CommunityChatProps {
   }
 }
 
-const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || "0xC75255aB6eeBb6995718eBa64De276d5B110fb7f"
+const CHAT_RELAY_ADDRESS = process.env.NEXT_PUBLIC_GROUP_CHAT_RELAY_ADDRESS || CONTRACTS.GROUP_CHAT_RELAY
 
 export function CommunityChat({ collection }: CommunityChatProps) {
   const account = useActiveAccount()
