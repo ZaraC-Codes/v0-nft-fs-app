@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
+import { createContext, useContext, useState, useEffect, useRef, type ReactNode } from "react"
 import { useActiveAccount, useDisconnect } from "thirdweb/react"
 import { ProfileService } from "@/lib/profile-service"
 
@@ -32,6 +32,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const account = useActiveAccount()
   const { disconnect } = useDisconnect()
+
+  // Track processed wallets to prevent duplicate profile creation
+  const processedWallets = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     // Load user from localStorage and refresh from database
@@ -111,6 +114,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Wrap entire wallet sync in async IIFE to support database-first architecture
     ;(async () => {
       if (account?.address) {
+        // 🔒 CRITICAL: Guard against duplicate profile creation
+        // Check if this wallet is already being processed or was processed
+        const walletKey = account.address.toLowerCase()
+        if (processedWallets.current.has(walletKey)) {
+          console.log("⏭️ Wallet already processed, skipping duplicate creation:", account.address)
+          return
+        }
+
+        // Mark wallet as being processed
+        processedWallets.current.add(walletKey)
+        console.log("🔓 Processing wallet for first time:", account.address)
+
         if (user) {
           // User is logged in - check if this wallet is already linked (DATABASE-FIRST)
           const profile = await ProfileService.getProfileFromDatabase(user.id)
@@ -290,10 +305,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         }
-      } else if (!account && user?.walletAddress) {
-        // Wallet disconnected - don't immediately clear user
-        // User might have OAuth login even without email
-        console.log("⚠️ Wallet disconnected, checking if user has OAuth accounts...")
+      } else if (!account) {
+        // Wallet disconnected - clear processed wallets so user can reconnect
+        processedWallets.current.clear()
+        console.log("🔓 Cleared processed wallets on disconnect")
+
+        if (user?.walletAddress) {
+          // Wallet disconnected - don't immediately clear user
+          // User might have OAuth login even without email
+          console.log("⚠️ Wallet disconnected, checking if user has OAuth accounts...")
 
         try {
           const { ProfileService } = await import("@/lib/profile-service")
@@ -317,9 +337,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.error("❌ Error checking OAuth accounts on disconnect:", error)
           // Don't clear user on error - safer to keep them logged in
         }
+        }
       }
     })() // Close async IIFE
-  }, [account, user, isLoading])
+  }, [account, isLoading]) // 🔒 REMOVED 'user' to prevent duplicate profile creation
 
   const login = async (email: string, password: string) => {
     setIsLoading(true)
