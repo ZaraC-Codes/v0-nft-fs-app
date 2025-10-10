@@ -108,67 +108,68 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return
     }
 
-    if (account?.address) {
-      if (user) {
-        // User is logged in - check if this wallet is already linked (DATABASE-FIRST)
-        const profile = await ProfileService.getProfileFromDatabase(user.id)
-        if (profile) {
-          const linkedWallets = ProfileService.getAllWallets(profile)
-          const isWalletLinked = linkedWallets.some(w => w.toLowerCase() === account.address.toLowerCase())
+    // Wrap entire wallet sync in async IIFE to support database-first architecture
+    ;(async () => {
+      if (account?.address) {
+        if (user) {
+          // User is logged in - check if this wallet is already linked (DATABASE-FIRST)
+          const profile = await ProfileService.getProfileFromDatabase(user.id)
+          if (profile) {
+            const linkedWallets = ProfileService.getAllWallets(profile)
+            const isWalletLinked = linkedWallets.some(w => w.toLowerCase() === account.address.toLowerCase())
 
-          if (!isWalletLinked) {
-            // This is a new wallet - link it to the profile
-            console.log("🔗 Linking new wallet to profile:", account.address)
-            try {
-              await ProfileService.linkAdditionalWallet(user.id, account.address)
-              console.log("✅ Wallet linked successfully")
-            } catch (error) {
-              console.error("Failed to link wallet:", error)
+            if (!isWalletLinked) {
+              // This is a new wallet - link it to the profile
+              console.log("🔗 Linking new wallet to profile:", account.address)
+              try {
+                await ProfileService.linkAdditionalWallet(user.id, account.address)
+                console.log("✅ Wallet linked successfully")
+              } catch (error) {
+                console.error("Failed to link wallet:", error)
+              }
             }
           }
-        }
-      } else {
-        // No user logged in - check if wallet has existing profile (DATABASE-FIRST)
-        const existingProfile = await ProfileService.getProfileByWalletFromDatabase(account.address)
-
-        if (existingProfile) {
-          // Wallet has a profile - log them in
-          const walletUser: User = {
-            id: existingProfile.id,
-            username: existingProfile.username,
-            email: existingProfile.email || "",
-            avatar: existingProfile.avatar,
-            walletAddress: existingProfile.walletAddress,
-            isVerified: true,
-          }
-          setUser(walletUser)
-          localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
-          console.log("✅ Logged in existing wallet user:", existingProfile.username)
         } else {
-          // No existing profile found in database
-          // Database unique constraints prevent duplicates, so safe to proceed
+          // No user logged in - check if wallet has existing profile (DATABASE-FIRST)
+          const existingProfile = await ProfileService.getProfileByWalletFromDatabase(account.address)
 
-          // Only auto-create profile for embedded wallets (in-app wallet)
-          // External wallets (MetaMask, etc.) require manual linking
-          const walletId = (account as any).wallet?.id
-          console.log("🔍 Detected wallet ID:", walletId, "Account:", account)
+          if (existingProfile) {
+            // Wallet has a profile - log them in
+            const walletUser: User = {
+              id: existingProfile.id,
+              username: existingProfile.username,
+              email: existingProfile.email || "",
+              avatar: existingProfile.avatar,
+              walletAddress: existingProfile.walletAddress,
+              isVerified: true,
+            }
+            setUser(walletUser)
+            localStorage.setItem("fortuna_square_user", JSON.stringify(walletUser))
+            console.log("✅ Logged in existing wallet user:", existingProfile.username)
+          } else {
+            // No existing profile found in database
+            // Database unique constraints prevent duplicates, so safe to proceed
 
-          // ThirdWeb uses "inApp" as the wallet ID for embedded wallets
-          // Also check for common external wallet IDs to be certain
-          const externalWalletIds = ["io.metamask", "io.rabby", "com.coinbase.wallet", "io.useglyph", "walletConnect"]
-          const isExternalWallet = externalWalletIds.includes(walletId)
+            // Only auto-create profile for embedded wallets (in-app wallet)
+            // External wallets (MetaMask, etc.) require manual linking
+            const walletId = (account as any).wallet?.id
+            console.log("🔍 Detected wallet ID:", walletId, "Account:", account)
 
-          // If walletId is undefined or doesn't match known patterns, assume embedded wallet
-          // This handles cases where ThirdWeb might use different IDs
-          const shouldAutoCreate = !isExternalWallet
+            // ThirdWeb uses "inApp" as the wallet ID for embedded wallets
+            // Also check for common external wallet IDs to be certain
+            const externalWalletIds = ["io.metamask", "io.rabby", "com.coinbase.wallet", "io.useglyph", "walletConnect"]
+            const isExternalWallet = externalWalletIds.includes(walletId)
 
-          console.log("🔍 Wallet check - isExternal:", isExternalWallet, "shouldAutoCreate:", shouldAutoCreate)
+            // If walletId is undefined or doesn't match known patterns, assume embedded wallet
+            // This handles cases where ThirdWeb might use different IDs
+            const shouldAutoCreate = !isExternalWallet
 
-          if (shouldAutoCreate) {
-            console.log("✅ Creating profile automatically for connected wallet")
+            console.log("🔍 Wallet check - isExternal:", isExternalWallet, "shouldAutoCreate:", shouldAutoCreate)
 
-            // Try to get OAuth profile data from embedded wallet
-            ;(async () => {
+            if (shouldAutoCreate) {
+              console.log("✅ Creating profile automatically for connected wallet")
+
+              // Get OAuth profile data and create/link profile (all awaits now work correctly)
               try {
                 let oauthData = null
                 let userInfo = null
@@ -249,7 +250,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                   console.log("⚠️ No OAuth provider detected, using legacy localStorage profile creation")
                   profile = await ProfileService.createProfileFromWallet(
                     account.address,
-                    oauthData
+                    oauthData || undefined
                   )
                 }
 
@@ -278,23 +279,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               } catch (error) {
                 console.error("❌ Failed to create/sync wallet profile:", error)
               }
-            })()
-          } else {
-            console.log("⚠️ External wallet detected. Please signup with email/social first, then link your external wallet in Settings.")
+            } else {
+              console.log("⚠️ External wallet detected. Please signup with email/social first, then link your external wallet in Settings.")
+            }
           }
         }
+      } else if (!account && user?.walletAddress) {
+        // Wallet disconnected, clear user if it was wallet-only
+        if (!user.email || user.email === "") {
+          setUser(null)
+          localStorage.removeItem("fortuna_square_user")
+          console.log("✅ Cleared wallet-only user on disconnect")
+        } else {
+          // Keep user account even if wallet disconnected (they have email/social login)
+          console.log("✅ Wallet disconnected but user has email login")
+        }
       }
-    } else if (!account && user?.walletAddress) {
-      // Wallet disconnected, clear user if it was wallet-only
-      if (!user.email || user.email === "") {
-        setUser(null)
-        localStorage.removeItem("fortuna_square_user")
-        console.log("✅ Cleared wallet-only user on disconnect")
-      } else {
-        // Keep user account even if wallet disconnected (they have email/social login)
-        console.log("✅ Wallet disconnected but user has email login")
-      }
-    }
+    })() // Close async IIFE
   }, [account, user, isLoading])
 
   const login = async (email: string, password: string) => {
@@ -364,7 +365,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = async () => {
     // Disconnect wallet if connected
     if (account) {
-      await disconnect()
+      const wallet = (account as any).wallet
+      if (wallet) {
+        disconnect(wallet)
+      }
     }
     setUser(null)
     localStorage.removeItem("fortuna_square_user")
@@ -378,7 +382,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const disconnectWallet = async () => {
     setIsLoading(true)
     try {
-      await disconnect()
+      if (account) {
+        const wallet = (account as any).wallet
+        if (wallet) {
+          disconnect(wallet)
+        }
+      }
       // If user was wallet-only, clear user completely
       if (user && (!user.email || user.email === "")) {
         setUser(null)
