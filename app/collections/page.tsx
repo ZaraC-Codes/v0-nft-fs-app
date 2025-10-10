@@ -14,6 +14,7 @@ import { SwapCriteria, NFTWithTraits } from "@/lib/nft-matching"
 import { Header } from "@/components/header"
 import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
 import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { NFTCardGrid } from "@/components/nft/cards/NFTCardGrid"
 
 // Rarity color system
 const getRarityColor = (rarity: string) => {
@@ -1095,430 +1096,40 @@ export default function CollectionsPage() {
 
             {/* Collection Tab */}
             <TabsContent value="collection" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {mockCollectionNFTs.map((nft) => (
-                  <Card
-                    key={`${nft.contractAddress}-${nft.tokenId}`}
-                    className="group bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 overflow-hidden cursor-pointer"
-                    onClick={() => handleNFTClick(nft)}
-                  >
-                    {/* Individual NFT Layout */}
-                    <div className="relative">
-                      <img
-                        src={nft.image || "/placeholder.svg"}
-                        alt={nft.name}
-                        className="w-full h-64 object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-
-                      {/* Chain Badge */}
-                      <Badge className={`absolute top-3 left-3 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0`}>
-                        {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
-                      </Badge>
-
-                      {/* Rarity Badge */}
-                      {nft.rarity && (
-                        <Badge className={`absolute top-12 left-3 bg-gradient-to-r ${getRarityColor(nft.rarity)} text-white border-0 neon-glow`}>
-                          {nft.rarity}
-                        </Badge>
-                      )}
-
-                      {/* Watchlist Button */}
-                      <div className="absolute top-3 right-3 z-50">
-                        <WatchlistToggle
-                          contractAddress={nft.contractAddress}
-                          tokenId={nft.tokenId}
-                          name={nft.name}
-                          collection={nft.collection}
-                          image={nft.image}
-                          chainId={nft.chainId}
-                          className="bg-black/50 hover:bg-black/70 text-white"
-                        />
-                      </div>
-
-                      {/* Action Buttons Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
-                        <div className="p-4 w-full pointer-events-auto">
-                          {nft.listing?.type === "sale" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                // Handle buy action here
-                              }}
-                            >
-                              Buy for {nft.listing.sale.price} APE
-                            </Button>
-                          )}
-                          {nft.listing?.type === "rent" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                // Handle rent action here
-                              }}
-                            >
-                              <Calendar className="h-4 w-4 mr-2" />
-                              Rent {nft.listing.rent.pricePerDay} APE/Day
-                            </Button>
-                          )}
-                          {nft.listing?.type === "swap" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleSwapClick(nft)
-                              }}
-                            >
-                              <ArrowLeftRight className="h-4 w-4 mr-2" />
-                              Propose Swap
-                            </Button>
-                          )}
-                          {(!nft.listing || nft.listing.type === "none") && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleNFTClick(nft)
-                              }}
-                            >
-                              View Details
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {nft.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {nft.collection}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          {/* Listing Status Badge */}
-                          {nft.listing && nft.listing.type !== "none" && (
-                            <Badge
-                              className={`mb-1 text-xs ${
-                                nft.listing.type === "sale" ? "bg-green-500/20 text-green-400 border-green-500/30" :
-                                nft.listing.type === "rent" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
-                                "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                              }`}
-                            >
-                              {nft.listing.type === "sale" ? "For Sale" :
-                               nft.listing.type === "rent" ? "For Rent" : "For Swap"}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Price Information */}
-                      <div className="space-y-1">
-                        {/* Sale Listing */}
-                        {nft.listing?.type === "sale" && nft.listing.sale && (
-                          <div>
-                            <p className="font-bold text-primary neon-text text-lg">
-                              {nft.listing.sale.price} APE
-                            </p>
-                            {nft.listing.sale.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground">
-                                Last: {nft.listing.sale.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Rent Listing */}
-                        {nft.listing?.type === "rent" && nft.listing.rent && (
-                          <div>
-                            <p className="font-bold text-blue-400 text-lg">
-                              {nft.listing.rent.pricePerDay} APE/Day
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Min: {nft.listing.rent.minDays} Day{nft.listing.rent.minDays !== 1 ? 's' : ''}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Max: {nft.listing.rent.maxDays} Day{nft.listing.rent.maxDays !== 1 ? 's' : ''}
-                            </p>
-                            {nft.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Swap Listing */}
-                        {nft.listing?.type === "swap" && nft.listing.swap && (
-                          <div>
-                            <p className="font-bold text-purple-400 text-sm mb-1">
-                              Wants: {nft.listing.swap.wantedCollection}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ID: {nft.listing.swap.wantedTokenId || "Any"}
-                            </p>
-                            {nft.listing.swap.wantedTraits && nft.listing.swap.wantedTraits.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {nft.listing.swap.wantedTraits.map((trait, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs px-1 py-0">
-                                    {trait}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                            {nft.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* No Listing - Show Last Sale Price */}
-                        {(!nft.listing || nft.listing.type === "none") && (
-                          <div>
-                            {nft.lastSalePrice ? (
-                              <p className="font-bold text-muted-foreground text-lg">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">
-                                Not for sale
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <NFTCardGrid
+                nfts={mockCollectionNFTs}
+                size="compact"
+                onCardClick={handleNFTClick}
+                onBuyClick={(nft) => {
+                  // Handle buy action
+                }}
+                onRentClick={(nft) => {
+                  // Handle rent action
+                }}
+                onSwapClick={handleSwapClick}
+                showActions={true}
+                showWatchlist={true}
+                isOwner={false}
+              />
             </TabsContent>
 
             {/* Bundles Tab */}
             <TabsContent value="bundles" className="space-y-6 mt-6">
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {mockCollectionBundles.map((nft) => (
-                  <Card
-                    key={nft.tokenId}
-                    className="group bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 overflow-hidden cursor-pointer"
-                    onClick={() => handleNFTClick(nft)}
-                  >
-                    {/* Bundle NFT Layout */}
-                    <div className="relative h-48 overflow-hidden">
-                      <img
-                        src={nft.image || "/placeholder.svg"}
-                        alt={nft.name}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                      {/* Chain Badge */}
-                      <Badge className={`absolute top-4 left-4 bg-gradient-to-r ${CHAIN_METADATA[nft.chainId].color} text-white border-0`}>
-                        {CHAIN_METADATA[nft.chainId].icon} {CHAIN_METADATA[nft.chainId].shortName}
-                      </Badge>
-
-                      {/* Bundle Badge */}
-                      <Badge className="absolute top-13 left-4 bg-gradient-to-r from-orange-400 to-red-500 text-white border-0 neon-glow">
-                        <Package className="h-3 w-3 mr-1" />
-                        Bundle ({nft.bundleCount})
-                      </Badge>
-
-                      {/* Preview Images for Bundle */}
-                      <div className="absolute bottom-4 left-4 flex space-x-2">
-                        {[1, 2, 3].slice(0, nft.bundleCount).map((_, idx) => (
-                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20">
-                            <img
-                              src={`https://picsum.photos/100/100?random=${nft.tokenId}-${idx}`}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                        {nft.bundleCount && nft.bundleCount > 3 && (
-                          <div className="w-12 h-12 rounded-lg bg-black/50 border-2 border-white/20 flex items-center justify-center">
-                            <span className="text-white text-xs font-medium">+{nft.bundleCount - 3}</span>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Watchlist Button */}
-                      <div className="absolute top-4 right-4 z-50">
-                        <WatchlistToggle
-                          contractAddress={nft.contractAddress}
-                          tokenId={nft.tokenId}
-                          name={nft.name}
-                          collection={nft.collection}
-                          image={nft.image}
-                          chainId={nft.chainId}
-                          className="bg-black/50 hover:bg-black/70 text-white"
-                        />
-                      </div>
-
-                      {/* Action Buttons Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
-                        <div className="p-4 w-full pointer-events-auto">
-                          {nft.listing?.type === "sale" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            >
-                              <ShoppingCart className="h-4 w-4 mr-2" />
-                              Buy Bundle
-                            </Button>
-                          )}
-                          {nft.listing?.type === "rent" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            >
-                              <Calendar className="h-4 w-4 mr-2" />
-                              Rent Bundle
-                            </Button>
-                          )}
-                          {nft.listing?.type === "swap" && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            >
-                              <ArrowLeftRight className="h-4 w-4 mr-2" />
-                              Propose Swap
-                            </Button>
-                          )}
-                          {(!nft.listing || nft.listing.type === "none") && (
-                            <Button
-                              className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                              }}
-                            >
-                              View Bundle
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {nft.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {nft.collection}
-                            <span className="ml-2 text-orange-400">
-                              • {nft.bundleCount} items
-                            </span>
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          {/* Listing Status Badge */}
-                          {nft.listing && nft.listing.type !== "none" && (
-                            <Badge
-                              className={`mb-1 text-xs ${
-                                nft.listing.type === "sale" ? "bg-green-500/20 text-green-400 border-green-500/30" :
-                                nft.listing.type === "rent" ? "bg-blue-500/20 text-blue-400 border-blue-500/30" :
-                                "bg-purple-500/20 text-purple-400 border-purple-500/30"
-                              }`}
-                            >
-                              {nft.listing.type === "sale" ? "For Sale" :
-                               nft.listing.type === "rent" ? "For Rent" : "For Swap"}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Price Information */}
-                      <div className="space-y-1">
-                        {/* Sale Listing */}
-                        {nft.listing?.type === "sale" && nft.listing.sale && (
-                          <div>
-                            <p className="font-bold text-primary neon-text text-lg">
-                              {nft.listing.sale.price} APE
-                            </p>
-                            {nft.listing.sale.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground">
-                                Last: {nft.listing.sale.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Rent Listing */}
-                        {nft.listing?.type === "rent" && nft.listing.rent && (
-                          <div>
-                            <p className="font-bold text-blue-400 text-lg">
-                              {nft.listing.rent.pricePerDay} APE/Day
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Min: {nft.listing.rent.minDays} Day{nft.listing.rent.minDays !== 1 ? 's' : ''}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              Max: {nft.listing.rent.maxDays} Day{nft.listing.rent.maxDays !== 1 ? 's' : ''}
-                            </p>
-                            {nft.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Swap Listing */}
-                        {nft.listing?.type === "swap" && nft.listing.swap && (
-                          <div>
-                            <p className="font-bold text-purple-400 text-sm mb-1">
-                              Wants: {nft.listing.swap.wantedCollection}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              ID: {nft.listing.swap.wantedTokenId || "Any"}
-                            </p>
-                            {nft.listing.swap.wantedTraits && nft.listing.swap.wantedTraits.length > 0 && (
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {nft.listing.swap.wantedTraits.map((trait, index) => (
-                                  <Badge key={index} variant="outline" className="text-xs px-1 py-0">
-                                    {trait}
-                                  </Badge>
-                                ))}
-                              </div>
-                            )}
-                            {nft.lastSalePrice && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* No Listing - Show Last Sale Price */}
-                        {(!nft.listing || nft.listing.type === "none") && (
-                          <div>
-                            {nft.lastSalePrice ? (
-                              <p className="font-bold text-muted-foreground text-lg">
-                                Last Sale: {nft.lastSalePrice} APE
-                              </p>
-                            ) : (
-                              <p className="text-sm text-muted-foreground">
-                                Not for sale
-                              </p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+              <NFTCardGrid
+                nfts={mockCollectionBundles}
+                size="compact"
+                onCardClick={handleNFTClick}
+                onBuyClick={(nft) => {
+                  // Handle buy action
+                }}
+                onRentClick={(nft) => {
+                  // Handle rent action
+                }}
+                onSwapClick={handleSwapClick}
+                showActions={true}
+                showWatchlist={true}
+                isOwner={false}
+              />
             </TabsContent>
 
             {/* News Feed Tab */}
