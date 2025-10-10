@@ -50,7 +50,7 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
     try {
       console.log("🔍 Checking approval for:")
       console.log("  - Owner (active wallet):", account.address)
-      console.log("  - NFT owner (from metadata):", nft.owner)
+      console.log("  - NFT owner (from metadata):", nft.ownerWallet)
       console.log("  - Contract:", nft.contractAddress)
 
       const approved = await isNFTApproved({
