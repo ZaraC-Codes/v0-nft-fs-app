@@ -2,7 +2,22 @@
 
 **Last Updated:** 2025-10-10
 
-## ✅ Profile System - FIXED (2025-10-10)
+## ✅ Profile System - FULLY WORKING (2025-10-10)
+
+### Production Status: 100% Functional ✅
+
+**User Testing Completed Successfully:**
+- ✅ Desktop login/signup working perfectly
+- ✅ Profile creation with single account (no duplicates)
+- ✅ Avatar and settings icon persist through navigation
+- ✅ Profile updates (avatar, bio) save and sync correctly
+- ✅ Settings page accessible immediately after signup
+- ✅ External wallet linking (EOA) works correctly
+- ✅ Multi-device sync working (desktop → mobile)
+- ✅ Mobile login connects to correct profile
+- ✅ Portfolio shows NFTs from all linked wallets
+- ✅ Home page displays single user card with updated info
+- ✅ Cross-device profile consistency verified
 
 ### Critical Bugs Fixed
 
@@ -24,19 +39,31 @@
    - **Fix**: Added `wasWalletConnected` ref to prevent false disconnects
    - **File**: [components/auth/auth-provider.tsx:40, 121, 314](components/auth/auth-provider.tsx#L40)
 
-4. **OAuth Account 409 Conflict Errors** - FIXED ✅
+4. **Case-Sensitive Wallet Address Lookup** - FIXED ✅
+   - **Issue**: Users unable to log in, "Wallet already linked to another profile" error
+   - **Root Cause**: PostgreSQL `.eq()` is case-sensitive, wallet stored as mixed case but queried as lowercase
+   - **Fix**: Changed all wallet queries from `.eq()` to `.ilike()` for case-insensitive matching
+   - **File**: [lib/profile-service.ts:187, 217, 304, 814](lib/profile-service.ts#L187)
+
+5. **Orphaned Profile Auto-Cleanup** - FIXED ✅
+   - **Issue**: Wallet linked to old orphaned profile blocked new profile creation
+   - **Root Cause**: No cleanup mechanism for profiles from previous testing
+   - **Fix**: Auto-detect orphaned profiles (no OAuth), delete and relink wallet to new profile
+   - **File**: [lib/profile-service.ts:189-241](lib/profile-service.ts#L189)
+
+6. **OAuth Account 409 Conflict Errors** - FIXED ✅
    - **Issue**: OAuth account insert failing with 409 Conflict
    - **Root Cause**: Trying to insert duplicate OAuth accounts
    - **Fix**: Handle 23505 error gracefully, continue on duplicate
    - **File**: [lib/profile-service.ts:142-165](lib/profile-service.ts#L142)
 
-5. **Profiles with Wallet Address as ID** - FIXED ✅
+7. **Profiles with Wallet Address as ID** - FIXED ✅
    - **Issue**: User state saved with `id: 0xB270b7D...` instead of UUID
    - **Root Cause**: Fallback code returned localStorage profile with wallet ID
    - **Fix**: Throw error instead of returning invalid profile
    - **File**: [lib/profile-service.ts:1040-1046](lib/profile-service.ts#L1040)
 
-6. **Orphaned Profiles on Home Page** - FIXED ✅
+8. **Orphaned Profiles on Home Page** - FIXED ✅
    - **Issue**: Home page showing profiles with no wallets or OAuth accounts
    - **Root Cause**: No filtering of invalid profiles
    - **Fix**: Filter profiles before display
