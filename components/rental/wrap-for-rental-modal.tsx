@@ -239,6 +239,7 @@ export function WrapForRentalModal({ isOpen, onClose, nft }: WrapForRentalModalP
             Wrap for Rental
           </TransactionButton>
         </div>
+      </div>
     </BaseModal>
   )
 }

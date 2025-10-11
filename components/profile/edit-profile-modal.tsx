@@ -335,7 +335,6 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
         {/* Wallet Management */}
         <Separator className="my-6" />
         <WalletManagement />
-      </div>
     </BaseModal>
   )
 }
