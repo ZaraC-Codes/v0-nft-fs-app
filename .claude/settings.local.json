@@ -95,7 +95,8 @@
       "Bash(vercel logs:*)",
       "Bash(npm run lint)",
       "Bash(npx tailwindcss:*)",
-      "Bash(npx supabase db inspect:*)"
+      "Bash(npx supabase db inspect:*)",
+      "Bash(Select-String -Pattern \"list-for-sale-modal|error|Error|ERROR\" -Context 2,2)"
     ],
     "deny": [],
     "ask": []

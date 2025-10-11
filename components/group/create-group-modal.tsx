@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
@@ -170,18 +170,45 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card/95 backdrop-blur-xl border-border/50 max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold neon-text">
-            Create Treasury Group
-          </DialogTitle>
-          <DialogDescription>
-            Create a private group with shared wallet and AI bot manager
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create Treasury Group"
+      description="Create a private group with shared wallet and AI bot manager"
+      size="lg"
+      footer={
+        <div className="flex items-center justify-between w-full">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={step === 1 ? onClose : handleBack}
+            disabled={loading}
+          >
+            {step === 1 ? "Cancel" : "Back"}
+          </Button>
 
-        <div className="space-y-6">
+          {step < 3 ? (
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
+              Next
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleCreateGroup}
+              disabled={loading}
+              className="bg-gradient-to-r from-primary to-secondary"
+            >
+              {loading ? "Creating..." : "Create Group"}
+            </Button>
+          )}
+        </div>
+      }
+    >
+      <div className="space-y-6">
           {/* Progress Steps */}
           <div className="flex items-center justify-center space-x-4">
             <div className={`flex items-center space-x-2 ${step >= 1 ? 'text-primary' : 'text-muted-foreground'}`}>
@@ -421,39 +448,7 @@ export function CreateGroupModal({ isOpen, onClose, onSuccess }: CreateGroupModa
               </div>
             </div>
           )}
-
-          {/* Actions */}
-          <div className="flex items-center justify-between pt-4 border-t border-border/50">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={step === 1 ? onClose : handleBack}
-              disabled={loading}
-            >
-              {step === 1 ? "Cancel" : "Back"}
-            </Button>
-
-            {step < 3 ? (
-              <Button
-                type="button"
-                onClick={handleNext}
-                className="bg-gradient-to-r from-primary to-secondary"
-              >
-                Next
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                onClick={handleCreateGroup}
-                disabled={loading}
-                className="bg-gradient-to-r from-primary to-secondary"
-              >
-                {loading ? "Creating..." : "Create Group"}
-              </Button>
-            )}
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

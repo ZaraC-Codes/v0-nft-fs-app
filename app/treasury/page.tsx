@@ -39,6 +39,8 @@ import { Header } from "@/components/header"
 import { useToast } from "@/components/ui/use-toast"
 import { NFTDetailsModal } from "@/components/nft/nft-details-modal"
 import { apeChain, sepolia, CHAIN_METADATA } from "@/lib/thirdweb"
+import { NFTActionButtons } from "@/components/shared/NFTActionButtons"
+import type { NFTAction } from "@/types/nft"
 
 // Mock treasury data
 const mockTreasury = {
@@ -756,11 +758,16 @@ export default function TreasuryPage() {
                         </div>
 
                         {/* Action Buttons Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                          <div className="p-4 w-full">
-                            <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow">
-                              View Bundle
-                            </Button>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
+                          <div className="p-4 w-full pointer-events-auto">
+                            <NFTActionButtons
+                              nft={nft}
+                              isOwner={false}
+                              onActionClick={(action: NFTAction) => {
+                                console.log('Treasury bundle action:', action, nft)
+                              }}
+                              size="md"
+                            />
                           </div>
                         </div>
                       </div>
@@ -786,51 +793,18 @@ export default function TreasuryPage() {
                         )}
 
                         {/* Action Buttons Overlay */}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end">
-                          <div className="p-4 w-full">
-                            {nft.listing?.type === "sale" && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                }}
-                              >
-                                <ShoppingCart className="h-4 w-4 mr-2" />
-                                List for {nft.listing.sale.price} APE
-                              </Button>
-                            )}
-                            {nft.listing?.type === "rent" && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                }}
-                              >
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Rent {nft.listing.rent.pricePerDay} APE/Day
-                              </Button>
-                            )}
-                            {nft.listing?.type === "swap" && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                }}
-                              >
-                                <ArrowLeftRight className="h-4 w-4 mr-2" />
-                                Propose Swap
-                              </Button>
-                            )}
-                            {(!nft.listing || nft.listing.type === "none") && (
-                              <Button
-                                className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                }}
-                              >
-                                View Details
-                              </Button>
-                            )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
+                          <div className="p-4 w-full pointer-events-auto">
+                            <NFTActionButtons
+                              nft={nft}
+                              isOwner={false}
+                              onActionClick={(action: NFTAction) => {
+                                // Treasury NFTs are owned by the treasury, so isOwner=false
+                                // Action clicks would typically open modals or perform actions
+                                console.log('Treasury NFT action:', action, nft)
+                              }}
+                              size="md"
+                            />
                           </div>
                         </div>
                       </div>

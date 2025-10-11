@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Search, UserPlus, UserMinus, CheckCircle } from "lucide-react"
@@ -68,15 +68,18 @@ export function FollowModal({ isOpen, onClose, type, username }: FollowModalProp
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card/90 backdrop-blur-xl border-border/50 max-w-md max-h-[600px]">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            {type === "followers" ? "Followers" : "Following"}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          {type === "followers" ? "Followers" : "Following"}
+        </span>
+      }
+      size="sm"
+      scrollable={true}
+    >
+      <div className="space-y-4">
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -142,8 +145,7 @@ export function FollowModal({ isOpen, onClose, type, username }: FollowModalProp
               <p>No users found</p>
             </div>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

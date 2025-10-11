@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
@@ -70,33 +70,25 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
 
   if (!account) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-black/90 border-cyan-500/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold neon-text">Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Please connect your wallet to create swap listings.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Connect Wallet"
+        description="Please connect your wallet to create swap listings."
+      />
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-black/90 border-cyan-500/50 max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold neon-text flex items-center gap-2">
-            <Plus className="h-6 w-6" />
-            Create Swap Listing
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            Select an NFT to list and specify what you want in exchange
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 overflow-y-auto pr-2">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create Swap Listing"
+      description="Select an NFT to list and specify what you want in exchange"
+      size="xl"
+      titleIcon={<Plus className="h-6 w-6" />}
+    >
+      <div className="space-y-6 overflow-y-auto pr-2 max-h-[70vh]">
           {/* Step 1: Select NFT to List */}
           <div>
             <h3 className="text-lg font-semibold text-white mb-3">
@@ -330,8 +322,7 @@ export function CreateSwapModal({ isOpen, onClose, userNFTs }: CreateSwapModalPr
               </Button>
             </div>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

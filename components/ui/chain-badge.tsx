@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 interface ChainBadgeProps {
   chainId: number
   className?: string
-  size?: "sm" | "md" | "lg"
+  size?: "xs" | "sm" | "md" | "lg"
   logoOnly?: boolean // New: show only logo without text
   showTooltip?: boolean // New: show tooltip on hover (defaults to true when logoOnly is true)
 }
@@ -22,6 +22,7 @@ export function ChainBadge({
   if (!metadata) return null
 
   const sizeClasses = {
+    xs: "text-[8px] px-1 py-0",
     sm: "text-[10px] px-1.5 py-0.5",
     md: "text-xs px-2 py-1",
     lg: "text-sm px-3 py-1.5"
@@ -29,12 +30,14 @@ export function ChainBadge({
 
   // Logo-only mode uses tighter padding
   const logoOnlySizeClasses = {
+    xs: "p-0.5",
     sm: "p-0.5",
     md: "p-1",
     lg: "p-1.5"
   }
 
   const iconSizes = {
+    xs: "h-2 w-2",
     sm: "h-3 w-3",
     md: "h-4 w-4",
     lg: "h-5 w-5"

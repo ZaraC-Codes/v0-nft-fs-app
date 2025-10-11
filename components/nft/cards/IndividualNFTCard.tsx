@@ -3,18 +3,18 @@
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { NFTCardImage } from "./shared/NFTCardImage"
-import { ChainBadge } from "./shared/ChainBadge"
-import { RarityBadge } from "./shared/RarityBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
-import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { NFTCardBadges } from "./shared/NFTCardBadges"
+import { NFTActionButtons } from "@/components/shared/NFTActionButtons"
 import { ShoppingCart, Calendar, ArrowLeftRight } from "lucide-react"
 import type { PortfolioNFT } from "@/types/profile"
-import type { CardSize } from "@/types/nft"
+import type { CardSize, NFTAction } from "@/types/nft"
 
 interface IndividualNFTCardProps {
   nft: PortfolioNFT
   size?: CardSize
   onClick?: (nft: PortfolioNFT) => void
+  onActionClick?: (action: NFTAction, nft: PortfolioNFT) => void
   onBuyClick?: (nft: PortfolioNFT) => void
   onRentClick?: (nft: PortfolioNFT) => void
   onSwapClick?: (nft: PortfolioNFT) => void
@@ -48,6 +48,7 @@ export function IndividualNFTCard({
   nft,
   size = 'standard',
   onClick,
+  onActionClick,
   onBuyClick,
   onRentClick,
   onSwapClick,
@@ -67,90 +68,24 @@ export function IndividualNFTCard({
         size={size}
         onImageClick={() => onClick?.(nft)}
       >
-        {/* Chain Badge - top-left, position 1 */}
-        <div className="absolute top-1.5 left-1.5">
-          <ChainBadge
-            chainId={nft.chainId}
-            size={size === 'micro' ? 'xs' : size === 'compact' ? 'sm' : 'md'}
-          />
-        </div>
-
-        {/* Rarity Badge - top-left, position 2 */}
-        {nft.rarity && (
-          <div className={`absolute ${size === 'micro' ? 'top-5' : 'top-7'} left-1.5`}>
-            <RarityBadge
-              rarity={nft.rarity}
-              size={size === 'micro' || size === 'compact' ? 'xs' : 'sm'}
-            />
-          </div>
-        )}
-
-        {/* Watchlist Toggle - top-right */}
-        {showWatchlist && (
-          <div className="absolute top-1.5 right-1.5 z-50">
-            <WatchlistToggle
-              contractAddress={nft.contractAddress}
-              tokenId={nft.tokenId}
-              name={nft.name}
-              collection={nft.collection}
-              image={nft.image}
-              chainId={nft.chainId}
-            />
-          </div>
-        )}
+        {/* Badges - chain, rarity, and watchlist */}
+        <NFTCardBadges
+          nft={nft}
+          size={size}
+          showWatchlist={showWatchlist}
+          variant="standard"
+        />
 
         {/* Action Overlay - bottom (on hover) */}
         {showActions && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
             <div className="p-4 w-full pointer-events-auto">
-              {/* Buy Button - for sale listings (non-owner) */}
-              {nft.listing?.type === 'sale' && !isOwner && (
-                <Button
-                  className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onBuyClick?.(nft)
-                  }}
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Buy for {nft.listing.sale.price} APE
-                </Button>
-              )}
-
-              {/* Rent Button - for rental listings (non-owner) */}
-              {nft.listing?.type === 'rent' && !isOwner && (
-                <Button
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onRentClick?.(nft)
-                  }}
-                >
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Rent {nft.listing.rent.pricePerDay} APE/Day
-                </Button>
-              )}
-
-              {/* Swap Button - for swap listings (non-owner) */}
-              {nft.listing?.type === 'swap' && !isOwner && (
-                <Button
-                  className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onSwapClick?.(nft)
-                  }}
-                >
-                  <ArrowLeftRight className="h-4 w-4 mr-2" />
-                  Propose Swap
-                </Button>
-              )}
-
-              {/* View Details Button - for non-listed or owner viewing own listing */}
-              {(!nft.listing || nft.listing.type === 'none' || isOwner) && (
-                <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700 neon-glow">
-                  View Details
-                </Button>
-              )}
+              <NFTActionButtons
+                nft={nft}
+                isOwner={isOwner}
+                onActionClick={onActionClick}
+                size="md"
+              />
             </div>
           </div>
         )}

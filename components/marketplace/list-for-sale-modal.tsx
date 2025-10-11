@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -15,6 +14,7 @@ import { Tag, DollarSign, Info, ShoppingCart, CheckCircle2 } from "lucide-react"
 import Image from "next/image"
 import { PortfolioNFT } from "@/types/profile"
 import { useToast } from "@/components/ui/use-toast"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 
 interface ListForSaleModalProps {
   isOpen: boolean
@@ -88,31 +88,102 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
 
   if (!account) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-border/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold neon-text">Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Please connect your wallet to list items for sale.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Connect Wallet"
+        description="Please connect your wallet to list items for sale."
+      />
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-card/95 backdrop-blur-xl border-border/50 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Tag className="h-6 w-6 text-green-400" />
-            List {nft.isBundle ? "Bundle" : "NFT"} for Sale
-          </DialogTitle>
-          <DialogDescription className="text-muted-foreground">
-            Set your price and list your {nft.isBundle ? "bundle" : "NFT"} on the marketplace
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-green-400 to-emerald-600 bg-clip-text text-transparent">
+          List {nft.isBundle ? "Bundle" : "NFT"} for Sale
+        </span>
+      }
+      description={`Set your price and list your ${nft.isBundle ? "bundle" : "NFT"} on the marketplace`}
+      size="lg"
+      titleIcon={<Tag className="h-6 w-6 text-green-400" />}
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1 border-border/50"
+          >
+            Cancel
+          </Button>
+
+          {!isApproved && isApproved !== null && account && (
+            <TransactionButton
+              transaction={() => {
+                return prepareApproveNFT({
+                  client,
+                  chain: apeChain,
+                  contractAddress: nft.contractAddress,
+                  tokenId: nft.tokenId,
+                })
+              }}
+              onTransactionConfirmed={() => {
+                toast({
+                  title: "Approval Successful",
+                  description: "You can now list your NFT for sale",
+                })
+                checkApproval()
+              }}
+              onError={(error) => {
+                toast({
+                  title: "Approval Failed",
+                  description: error.message,
+                  variant: "destructive"
+                })
+              }}
+              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700"
+            >
+              Approve NFT
+            </TransactionButton>
+          )}
+
+          {isApproved && account && (
+            <TransactionButton
+              transaction={() => {
+                if (!handleListForSale()) throw new Error("Invalid price")
+                return prepareListForSale({
+                  client,
+                  chain: apeChain,
+                  contractAddress: nft.contractAddress,
+                  tokenId: nft.tokenId,
+                  price,
+                  isBundle: nft.isBundle || false
+                })
+              }}
+              onTransactionConfirmed={() => {
+                toast({
+                  title: "Listed for Sale!",
+                  description: `${nft.name} is now listed for ${price} APE`,
+                })
+                onClose()
+              }}
+              onError={(error) => {
+                toast({
+                  title: "Listing Failed",
+                  description: error.message,
+                  variant: "destructive"
+                })
+              }}
+              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
+            >
+              List for {price || "0"} APE
+            </TransactionButton>
+          )}
+        </div>
+      }
+    >
 
         {/* NFT Preview */}
         <Card className="p-4 bg-card/50 border-border/50">
@@ -233,167 +304,6 @@ export function ListForSaleModal({ isOpen, onClose, nft }: ListForSaleModalProps
             </div>
           </Card>
         )}
-
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            variant="outline"
-            onClick={onClose}
-            className="flex-1 border-border/50"
-          >
-            Cancel
-          </Button>
-
-          {account && isCheckingApproval && (
-            <Button disabled className="flex-1">
-              Checking Approval...
-            </Button>
-          )}
-
-          {account && !isCheckingApproval && isApproved === null && (
-            <Button
-              onClick={checkApproval}
-              className="flex-1 bg-gradient-to-r from-yellow-500 to-orange-500"
-            >
-              Check Approval Status
-            </Button>
-          )}
-
-          {account && !isCheckingApproval && isApproved === false && (
-            <TransactionButton
-              transaction={async () => {
-                console.log("🔍 Preparing approval transaction for token:", nft.tokenId)
-                return await prepareApproveNFT({
-                  client,
-                  chain: apeChain,
-                  contractAddress: nft.contractAddress,
-                  tokenId: nft.tokenId,
-                })
-              }}
-              onTransactionConfirmed={async () => {
-                console.log("✅ Approval transaction confirmed!")
-                toast({
-                  title: "Approval Transaction Confirmed",
-                  description: "Verifying approval status...",
-                })
-                // Wait a moment for blockchain state to update, then re-check
-                setTimeout(async () => {
-                  await checkApproval()
-                  toast({
-                    title: "Approval Verified!",
-                    description: "You can now list your NFT for sale",
-                  })
-                }, 2000)
-              }}
-              onError={(error) => {
-                console.error("❌ Approval error:", error)
-                toast({
-                  title: "Approval Failed",
-                  description: error.message,
-                  variant: "destructive"
-                })
-              }}
-              className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow"
-            >
-              Approve NFT
-            </TransactionButton>
-          )}
-
-          {account && !isCheckingApproval && isApproved === true && (
-            <TransactionButton
-              transaction={() => {
-                console.log("🔍 Transaction function called")
-                console.log("🔍 Price:", price)
-                console.log("🔍 NFT:", nft)
-                console.log("🔍 Active account:", account.address)
-                console.log("🔍 NFT owner wallet:", nft.ownerWallet)
-
-                // Verify the active wallet owns this NFT
-                if (nft.ownerWallet && nft.ownerWallet.toLowerCase() !== account.address.toLowerCase()) {
-                  const errorMsg = `Cannot list NFT: This NFT belongs to ${nft.ownerWallet} but you're connected with ${account.address}. Please switch to the wallet that owns this NFT.`
-                  console.error("❌", errorMsg)
-                  throw new Error(errorMsg)
-                }
-
-                if (!handleListForSale()) {
-                  console.error("❌ Validation failed")
-                  throw new Error("Invalid listing parameters")
-                }
-
-                console.log("✅ Validation passed, preparing transaction...")
-                const tx = prepareListForSale({
-                  client,
-                  chain: apeChain,
-                  contractAddress: nft.contractAddress,
-                  tokenId: nft.tokenId,
-                  price,
-                  isBundle: nft.isBundle || false
-                })
-                console.log("✅ Transaction prepared:", tx)
-                return tx
-              }}
-              onTransactionConfirmed={async (receipt) => {
-                console.log("✅ Transaction confirmed!")
-                console.log("📄 Transaction receipt:", receipt)
-
-                // Clear portfolio cache to force immediate refresh (DATABASE-FIRST)
-                if (account) {
-                  try {
-                    const { portfolioCache } = require("@/lib/portfolio-cache")
-                    const { ProfileService } = await import("@/lib/profile-service")
-
-                    // Look up profile from database
-                    const currentProfile = await ProfileService.getProfileByWalletFromDatabase(account.address)
-
-                    if (currentProfile) {
-                      // Clear cache for all linked wallets
-                      const allWallets = ProfileService.getAllWallets(currentProfile)
-                      portfolioCache.clearForWallets(allWallets)
-                      console.log("🗑️ Cleared portfolio cache for all linked wallets:", allWallets.length)
-                    } else {
-                      // Fallback: Clear cache only for active wallet if profile not found
-                      console.warn("⚠️ Profile not found in database, clearing cache for active wallet only")
-                      portfolioCache.clearForWallets([account.address])
-                    }
-                  } catch (error) {
-                    // Fallback: Clear cache for active wallet on error
-                    console.error("❌ Error clearing portfolio cache:", error)
-                    const { portfolioCache } = require("@/lib/portfolio-cache")
-                    portfolioCache.clearForWallets([account.address])
-                    console.log("🗑️ Fallback: Cleared portfolio cache for active wallet only")
-                  }
-                }
-
-                // Wait a moment for blockchain state to update
-                await new Promise(resolve => setTimeout(resolve, 3000))
-
-                toast({
-                  title: "Listed Successfully!",
-                  description: `Your ${nft.isBundle ? "bundle" : "NFT"} is now listed for ${price} APE. Refreshing listings...`,
-                })
-
-                // Trigger a refresh of the profile data
-                if (window.location.pathname.includes('/profile/')) {
-                  window.location.reload()
-                }
-
-                onClose()
-              }}
-              onError={(error) => {
-                console.error("❌ Transaction error:", error)
-                toast({
-                  title: "Listing Failed",
-                  description: error.message,
-                  variant: "destructive"
-                })
-              }}
-              className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-            >
-              List for Sale
-            </TransactionButton>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   )
 }

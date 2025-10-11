@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -124,16 +124,30 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
   if (!userProfile) return null
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-border/50 bg-card/95 backdrop-blur-xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl">Edit Profile</DialogTitle>
-          <DialogDescription>
-            Make changes to your profile information and privacy settings
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 py-4">
+    <BaseModal
+      isOpen={open}
+      onClose={() => onOpenChange(false)}
+      title="Edit Profile"
+      description="Make changes to your profile information and privacy settings"
+      size="lg"
+      scrollable={true}
+      footer={
+        <div className="flex justify-end gap-2 w-full">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={loading}
+            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {loading ? "Saving..." : "Save Changes"}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
           {/* Profile Images Section */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -321,22 +335,7 @@ export function EditProfileModal({ open, onOpenChange }: EditProfileModalProps) 
         {/* Wallet Management */}
         <Separator className="my-6" />
         <WalletManagement />
-
-        {/* Footer with Save Button */}
-        <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            disabled={loading}
-            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80"
-          >
-            <Save className="mr-2 h-4 w-4" />
-            {loading ? "Saving..." : "Save Changes"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

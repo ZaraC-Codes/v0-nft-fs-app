@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
@@ -97,43 +97,81 @@ export function RentNFTModal({ isOpen, onClose, wrapperId, wrapperNFT }: RentNFT
 
   if (loading) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 text-white">
-          <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BaseModal isOpen={isOpen} onClose={onClose} title="Loading..." size="lg">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+        </div>
+      </BaseModal>
     )
   }
 
   if (!wrapperInfo) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 text-white">
-          <div className="text-center py-8">
-            <p className="text-red-400">Failed to load rental information</p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Error Loading Rental"
+        description="Failed to load rental information. Please try again."
+      />
     )
   }
 
   const pricePerDayAPE = fromWei(wrapperInfo.pricePerDay, 18)
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 text-white max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Calendar className="h-6 w-6 text-green-400" />
-            Rent NFT
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Rent this NFT and get temporary usage rights. The owner retains ownership.
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-green-400 to-blue-600 bg-clip-text text-transparent">
+          Rent NFT
+        </span>
+      }
+      description="Rent this NFT and get temporary usage rights. The owner retains ownership."
+      size="lg"
+      scrollable={true}
+      titleIcon={<Calendar className="h-6 w-6 text-green-400" />}
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button
+            onClick={onClose}
+            variant="outline"
+            className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
+          >
+            Cancel
+          </Button>
 
+          {costs && (
+            <TransactionButton
+              transaction={() => {
+                if (!handleRent()) {
+                  throw new Error("Invalid rental duration")
+                }
+
+                return prepareRentNFT(client, chain, {
+                  wrapperId,
+                  durationInDays: parseInt(duration),
+                  totalCost: costs.totalCost,
+                })
+              }}
+              onTransactionConfirmed={() => {
+                onClose()
+                alert(`NFT rented successfully for ${duration} days!`)
+              }}
+              onError={(error) => {
+                console.error("Error renting NFT:", error)
+                alert("Failed to rent NFT. Please try again.")
+              }}
+              className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 neon-glow"
+            >
+              <Calendar className="h-4 w-4 mr-2" />
+              Rent for {duration} days
+            </TransactionButton>
+          )}
+        </div>
+      }
+    >
+      <div>
         {/* NFT Preview */}
         <Card className="p-4 bg-gray-800/50 border-gray-700">
           <div className="flex gap-4">
@@ -252,45 +290,7 @@ export function RentNFTModal({ isOpen, onClose, wrapperId, wrapperNFT }: RentNFT
           </div>
         </Card>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4 border-t border-gray-800">
-          <Button
-            onClick={onClose}
-            variant="outline"
-            className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800"
-          >
-            Cancel
-          </Button>
-
-          {costs && (
-            <TransactionButton
-              transaction={() => {
-                if (!handleRent()) {
-                  throw new Error("Invalid rental duration")
-                }
-
-                return prepareRentNFT(client, chain, {
-                  wrapperId,
-                  durationInDays: parseInt(duration),
-                  totalCost: costs.totalCost,
-                })
-              }}
-              onTransactionConfirmed={() => {
-                onClose()
-                alert(`NFT rented successfully for ${duration} days!`)
-              }}
-              onError={(error) => {
-                console.error("Error renting NFT:", error)
-                alert("Failed to rent NFT. Please try again.")
-              }}
-              className="flex-1 bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 neon-glow"
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Rent for {duration} days
-            </TransactionButton>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

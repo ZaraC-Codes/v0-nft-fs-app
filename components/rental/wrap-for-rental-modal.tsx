@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card } from "@/components/ui/card"
@@ -48,18 +48,57 @@ export function WrapForRentalModal({ isOpen, onClose, nft }: WrapForRentalModalP
   const chain = { id: nft.chainId, name: "ApeChain Curtis" } as any
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl bg-gray-900 border-gray-800 text-white max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent flex items-center gap-2">
-            <Package className="h-6 w-6 text-purple-400" />
-            Wrap NFT for Rental
-          </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Wrap your NFT into an ERC4907 rental wrapper. Your original NFT will be stored securely in a Token Bound Account.
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+          Wrap NFT for Rental
+        </span>
+      }
+      description="Wrap your NFT into an ERC4907 rental wrapper. Your original NFT will be stored securely in a Token Bound Account."
+      size="lg"
+      scrollable={true}
+      titleIcon={<Package className="h-6 w-6 text-purple-400" />}
+      footer={
+        <div className="flex gap-3 w-full">
+          <Button onClick={onClose} variant="outline" className="flex-1 border-gray-700 text-gray-300 hover:bg-gray-800">
+            Cancel
+          </Button>
 
+          <TransactionButton
+            transaction={() => {
+              if (!account) {
+                const errorMsg = "Please connect your wallet"
+                console.error("❌", errorMsg)
+                throw new Error(errorMsg)
+              }
+
+              if (!handleWrap()) {
+                throw new Error("Invalid rental terms")
+              }
+
+              // TODO: Fix this - prepareWrapForRental doesn't exist
+              // Use WrapNFTButton component on profile page instead
+              throw new Error("This feature is temporarily disabled. Please use the Wrap NFT button on your profile page.")
+            }}
+            onTransactionConfirmed={() => {
+              onClose()
+              alert("NFT wrapped successfully! It's now available for rental.")
+            }}
+            onError={(error) => {
+              console.error("Error wrapping NFT:", error)
+              alert("Failed to wrap NFT. Please try again.")
+            }}
+            className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 neon-glow"
+          >
+            <Package className="h-4 w-4 mr-2" />
+            Wrap for Rental
+          </TransactionButton>
+        </div>
+      }
+    >
+      <div>
         {/* NFT Preview */}
         <Card className="p-4 bg-gray-800/50 border-gray-700">
           <div className="flex gap-4">
@@ -200,7 +239,6 @@ export function WrapForRentalModal({ isOpen, onClose, nft }: WrapForRentalModalP
             Wrap for Rental
           </TransactionButton>
         </div>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   )
 }

@@ -1,8 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Separator } from "@/components/ui/separator"
@@ -51,15 +51,38 @@ export function BidModal({ isOpen, onClose, nft }: BidModalProps) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card/90 backdrop-blur-xl border-border/50 max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Place a Bid
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-6">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Place a Bid
+        </span>
+      }
+      size="sm"
+      footer={
+        <div className="flex space-x-3 w-full">
+          <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleSubmitBid}
+            disabled={isLoading || !bidAmount}
+            className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
+          >
+            {isLoading ? (
+              "Placing Bid..."
+            ) : (
+              <>
+                <Zap className="mr-2 h-4 w-4" />
+                Place Bid
+              </>
+            )}
+          </Button>
+        </div>
+      }
+    >
+      <div className="space-y-6">
           {/* NFT Preview */}
           <div className="flex items-center space-x-3 p-3 bg-card/30 rounded-lg border border-border/50">
             <img src={nft.image || "/placeholder.svg"} alt={nft.title} className="w-12 h-12 rounded-lg object-cover" />
@@ -124,29 +147,7 @@ export function BidModal({ isOpen, onClose, nft }: BidModalProps) {
               </span>
             </div>
           </div>
-
-          {/* Actions */}
-          <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose} className="flex-1 bg-transparent">
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmitBid}
-              disabled={isLoading || !bidAmount}
-              className="flex-1 bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
-            >
-              {isLoading ? (
-                "Placing Bid..."
-              ) : (
-                <>
-                  <Zap className="mr-2 h-4 w-4" />
-                  Place Bid
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

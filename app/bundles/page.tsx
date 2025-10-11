@@ -32,6 +32,7 @@ import { generateBundleMetadataURI, prepareCreateBundle, getUniqueNFTContracts }
 import { useSendTransaction } from "thirdweb/react"
 import { NFTSelectionGrid } from "@/components/shared/NFTSelectionGrid"
 import { NFTCardGrid } from "@/components/nft/cards/NFTCardGrid"
+import { BundleNFTCard } from "@/components/nft/cards/BundleNFTCard"
 import { PortfolioNFT } from "@/types/profile"
 
 // Rarity color system
@@ -135,8 +136,8 @@ const mockPortfolioNFTs = {
   ]
 }
 
-// Mock existing bundles
-const mockExistingBundles = [
+// Mock existing bundles (raw format)
+const mockExistingBundlesRaw = [
   {
     id: "bundle-1",
     name: "BAYC Premium Pack",
@@ -210,6 +211,25 @@ const mockExistingBundles = [
     ]
   }
 ]
+
+// Convert mock bundles to PortfolioNFT format for BundleNFTCard
+const mockExistingBundles: PortfolioNFT[] = mockExistingBundlesRaw.map((bundle) => ({
+  contractAddress: `bundle-${bundle.id}`,
+  tokenId: bundle.id,
+  name: bundle.name,
+  collection: "Bundles",
+  image: bundle.items[0]?.image || "/placeholder.svg",
+  chainId: bundle.chainId,
+  isBundle: true,
+  bundleCount: bundle.bundleCount,
+  bundledNFTs: bundle.items.map(item => ({
+    contractAddress: item.contractAddress,
+    tokenId: item.tokenId,
+    image: item.image,
+    collection: item.collection,
+  })),
+  listing: { type: "none" as const },
+}))
 
 export default function BundlesPage() {
   const [activeTab, setActiveTab] = useState("create")
@@ -738,111 +758,21 @@ export default function BundlesPage() {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {mockExistingBundles.map((bundle) => (
-                  <Card
-                    key={bundle.id}
-                    className="group bg-card/50 border-border/50 hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 overflow-hidden cursor-pointer"
-                  >
-                    {/* Bundle NFT Layout */}
-                    <div className="relative h-48 overflow-hidden bg-gradient-to-br from-purple-900 via-black to-blue-900">
-                      {/* FS Logo Background */}
-                      <div className="absolute inset-0 flex items-center justify-center opacity-20">
-                        <img
-                          src="/fs-temp-logo.png"
-                          alt="Fortuna Square"
-                          className="w-32 h-32 object-contain"
-                        />
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-
-                      {/* Chain Badge */}
-                      <div className="absolute top-4 left-4">
-                        <ChainBadge chainId={bundle.chainId} size="md" />
-                      </div>
-
-                      {/* Bundle Badge */}
-                      <Badge className="absolute top-13 left-4 bg-gradient-to-r from-orange-400 to-red-500 text-white border-0 neon-glow">
-                        <Package className="h-3 w-3 mr-1" />
-                        Bundle ({bundle.bundleCount})
-                      </Badge>
-
-                      {/* Watchlist Button */}
-                      <div className="absolute top-4 right-4 z-50">
-                        <WatchlistToggle
-                          contractAddress={`bundle-${bundle.id}`}
-                          tokenId={bundle.id}
-                          name={bundle.name}
-                          collection="Bundles"
-                          image={bundle.items[0]?.image}
-                          chainId={bundle.chainId}
-                        />
-                      </div>
-
-                      {/* Preview Images for Bundle - 3 Featured Thumbnails */}
-                      <div className="absolute bottom-4 left-4 right-4 flex space-x-1.5">
-                        {bundle.items.slice(0, 3).map((item, idx) => (
-                          <div key={idx} className="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/30 shadow-lg">
-                            <img
-                              src={item?.image || `https://picsum.photos/100/100?random=${bundle.id}-${idx}`}
-                              alt=""
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ))}
-                      </div>
-
-                      {/* Action Buttons Overlay */}
-                      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
-                        <div className="p-4 w-full flex gap-2 pointer-events-auto">
-                          <Button
-                            onClick={() => handleUnwrapBundle(bundle.id, bundle.name)}
-                            className="flex-1 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 neon-glow"
-                          >
-                            <PackageOpen className="h-4 w-4 mr-2" />
-                            Unwrap Bundle
-                          </Button>
-                          <Button
-                            variant="secondary"
-                            className="px-3"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {bundle.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            Mixed Collections
-                            <span className="ml-2 text-orange-400">
-                              • {bundle.bundleCount} items
-                            </span>
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <Badge className="mb-1 text-xs bg-orange-500/20 text-orange-400 border-orange-500/30">
-                            Bundle
-                          </Badge>
-                        </div>
-                      </div>
-
-                      {/* Price Information */}
-                      <div className="space-y-1">
-                        <div>
-                          <p className="font-bold text-primary neon-text text-lg">
-                            {bundle.totalValue} APE
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Total Value • Created {bundle.createdAt.toLocaleDateString()}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <BundleNFTCard
+                    key={`${bundle.contractAddress}-${bundle.tokenId}`}
+                    nft={bundle}
+                    size="standard"
+                    showWatchlist={true}
+                    showActions={true}
+                    isOwner={true}
+                    onClick={(nft) => console.log('View bundle:', nft)}
+                    onActionClick={(action, nft) => {
+                      if (action === 'unwrap_bundle') {
+                        handleUnwrapBundle(nft.tokenId, nft.name)
+                      }
+                      console.log('Bundle action:', action, nft)
+                    }}
+                  />
                 ))}
               </div>
             )}

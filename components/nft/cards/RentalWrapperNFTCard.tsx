@@ -5,19 +5,21 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Clock } from "lucide-react"
 import { NFTCardImage } from "./shared/NFTCardImage"
-import { ChainBadge } from "./shared/ChainBadge"
-import { RarityBadge } from "./shared/RarityBadge"
 import { NFTCardContent } from "./shared/NFTCardContent"
-import { WatchlistToggle } from "@/components/profile/add-to-watchlist"
+import { NFTCardBadges } from "./shared/NFTCardBadges"
+import { NFTActionButtons } from "@/components/shared/NFTActionButtons"
 import type { PortfolioNFT } from "@/types/profile"
 import type { CardSize } from "@/types/nft"
+import type { NFTAction } from "@/types/nft"
 
 interface RentalWrapperNFTCardProps {
   nft: PortfolioNFT
   size?: CardSize
   onClick?: (nft: PortfolioNFT) => void
+  onActionClick?: (action: NFTAction, nft: PortfolioNFT) => void
   showActions?: boolean
   showWatchlist?: boolean
+  isOwner?: boolean
   className?: string
 }
 
@@ -45,8 +47,10 @@ export function RentalWrapperNFTCard({
   nft,
   size = 'standard',
   onClick,
+  onActionClick,
   showActions = true,
   showWatchlist = true,
+  isOwner = false,
   className = ''
 }: RentalWrapperNFTCardProps) {
   // Determine rental status
@@ -77,39 +81,24 @@ export function RentalWrapperNFTCard({
         size={size}
         onImageClick={() => onClick?.(nft)}
       >
-        {/* Chain Badge - top-left, position 1 */}
-        <div className="absolute top-1.5 left-1.5">
-          <ChainBadge chainId={nft.chainId} size={size === 'compact' ? 'sm' : 'md'} />
-        </div>
-
-        {/* Rarity Badge - top-left, position 2 */}
-        {nft.rarity && (
-          <div className="absolute top-7 left-1.5">
-            <RarityBadge rarity={nft.rarity} size={size === 'compact' ? 'xs' : 'sm'} />
-          </div>
-        )}
-
-        {/* Watchlist Toggle - top-right */}
-        {showWatchlist && (
-          <div className="absolute top-1.5 right-1.5 z-50">
-            <WatchlistToggle
-              contractAddress={nft.contractAddress}
-              tokenId={nft.tokenId}
-              name={nft.name}
-              collection={nft.collection}
-              image={nft.image}
-              chainId={nft.chainId}
-            />
-          </div>
-        )}
+        {/* Badges - chain, rarity, and watchlist */}
+        <NFTCardBadges
+          nft={nft}
+          size={size}
+          showWatchlist={showWatchlist}
+          variant="standard"
+        />
 
         {/* Action Overlay - bottom (on hover) */}
         {showActions && (
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end pointer-events-none">
             <div className="p-4 w-full pointer-events-auto">
-              <Button className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 neon-glow">
-                {isRented ? 'View Rental' : 'Rent NFT'}
-              </Button>
+              <NFTActionButtons
+                nft={nft}
+                isOwner={isOwner}
+                onActionClick={onActionClick}
+                size="md"
+              />
             </div>
           </div>
         )}

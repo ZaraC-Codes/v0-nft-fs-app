@@ -3,8 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -141,15 +141,33 @@ export function CreateChatModal({ isOpen, onClose }: CreateChatModalProps) {
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-card/90 backdrop-blur-xl border-border/50 max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-            Create New Chat
-          </DialogTitle>
-        </DialogHeader>
-
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Create New Chat
+        </span>
+      }
+      size="lg"
+      scrollable={true}
+      footer={
+        <div className="flex justify-end space-x-3 w-full">
+          <Button type="button" variant="outline" onClick={onClose} className="bg-transparent">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            onClick={handleSubmit}
+            className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
+          >
+            {isLoading ? "Creating..." : "Create Chat"}
+          </Button>
+        </div>
+      }
+    >
+      <form onSubmit={handleSubmit} className="space-y-6">
           {/* Chat Type Selection */}
           <div className="space-y-3">
             <Label>Chat Type</Label>
@@ -349,22 +367,7 @@ export function CreateChatModal({ isOpen, onClose }: CreateChatModalProps) {
               </div>
             </div>
           )}
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} className="bg-transparent">
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="bg-gradient-to-r from-primary to-secondary hover:from-primary/80 hover:to-secondary/80 neon-glow"
-            >
-              {isLoading ? "Creating..." : "Create Chat"}
-            </Button>
-          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </BaseModal>
   )
 }

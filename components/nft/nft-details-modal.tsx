@@ -1,9 +1,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { BaseModal } from "@/components/shared/BaseModal"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
@@ -42,6 +42,8 @@ import { UnwrapNFTButton } from "@/components/rental/unwrap-nft-button"
 import { ChainBadge } from "@/components/ui/chain-badge"
 import { useProfile } from "@/components/profile/profile-provider"
 import { getCollectionSlugByName } from "@/lib/collection-service"
+import { NFTActionButtons } from "@/components/shared/NFTActionButtons"
+import type { NFTAction } from "@/types/nft"
 
 interface NFTDetailsModalProps {
   nft: PortfolioNFT | null
@@ -439,10 +441,13 @@ export function NFTDetailsModal({
 
   return (
     <>
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto scrollbar-hide bg-card/95 backdrop-blur-xl border-border/50">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold flex items-center justify-between">
+      <BaseModal
+        isOpen={isOpen}
+        onClose={onClose}
+        size="xl"
+        scrollable={true}
+        title={
+          <div className="flex items-center justify-between w-full">
               {collectionSlug ? (
                 <Link
                   href={`/collections/${collectionSlug}`}
@@ -472,8 +477,9 @@ export function NFTDetailsModal({
                   chainId={nft.chainId}
                 />
               </div>
-            </DialogTitle>
-          </DialogHeader>
+          </div>
+        }
+      >
 
           <div className="space-y-6">
             {/* Top Section - Image, Actions, and Price Information */}
@@ -496,41 +502,26 @@ export function NFTDetailsModal({
 
               {/* Action Buttons */}
               <div className="space-y-2">
-                {/* Listed NFT/Bundle Actions */}
-                {nft.listing?.type === "sale" && !isOwner && (
-                  <Button
-                    className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 neon-glow"
-                    onClick={() => {
-                      if (onBuyNFT) {
+                {/* Listed NFT/Bundle Actions - Show primary action for non-owners */}
+                {!isOwner && (
+                  <NFTActionButtons
+                    nft={nft}
+                    isOwner={isOwner}
+                    onActionClick={(action: NFTAction) => {
+                      if (action === 'buy' && onBuyNFT) {
                         onBuyNFT(nft)
+                      } else if (action === 'swap') {
+                        handleSwapClick()
                       } else {
                         toast({
-                          title: "Buy NFT",
+                          title: `${action.charAt(0).toUpperCase() + action.slice(1)} Action`,
                           description: "This feature is coming soon!",
                         })
                       }
                     }}
-                  >
-                    <ShoppingCart className="h-4 w-4 mr-2" />
-                    Buy {nft.isBundle ? "Bundle" : "NFT"} for {nft.listing.sale.price} APE
-                  </Button>
-                )}
-
-                {nft.listing?.type === "rent" && !isOwner && (
-                  <Button className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 neon-glow">
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Rent {nft.isBundle ? "Bundle" : "NFT"} - {nft.listing.rent.pricePerDay} APE/Day
-                  </Button>
-                )}
-
-                {nft.listing?.type === "swap" && !isOwner && (
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 neon-glow"
-                    onClick={handleSwapClick}
-                  >
-                    <ArrowLeftRight className="h-4 w-4 mr-2" />
-                    Propose Swap
-                  </Button>
+                    size="lg"
+                    layout="vertical"
+                  />
                 )}
 
                 {/* Owner Actions for Listed Items */}
@@ -1254,8 +1245,7 @@ export function NFTDetailsModal({
             </Card>
           </div>
           </div>
-        </DialogContent>
-      </Dialog>
+      </BaseModal>
 
       {/* Swap Modal */}
       {swapCriteria && (

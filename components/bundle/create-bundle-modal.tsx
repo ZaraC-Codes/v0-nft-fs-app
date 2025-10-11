@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
@@ -251,35 +251,32 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
 
   if (!account) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-black/90 border-cyan-500/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold neon-text">Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Please connect your wallet to create bundles.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Connect Wallet"
+        description="Please connect your wallet to create bundles."
+      />
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-5xl bg-black/90 border-cyan-500/50 max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold neon-text flex items-center gap-2">
-            <Package className="h-6 w-6" />
-            Create Bundle
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            {step === "select" && "Select NFTs to bundle together"}
-            {step === "customize" && "Choose preview thumbnails"}
-            {step === "delist" && "Cancel listings for selected NFTs"}
-            {step === "approve" && "Approve NFT contracts for bundling"}
-            {step === "create" && "Create your bundle"}
-          </DialogDescription>
-        </DialogHeader>
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Create NFT Bundle"
+      size="full"
+      titleIcon={<Package className="h-6 w-6" />}
+    >
+      <div className="overflow-hidden flex flex-col max-h-[75vh]">
+        {/* Step description */}
+        <div className="text-sm text-muted-foreground mb-4">
+          {step === "select" && "Select NFTs to bundle together"}
+          {step === "customize" && "Choose preview thumbnails"}
+          {step === "delist" && "Cancel listings for selected NFTs"}
+          {step === "approve" && "Approve NFT contracts for bundling"}
+          {step === "create" && "Create your bundle"}
+        </div>
 
         <div className="space-y-6 overflow-y-auto pr-2">
           {/* Step Indicator */}
@@ -829,7 +826,7 @@ export function CreateBundleModal({ isOpen, onClose, userNFTs }: CreateBundleMod
             </>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }

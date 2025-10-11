@@ -1,8 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
+import { BaseModal, BaseModalError } from "@/components/shared/BaseModal"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card } from "@/components/ui/card"
@@ -77,33 +77,29 @@ export function SwapModal({ isOpen, onClose, listingId, listedNFT, swapCriteria 
 
   if (!account) {
     return (
-      <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl bg-black/90 border-cyan-500/50">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold neon-text">Connect Wallet</DialogTitle>
-            <DialogDescription>
-              Please connect your wallet to swap NFTs.
-            </DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <BaseModalError
+        isOpen={isOpen}
+        onClose={onClose}
+        title="Connect Wallet"
+        description="Please connect your wallet to swap NFTs."
+      />
     )
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl bg-black/90 border-cyan-500/50 max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold neon-text flex items-center gap-2">
-            <ArrowLeftRight className="h-6 w-6" />
-            Swap NFT
-          </DialogTitle>
-          <DialogDescription className="text-base">
-            Looking for: <span className="text-cyan-400 font-medium">{criteriaDescription}</span>
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-6 overflow-y-auto pr-2">
+    <BaseModal
+      isOpen={isOpen}
+      onClose={onClose}
+      title="Swap NFT"
+      description={
+        <>
+          Looking for: <span className="text-cyan-400 font-medium">{criteriaDescription}</span>
+        </>
+      }
+      size="xl"
+      titleIcon={<ArrowLeftRight className="h-6 w-6" />}
+    >
+      <div className="space-y-6 overflow-y-auto pr-2 max-h-[70vh]">
           {/* Swap Preview */}
           <div className="grid grid-cols-[1fr_auto_1fr] gap-4 items-center">
             {/* Listed NFT */}
@@ -278,8 +274,7 @@ export function SwapModal({ isOpen, onClose, listingId, listedNFT, swapCriteria 
               </div>
             </Card>
           )}
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </BaseModal>
   )
 }
